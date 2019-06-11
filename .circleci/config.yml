@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: alpine
+    steps:
+      - checkout
+      - run:
+          name: helm-github-pages
+          environment:
+            - GITHUB_PAGES_REPO: cetic/helm-charts
+            - HELM_CHART: nifi
+          command: wget -O - https://raw.githubusercontent.com/cetic/nifi/develop/publish.sh | sh

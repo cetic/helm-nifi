@@ -1,0 +1,5 @@
+*.tgz
+
+# Helm Charts dependencies
+/charts
+*.lock
