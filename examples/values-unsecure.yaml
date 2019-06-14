@@ -1,3 +1,4 @@
+---
 properties:
   clusterSecure: false
   needClientAuth: null
@@ -5,9 +6,6 @@ properties:
   httpsPort: null
   siteToSite:
     secure: false
-
-ca:
-  enabled: false
 
 sts:
   hostPort: null

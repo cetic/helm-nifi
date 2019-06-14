@@ -1,5 +1,5 @@
 Cluster endpoint IP address will be available at:
-{{- if .Values.loadBalancer.enabled }}
+{{- if .Values.service.loadBalancer.enabled }}
 kubectl get svc {{ .Release.Name }}-apache-nifi-load-balancer -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[*].ip}'
 {{- else }}
 {{- if .Values.sts.hostPort }}
@@ -14,7 +14,3 @@ Cluster endpoint domain name is: {{.Values.properties.webProxyHost}} - please up
 Once you are done, your NiFi instance will be available at:
 
   {{ if .Values.properties.httpsPort }}https{{- else }}http{{ end }}://{{.Values.properties.webProxyHost}}/nifi
-
-To access a secure cluster, you will need an admin client certificate which can be obtained by running:
-
-  ./scripts/admincert.sh

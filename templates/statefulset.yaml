@@ -1,4 +1,4 @@
-{{- if or (not .Values.nifiSingleDisk) (not .Values.nifiSingleDisk.enabled) }}
+---
 apiVersion: apps/v1beta2
 kind: StatefulSet
 metadata:
@@ -59,9 +59,10 @@ spec:
       nodeSelector:
 {{ toYaml .Values.nodeSelector | indent 8 }}
 {{- end }}
+{{- if .Values.securityContext }}
       securityContext:
-        runAsUser: 1000
-        fsGroup: 1000
+{{ toYaml .Values.securityContext | indent 8 }}
+{{- end }}
       initContainers:
       - name: zookeeper
         image: busybox
@@ -74,59 +75,6 @@ spec:
             echo "waiting for zookeeper..."
             sleep 2
           done
-{{- if .Values.ca.enabled }}
-      - name: cert
-        imagePullPolicy: {{ .Values.ca.image.pullPolicy | quote }}
-        image: "{{ .Values.ca.image.repository }}:{{ .Values.ca.image.tag }}"
-        command:
-        - bash
-        - -c
-        - |
-
-          CA_ADDRESS="{{ template "apache-nifi.fullname" . }}-ca:{{ .Values.ca.port }}"
-          until echo "" | timeout -t 2 openssl s_client -connect "${CA_ADDRESS}"; do
-            echo "Waiting for CA to be avaiable at ${CA_ADDRESS}"
-            sleep 2
-          done;
-
-          mkdir -p /data/cert
-          cd /data/cert
-
-          rm -rf /data/cert/*
-
-          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client\
-            -c "{{ template "apache-nifi.fullname" . }}-ca"\
-            -t "$(cat /etc/ca-mitm-token/token)"\
-{{- if .Values.properties.webProxyHost}}
-            --subjectAlternativeNames {{.Values.properties.webProxyHost}}\
-{{- end }}
-            -D "CN=$(hostname -f),OU=NIFI"\
-            -p {{ .Values.ca.port }}
-
-          # generate admin cert for operational use cases
-          mkdir -p /data/cert/admin
-          cd /data/cert/admin
-
-          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client\
-            -c "{{ template "apache-nifi.fullname" . }}-ca"\
-            -t "$(cat /etc/ca-mitm-token/token)"\
-{{- if .Values.properties.webProxyHost}}
-            --subjectAlternativeNames {{.Values.properties.webProxyHost}}\
-{{- end }}
-            -p {{ .Values.ca.port }}\
-            -D "CN={{ .Values.ca.admin.cn }},OU=NIFI"\
-            -T PKCS12
-
-          export PASS=$(jq -r .keyStorePassword config.json)
-
-          openssl pkcs12 -in "keystore.pkcs12" -out "key.pem" -nocerts -nodes -password "env:PASS"
-          openssl pkcs12 -in "keystore.pkcs12" -out "crt.pem" -clcerts -nokeys -password "env:PASS"
-        volumeMounts:
-          - name: "data"
-            mountPath: /data
-          - name: ca-mitm-token
-            mountPath: /etc/ca-mitm-token
-{{- end }}
       containers:
       - name: server
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
@@ -154,26 +102,6 @@ spec:
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
-
-{{- if .Values.ca.enabled }}
-          prop_replace nifi.web.https.host ${FQDN}
-
-          prop_replace nifi.security.keystore ${NIFI_BASE_DIR}/data/cert/keystore.jks
-          prop_replace nifi.security.keystorePasswd $(jq -r .keyStorePassword ${NIFI_BASE_DIR}/data/cert/config.json)
-          prop_replace nifi.security.keyPasswd $(jq -r .keyPassword ${NIFI_BASE_DIR}/data/cert/config.json)
-
-          prop_replace nifi.security.truststore ${NIFI_BASE_DIR}/data/cert/truststore.jks
-          prop_replace nifi.security.truststorePasswd $(jq -r .trustStorePassword ${NIFI_BASE_DIR}/data/cert/config.json)
-{{- else }}
-          # # disabling this for http
-          # # as of 1.8.0, it seems that host headers are checked with this setting,
-          # # even when log shows the following message:
-          # #    INFO [main] org.apache.nifi.web.server.JettyServer Running in HTTP mode; host headers not restricted
-          # # which is followed by
-          # #    INFO [main] org.apache.nifi.web.server.JettyServer NiFi has started. The UI is available at the following URLs:
-          # #    INFO [main] org.apache.nifi.web.server.JettyServer http://nnnnn-0.nnnnn-headless.nsnsns.svc.cluster.local:8080/nifi
-          # prop_replace nifi.web.http.host ${FQDN}
-{{- end }}
 
           exec bin/nifi.sh run
         resources:
@@ -356,50 +284,73 @@ spec:
           items:
             - key: "zookeeper.properties"
               path: "zookeeper.properties"
-{{- if .Values.ca.enabled }}
-      - name: ca-mitm-token
-        secret:
-          secretName: {{ template "apache-nifi.fullname" . }}-ca-mitm-token
+{{- if not .Values.persistence.enabled }}
+      - name: data
+        emptyDir: {}
+      - name: flowfile-repository
+        emptyDir: {}
+      - name: content-repository
+        emptyDir: {}
+      - name: provenance-repository
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
 {{- end }}
+{{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
-        name: "data"
+        name: data
       spec:
-        accessModes: ["ReadWriteOnce"]
-        storageClassName: {{ .Values.storageClass | quote }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
         resources:
           requests:
-            storage: {{ .Values.dataStorage }}
+            storage: {{ .Values.persistence.dataStorage.size }}
     - metadata:
-        name: "flowfile-repository"
+        name: flowfile-repository
       spec:
-        accessModes: ["ReadWriteOnce"]
-        storageClassName: {{ .Values.storageClass | quote }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
         resources:
           requests:
-            storage: {{ .Values.flowfileRepoStorage }}
+            storage: {{ .Values.persistence.flowfileRepoStorage.size }}
     - metadata:
-        name: "content-repository"
+        name: content-repository
       spec:
-        accessModes: ["ReadWriteOnce"]
-        storageClassName: {{ .Values.storageClass | quote }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
         resources:
           requests:
-            storage: {{ .Values.contentRepoStorage }}
+            storage: {{ .Values.persistence.contentRepoStorage.size }}
     - metadata:
-        name: "provenance-repository"
+        name: provenance-repository
       spec:
-        accessModes: ["ReadWriteOnce"]
-        storageClassName: {{ .Values.storageClass | quote }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
         resources:
           requests:
-            storage: {{ .Values.provenanceRepoStorage }}
+            storage: {{ .Values.persistence.provenanceRepoStorage.size }}
     - metadata:
-        name: "logs"
+        name: logs
       spec:
-        accessModes: ["ReadWriteOnce"]
-        storageClassName: {{ .Values.storageClass | quote }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
         resources:
           requests:
-            storage: {{ .Values.logStorage }}
+            storage: {{ .Values.persistence.logStorage.size }}
 {{- end }}

@@ -1,23 +1,23 @@
 ---
-# Default values for apache-nifi.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 # Number of nifi nodes
 replicaCount: 2
 
+## Set default image, imageTag, and imagePullPolicy. 
+## ref: https://hub.docker.com/r/apache/nifi/
+##
 image:
   repository: apache/nifi
+  tag: "1.9.2"
   pullPolicy: IfNotPresent
-  tag: "1.8.0"
+
+securityContext:
+  runAsUser: 1000
+  fsGroup: 1000
 
 sts:
   # Parallel podManagementPolicy for faster bootstrap and teardown. Default is OrderedReady.
   podManagementPolicy: Parallel
   AntiAffinity: hard
-
-service:
-  type: ClusterIP
 
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
@@ -34,10 +34,20 @@ properties:
     port: 10000
   authorizer: managed-authorizer
 
-loadBalancer:
-  enabled: true
-  httpPort: 80
-  httpsPort: 443
+service:
+  headless:
+    type: ClusterIP
+  loadBalancer:
+    enabled: true
+    httpPort: 80
+    httpsPort: 443
+    annotations: {}
+    # loadBalancerIP:
+    ## Load Balancer sources
+    ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+    ##
+    # loadBalancerSourceRanges:
+    # - 10.10.10.0/24
 
 ingress:
   enabled: false
@@ -61,38 +71,41 @@ probe:
 # Separate image for tailing each log separately
 sidecar:
   image: ez123/alpine-tini
-  # image: pepov/alpine-tini
-  # #image: pygmy/alpine-tini:3.8
 
-## Persistent Storage
-# When creating persistent storage, the NiFi helm chart can either reference an already-defined
-# storage class by name, such as "standard" or can define a custom storage class by specifying
-# customStorageClass: true and providing the "storageClass", "storageProvisioner" and "storageType".
-# For example, to use SSD storage on Google Compute Engine see values-gcp.yaml
-#
-# To use a storage class that already exists on the Kubernetes cluster, we can simply reference it by name.
-# For example:
-# storageClass: standard
-#
-storageClass: standard
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistence:
+  enabled: true
 
-## Storage Capacities for persistent volumes
-# Storage capacity for the 'data' directory, which is used to hold things such as the flow.xml.gz, configuration, state, etc.
-dataStorage: 1Gi
-# Storage capacity for the FlowFile repository
-flowfileRepoStorage: 10Gi
-# Storage capacity for the Content repository
-contentRepoStorage: 10Gi
-# Storage capacity for the Provenance repository. When changing this, one should also change the properties.provenanceStorage value above, also.
-provenanceRepoStorage: 10Gi
-# Storage capacity for nifi logs
-logStorage: 5Gi
+  # When creating persistent storage, the NiFi helm chart can either reference an already-defined
+  # storage class by name, such as "standard" or can define a custom storage class by specifying
+  # customStorageClass: true and providing the "storageClass", "storageProvisioner" and "storageType".
+  # For example, to use SSD storage on Google Compute Engine see values-gcp.yaml
+  #
+  # To use a storage class that already exists on the Kubernetes cluster, we can simply reference it by name.
+  # For example:
+  # storageClass: standard
+  #
 
-# nifiSingleDisk can be used in environments where the host VM limnits the number of external mounts (eg: Azure AKS)
-nifiSingleDisk:
-  enabled: false
-  # storageClass: default
-  # storageSize: 1Gi
+  storageClass: standard
+  accessModes:  [ReadWriteOnce]
+  ## Storage Capacities for persistent volumes
+  # Storage capacity for the 'data' directory, which is used to hold things such as the flow.xml.gz, configuration, state, etc.
+  dataStorage: 
+    size: 1Gi
+  # Storage capacity for the FlowFile repository
+  flowfileRepoStorage: 
+    size: 10Gi
+  # Storage capacity for the Content repository
+  contentRepoStorage: 
+    size: 10Gi
+  # Storage capacity for the Provenance repository. When changing this, one should also change the properties.provenanceStorage value above, also.
+  provenanceRepoStorage: 
+    size: 10Gi
+  # Storage capacity for nifi logs
+  logStorage: 
+    size: 5Gi
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -131,22 +144,3 @@ zookeeper:
   ## If the Zookeeper Chart is disabled a URL and port are required to connect
   url: ""
   port: 2181
-
-ca:
-  enabled: false
-  image:
-    repository: apache/nifi-toolkit
-    tag: "1.8.0"
-    pullPolicy: IfNotPresent
-  certgenImage:
-    repository: pepov/ca-cert-generator
-    tag: latest
-    pullPolicy: IfNotPresent
-  port: 8443
-  service:
-    type: ClusterIP
-  admin:
-    cn: admin
-  certgenSchedule: "@daily"
-
-tokenGeneratorImage: pepov/ca-token-generator
