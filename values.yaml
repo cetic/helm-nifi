@@ -57,7 +57,7 @@ ingress:
   # host:
 
   auth:
-    enabled: true
+    enabled: false
     mode: basic
     basic_secret: password
 

@@ -59,7 +59,74 @@ The following table lists the configurable parameters of the pgAdmin chart and t
 
 | Parameter                                                                   | Description                                                                                                        | Default                         |
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------| ------------------------------- |
+| **ReplicaCount**                                                            |
+| `replicaCount`                                                              | Number of nifi nodes                                                                                               | `2`                             |
 | **Image**                                                                   |
+| `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
+| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.9.2`                         |
+| `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
+| **SecurityContext**                                                         |
+| `securityContext.runAsUser`                                                 | nifi User                                                                                                          | `1000`                          |
+| `securityContext.fsGroup`                                                   | nifi Group                                                                                                         | `1000`                          |
+| **sts**                                                                     |
+| `sts.podManagementPolicy`                                                   |                                                                                                                    | `Parallel`                      |
+| `sts.AntiAffinity`                                                          |                                                                                                                    | `hard`                          |
+| **properties**                                                              |
+| `properties.externalSecure`                                                 |                                                                                                                    | `false`                         |
+| `properties.isNode`                                                         |                                                                                                                    | `true`                          |
+| `properties.httpPort`                                                       |                                                                                                                    | `null`                          |
+| `properties.httpsPort`                                                      |                                                                                                                    | `8443`                          |
+| `properties.clusterPort`                                                    |                                                                                                                    | `6007`                          |
+| `properties.clusterSecure`                                                  |                                                                                                                    | `true`                          |
+| `properties.needClientAuth`                                                 |                                                                                                                    | `true`                          |
+| `properties.provenanceStorage`                                              |                                                                                                                    | `8 GB`                          |
+| `properties.siteToSite.secure`                                              |                                                                                                                    | `true`                          |
+| `properties.siteToSite.port`                                                |                                                                                                                    | `10000`                         |
+| `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
+| **Service**                                                                 |
+| `service.headless.type`                                                     | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
+| `service.loadBalancer.enabled`                                              | Enable the LoabBalancerServic                                                                                      | `80`                            |
+| `service.loadBalancer.httpPort`                                             | Port to expose service                                                                                             | `80`                            |
+| `service.loadBalancer.httpsPort`                                            | Port to expose service in tls                                                                                      | `443`                           |
+| `service.loadBalancer.annotations`                                          | Service annotations                                                                                                | `{}`                            |
+| `service.loadBalancer.loadBalancerIP`                                       | LoadBalancerIP if service type is `LoadBalancer`                                                                   | `nil`                           |
+| `service.loadBalancer.loadBalancerSourceRanges`                             | Address that are allowed when svc is `LoadBalancer`                                                                | `[]`                            |
+| **Ingress**                                                                 |
+| `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
+| `ingress.auth.enabled`                                                      | Enable Auth with Ingress                                                                                           | `false`                         |
+| `ingress.auth.mode`                                                         | Auth Mode                                                                                                          | `basic`                         |
+| `ingress.auth.basic_secret`                                                 | Auth Mode Basic Secret                                                                                             | `password`                      |
+| **Persistence**                                                             |
+| `persistence.enabled`                                                       | Use persistent volume to store data                                                                                | `true`                          |
+| `persistence.storageClass`                                                  | Storage class name of PVCs                                                                                         | `standard`                      |
+| `persistence.accessMode`                                                    | ReadWriteOnce or ReadOnly                                                                                          | `[ReadWriteOnce]`               |
+| `persistence.dataStorage.size`                                              | Size of persistent volume claim                                                                                    | `1Gi`                           |
+| `persistence.flowfileRepoStorage.size`                                      | Size of persistent volume claim                                                                                    | `10Gi`                          |
+| `persistence.contentRepoStorage.size`                                       | Size of persistent volume claim                                                                                    | `10Gi`                          |
+| `persistence.provenanceRepoStorage.size`                                    | Size of persistent volume claim                                                                                    | `10Gi`                          |
+| `persistence.logStorage.size`                                               | Size of persistent volume claim                                                                                    | `5Gi`                           |
+| `persistence.existingClaim`                                                 | Use an existing PVC to persist data                                                                                | `nil`                           |
+| **jvmMemory**                                                               |
+| `jvmMemory`                                                                 |                                                                                                                    | `2g`                            |
+| **Probe**                                                                   |
+| `probe.initialDelaySeconds`                                                 |                                                                                                                    | `30`                            |
+| `probe.timeoutSeconds`                                                      |                                                                                                                    | `15`                            |
+| **SideCar**                                                                 |
+| `sidecar.image`                                                             | Separate image for tailing each log separately                                                                     | `ez123/alpine-tini`             |
+| **Resources**                                                               |
+| `resources`                                                                 | Pod resource requests and limits for logs                                                                          | `{}`                            |
+| **logResources**                                                            |
+| `logresources.`                                                             | Pod resource requests and limits                                                                                   | `{}`                            |
+| **nodeSelector**                                                            |
+| `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
+| **tolerations**                                                             |
+| `tolerations`                                                               | Tolerations for pod assignment                                                                                     | `[]`                            |
+| **affinity**                                                                |
+| `affinity`                                                                  | Affinity for pod assignment                                                                                        | `{}`                            |
+| **zookeeper**                                                               |
+|`zookeeper.enabled`                                                          | If true, deploy Zookeeper                                                                                          | `true`                          |
+|`zookeeper.url`                                                              | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
+|`zookeeper.port`                                                             | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `2181`                          |
 
 ## Credits
 

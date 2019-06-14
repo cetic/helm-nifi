@@ -10,4 +10,4 @@ jobs:
           environment:
             - GITHUB_PAGES_REPO: cetic/helm-charts
             - HELM_CHART: nifi
-          command: wget -O - https://raw.githubusercontent.com/cetic/nifi/develop/publish.sh | sh
+          command: wget -O - https://raw.githubusercontent.com/cetic/helm-nifi/develop/publish.sh | sh
