@@ -135,8 +135,8 @@ spec:
               - |
                 $NIFI_HOME/bin/nifi.sh stop
         readinessProbe:
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          initialDelaySeconds: 60
+          periodSeconds: 20
           exec:
             command:
             - bash

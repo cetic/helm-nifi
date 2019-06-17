@@ -1,6 +1,6 @@
 ---
 # Number of nifi nodes
-replicaCount: 2
+replicaCount: 1
 
 ## Set default image, imageTag, and imagePullPolicy. 
 ## ref: https://hub.docker.com/r/apache/nifi/
@@ -17,23 +17,28 @@ securityContext:
 sts:
   # Parallel podManagementPolicy for faster bootstrap and teardown. Default is OrderedReady.
   podManagementPolicy: Parallel
-  AntiAffinity: hard
+  AntiAffinity: soft
+  hostPort: null
 
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
   isNode: true
-  httpPort: null
-  httpsPort: 8443
+  httpPort: 8080
+  httpsPort: null
   clusterPort: 6007
-  clusterSecure: true
-  needClientAuth: true
+  clusterSecure: false
+  needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
-    secure: true
+    secure: false
     port: 10000
   authorizer: managed-authorizer
 
+## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
+## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
+## ref: http://kubernetes.io/docs/user-guide/services/
+##
 service:
   headless:
     type: ClusterIP
@@ -49,6 +54,8 @@ service:
     # loadBalancerSourceRanges:
     # - 10.10.10.0/24
 
+## Configure Ingress based on the documentation here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+##
 ingress:
   enabled: false
   # annotations:
@@ -76,7 +83,7 @@ sidecar:
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
 ##
 persistence:
-  enabled: true
+  enabled: false
 
   # When creating persistent storage, the NiFi helm chart can either reference an already-defined
   # storage class by name, such as "standard" or can define a custom storage class by specifying
@@ -107,6 +114,9 @@ persistence:
   logStorage: 
     size: 5Gi
 
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
