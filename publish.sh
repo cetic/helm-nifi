@@ -35,8 +35,8 @@ echo ">>> Create Chart Directory"
 mkdir -p $HELM_CHARTS_SOURCE/
 mkdir -p /tmp/helm-tmp/
 
-mv $WORKING_DIRECTORY/{.,}* /tmp/helm-tmp/
-mv /tmp/helm-tmp/{.,}* $HELM_CHARTS_SOURCE/
+cp -r $WORKING_DIRECTORY/ /tmp/helm-tmp/
+cp -r /tmp/helm-tmp/ $HELM_CHARTS_SOURCE/
 
 echo '>> Prepare...'
 mkdir -p /tmp/helm/bin
