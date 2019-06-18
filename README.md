@@ -60,28 +60,28 @@ The following table lists the configurable parameters of the pgAdmin chart and t
 | Parameter                                                                   | Description                                                                                                        | Default                         |
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------| ------------------------------- |
 | **ReplicaCount**                                                            |
-| `replicaCount`                                                              | Number of nifi nodes                                                                                               | `2`                             |
+| `replicaCount`                                                              | Number of nifi nodes                                                                                               | `1`                             |
 | **Image**                                                                   |
 | `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
 | `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.9.2`                         |
 | `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
 | **SecurityContext**                                                         |
-| `securityContext.runAsUser`                                                 | nifi User                                                                                                          | `1000`                          |
-| `securityContext.fsGroup`                                                   | nifi Group                                                                                                         | `1000`                          |
+| `securityContext.runAsUser`                                                 | nifi Docker User                                                                                                   | `1000`                          |
+| `securityContext.fsGroup`                                                   | nifi Docker Group                                                                                                  | `1000`                          |
 | **sts**                                                                     |
-| `sts.podManagementPolicy`                                                   |                                                                                                                    | `Parallel`                      |
-| `sts.AntiAffinity`                                                          |                                                                                                                    | `hard`                          |
-| **properties**                                                              |
-| `properties.externalSecure`                                                 |                                                                                                                    | `false`                         |
-| `properties.isNode`                                                         |                                                                                                                    | `true`                          |
-| `properties.httpPort`                                                       |                                                                                                                    | `null`                          |
-| `properties.httpsPort`                                                      |                                                                                                                    | `8443`                          |
-| `properties.clusterPort`                                                    |                                                                                                                    | `6007`                          |
-| `properties.clusterSecure`                                                  |                                                                                                                    | `true`                          |
-| `properties.needClientAuth`                                                 |                                                                                                                    | `true`                          |
-| `properties.provenanceStorage`                                              |                                                                                                                    | `8 GB`                          |
-| `properties.siteToSite.secure`                                              |                                                                                                                    | `true`                          |
-| `properties.siteToSite.port`                                                |                                                                                                                    | `10000`                         |
+| `sts.podManagementPolicy`                                                   | Parallel podManagementPolicy                                                                                       | `Parallel`                      |
+| `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
+| **nifi properties**                                                         |
+| `properties.externalSecure`                                                 | externalSecure for when inbound SSL                                                                                | `false`                         |
+| `properties.isNode`                                                         | cluster node properties (only configure for cluster nodes)                                                         | `true`                          |
+| `properties.httpPort`                                                       | web properties HTTP port                                                                                           | `8080`                          |
+| `properties.httpsPort`                                                      | web properties HTTPS port                                                                                          | `null`                          |
+| `properties.clusterPort`                                                    | cluster node port                                                                                                  | `6007`                          |
+| `properties.clusterSecure`                                                  | cluster nodes sercure mode                                                                                         | `false`                         |
+| `properties.needClientAuth`                                                 | nifi security client auth                                                                                          | `false`                         |
+| `properties.provenanceStorage`                                              | nifi provenance repository max storage size                                                                        | `8 GB`                          |
+| `properties.siteToSite.secure`                                              | Site to Site properties Secure mode                                                                                | `false`                         |
+| `properties.siteToSite.port`                                                | Site to Site properties Secure port                                                                                | `10000`                         |
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
 | **Service**                                                                 |
 | `service.headless.type`                                                     | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
@@ -107,10 +107,7 @@ The following table lists the configurable parameters of the pgAdmin chart and t
 | `persistence.logStorage.size`                                               | Size of persistent volume claim                                                                                    | `5Gi`                           |
 | `persistence.existingClaim`                                                 | Use an existing PVC to persist data                                                                                | `nil`                           |
 | **jvmMemory**                                                               |
-| `jvmMemory`                                                                 |                                                                                                                    | `2g`                            |
-| **Probe**                                                                   |
-| `probe.initialDelaySeconds`                                                 |                                                                                                                    | `30`                            |
-| `probe.timeoutSeconds`                                                      |                                                                                                                    | `15`                            |
+| `jvmMemory`                                                                 | bootstrap jvm size                                                                                                 | `2g`                            |
 | **SideCar**                                                                 |
 | `sidecar.image`                                                             | Separate image for tailing each log separately                                                                     | `ez123/alpine-tini`             |
 | **Resources**                                                               |
@@ -121,8 +118,6 @@ The following table lists the configurable parameters of the pgAdmin chart and t
 | `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
 | **tolerations**                                                             |
 | `tolerations`                                                               | Tolerations for pod assignment                                                                                     | `[]`                            |
-| **affinity**                                                                |
-| `affinity`                                                                  | Affinity for pod assignment                                                                                        | `{}`                            |
 | **zookeeper**                                                               |
 |`zookeeper.enabled`                                                          | If true, deploy Zookeeper                                                                                          | `true`                          |
 |`zookeeper.url`                                                              | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |

@@ -71,10 +71,6 @@ ingress:
 # Amount of memory to give the NiFi java heap
 jvmMemory: 2g
 
-probe:
-  initialDelaySeconds: 30
-  timeoutSeconds: 15
-
 # Separate image for tailing each log separately
 sidecar:
   image: ez123/alpine-tini
@@ -140,8 +136,6 @@ logresources:
 nodeSelector: {}
 
 tolerations: []
-
-affinity: {}
 
 # ------------------------------------------------------------------------------
 # Zookeeper:

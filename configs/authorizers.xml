@@ -45,7 +45,7 @@
     <userGroupProvider>
         <identifier>file-user-group-provider</identifier>
         <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
-        <property name="Users File">../data/users.xml</property>
+        <property name="Users File">./conf/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
 {{- range $i := until $replicas }}
         <property name="Initial User Identity {{ $i }}">CN={{ $release }}-{{ $chart }}-{{ $i }}.{{ $release }}-{{ $chart }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
@@ -217,7 +217,7 @@
         <identifier>file-access-policy-provider</identifier>
         <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
         <property name="User Group Provider">file-user-group-provider</property>
-        <property name="Authorizations File">../data/authorizations.xml</property>
+        <property name="Authorizations File">./conf/authorizations.xml</property>
         <property name="Initial Admin Identity">CN=admin, OU=NIFI</property>
         <property name="Legacy Authorized Users File"></property>
 {{- range $i := until $replicas }}
