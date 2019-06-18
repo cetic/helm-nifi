@@ -130,7 +130,6 @@ Initially inspired from https://github.com/YolandaMDavis/apache-nifi.
 ## Todo list
 
 * Nifi replicaCount > 1 is unstable for the moment.
-* Upgrade Zookeeper dependency.
 * Add LDAP support.
 * ...
 
