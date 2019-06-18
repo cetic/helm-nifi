@@ -35,8 +35,8 @@ echo ">>> Create Chart Directory"
 mkdir -p $HELM_CHARTS_SOURCE/
 mkdir -p /tmp/helm-tmp/
 
-cp -r $WORKING_DIRECTORY/ /tmp/helm-tmp/
-cp -r /tmp/helm-tmp/ $HELM_CHARTS_SOURCE/
+cp -r $WORKING_DIRECTORY/. /tmp/helm-tmp/
+cp -r /tmp/helm-tmp/. $HELM_CHARTS_SOURCE/
 
 echo '>> Prepare...'
 mkdir -p /tmp/helm/bin
@@ -63,11 +63,12 @@ echo '>> Building chart...'
 echo ">>> helm lint $HELM_CHARTS_SOURCE"
 helm lint "$HELM_CHARTS_SOURCE"
 
+mkdir -p "$HELM_CHART"
+
 echo '>>> helm dependency update'
 helm dep up "$HELM_CHARTS_SOURCE"
 
 echo ">>> helm package -d $HELM_CHART $HELM_CHARTS_SOURCE"
-mkdir -p "$HELM_CHART"
 helm package -d "$HELM_CHART" "$HELM_CHARTS_SOURCE"
 
 echo '>>> helm repo index'
