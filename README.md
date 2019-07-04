@@ -25,7 +25,7 @@ helm repo update
 
 The following items can be set via `--set` flag during installation or configured by editing the `values.yaml` directly (need to download the chart first).
 
-#### Configure the way how to expose pgAdmin service:
+#### Configure the way how to expose nifi service:
 
 - **Ingress**: The ingress controller must be installed in the Kubernetes cluster.
 - **ClusterIP**: Exposes the service on a cluster-internal IP. Choosing this value makes the service only reachable from within the cluster.
@@ -55,7 +55,7 @@ helm delete --purge my-release
 
 ## Configuration
 
-The following table lists the configurable parameters of the pgAdmin chart and the default values.
+The following table lists the configurable parameters of the nifi chart and the default values.
 
 | Parameter                                                                   | Description                                                                                                        | Default                         |
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------| ------------------------------- |
