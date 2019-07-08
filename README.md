@@ -83,6 +83,11 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.siteToSite.secure`                                              | Site to Site properties Secure mode                                                                                | `false`                         |
 | `properties.siteToSite.port`                                                | Site to Site properties Secure port                                                                                | `10000`                         |
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
+| **nifi user authentication**                                                |
+| `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
+| `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
+| `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
+| `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
 | **Service**                                                                 |
 | `service.headless.type`                                                     | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
 | `service.loadBalancer.enabled`                                              | Enable the LoabBalancerServic                                                                                      | `80`                            |

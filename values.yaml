@@ -35,6 +35,14 @@ properties:
     port: 10000
   authorizer: managed-authorizer
 
+# Nifi User Authentication
+auth:
+  ldap:
+    enabled: false
+    host: ldap://<hostname>:<port>
+    searchBase: CN=Users,DC=example,DC=com
+    searchFilter: CN=john
+
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
 ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
 ## ref: http://kubernetes.io/docs/user-guide/services/

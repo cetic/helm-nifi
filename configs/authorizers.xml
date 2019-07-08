@@ -29,7 +29,6 @@
     ...
 -->
 <authorizers>
-
     <!--
         The FileUserGroupProvider will provide support for managing users and groups which is backed by a file
         on the local file system.
@@ -52,7 +51,6 @@
 {{- end }}
         <property name="Initial User Identity admin">CN=admin, OU=NIFI</property>
     </userGroupProvider>
-
     <!--
         The LdapUserGroupProvider will retrieve users and groups from an LDAP server. The users and groups
         are not configurable.
@@ -224,8 +222,7 @@
         <property name="Node Identity {{ $i }}">CN={{ $release }}-{{ $chart }}-{{ $i }}.{{ $release }}-{{ $chart }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
 {{- end }}
     </accessPolicyProvider>
-
-    <!--
+     <!--
         The StandardManagedAuthorizer. This authorizer implementation must be configured with the
         Access Policy Provider which it will use to access and manage users, groups, and policies.
         These users, groups, and policies will be used to make all access decisions during authorization
@@ -237,7 +234,6 @@
         <class>org.apache.nifi.authorization.StandardManagedAuthorizer</class>
         <property name="Access Policy Provider">file-access-policy-provider</property>
     </authorizer>
-
     <!--
         NOTE: This Authorizer has been replaced with the more granular approach configured above with the Standard
         Managed Authorizer. However, it is still available for backwards compatibility reasons.
