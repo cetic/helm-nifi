@@ -1,6 +1,6 @@
 # Helm Chart for Apache Nifi
 
-[![CircleCI](https://circleci.com/gh/cetic/helm-nifi.svg?style=shield)](https://circleci.com/gh/cetic/helm-nifi/tree/master)
+[![CircleCI](https://circleci.com/gh/cetic/helm-nifi.svg?style=svg)](https://circleci.com/gh/cetic/helm-nifi/tree/master) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) ![version](https://img.shields.io/github/tag/cetic/helm-nifi.svg?label=release)
 
 ## Introduction
 
@@ -25,7 +25,7 @@ helm repo update
 
 The following items can be set via `--set` flag during installation or configured by editing the `values.yaml` directly (need to download the chart first).
 
-#### Configure the way how to expose pgAdmin service:
+#### Configure the way how to expose nifi service:
 
 - **Ingress**: The ingress controller must be installed in the Kubernetes cluster.
 - **ClusterIP**: Exposes the service on a cluster-internal IP. Choosing this value makes the service only reachable from within the cluster.
@@ -55,7 +55,7 @@ helm delete --purge my-release
 
 ## Configuration
 
-The following table lists the configurable parameters of the pgAdmin chart and the default values.
+The following table lists the configurable parameters of the nifi chart and the default values.
 
 | Parameter                                                                   | Description                                                                                                        | Default                         |
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------| ------------------------------- |
@@ -83,6 +83,11 @@ The following table lists the configurable parameters of the pgAdmin chart and t
 | `properties.siteToSite.secure`                                              | Site to Site properties Secure mode                                                                                | `false`                         |
 | `properties.siteToSite.port`                                                | Site to Site properties Secure port                                                                                | `10000`                         |
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
+| **nifi user authentication**                                                |
+| `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
+| `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
+| `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
+| `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
 | **Service**                                                                 |
 | `service.headless.type`                                                     | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
 | `service.loadBalancer.enabled`                                              | Enable the LoabBalancerServic                                                                                      | `80`                            |
@@ -97,7 +102,7 @@ The following table lists the configurable parameters of the pgAdmin chart and t
 | `ingress.auth.mode`                                                         | Auth Mode                                                                                                          | `basic`                         |
 | `ingress.auth.basic_secret`                                                 | Auth Mode Basic Secret                                                                                             | `password`                      |
 | **Persistence**                                                             |
-| `persistence.enabled`                                                       | Use persistent volume to store data                                                                                | `true`                          |
+| `persistence.enabled`                                                       | Use persistent volume to store data                                                                                | `false`                          |
 | `persistence.storageClass`                                                  | Storage class name of PVCs                                                                                         | `standard`                      |
 | `persistence.accessMode`                                                    | ReadWriteOnce or ReadOnly                                                                                          | `[ReadWriteOnce]`               |
 | `persistence.dataStorage.size`                                              | Size of persistent volume claim                                                                                    | `1Gi`                           |

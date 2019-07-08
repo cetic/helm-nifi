@@ -3,3 +3,5 @@
 # Helm Charts dependencies
 /charts
 *.lock
+
+.idea

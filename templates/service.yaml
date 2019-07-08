@@ -31,7 +31,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "apache-nifi.fullname" . }}-load-balancer
+  name: {{ template "apache-nifi.fullname" . }}
   labels:
     app: {{ include "apache-nifi.name" . | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
