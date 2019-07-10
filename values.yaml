@@ -66,15 +66,10 @@ service:
 ##
 ingress:
   enabled: false
-  # annotations:
-  # tlsSecretName:
-  # tls:
-  # host:
-
-  auth:
-    enabled: false
-    mode: basic
-    basic_secret: password
+  annotations: {}
+  tls: []
+  hosts: []
+  path: /
 
 # Amount of memory to give the NiFi java heap
 jvmMemory: 2g
