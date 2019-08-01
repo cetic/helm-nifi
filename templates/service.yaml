@@ -42,7 +42,7 @@ metadata:
 {{ toYaml .Values.service.loadBalancer.annotations | indent 4 }}
 {{- end }}
 spec:
-  type: "LoadBalancer"
+  type: {{ .Values.service.loadBalancer.type }}
   {{- if .Values.service.loadBalancer.loadBalancerIP }}
   loadBalancerIP: {{ .Values.service.loadBalancer.loadBalancerIP }}
   {{- end }}

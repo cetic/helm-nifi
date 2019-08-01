@@ -52,6 +52,7 @@ service:
     type: ClusterIP
   loadBalancer:
     enabled: true
+    type: LoadBalancer
     httpPort: 80
     httpsPort: 443
     annotations: {}
