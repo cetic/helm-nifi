@@ -91,6 +91,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **Service**                                                                 |
 | `service.headless.type`                                                     | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
 | `service.loadBalancer.enabled`                                              | Enable the LoabBalancerServic                                                                                      | `80`                            |
+| `service.loadBalancer.type`                                                 | Type of the loadbalancer service for nifi                                                                          | `LoadBalancer`                  |
 | `service.loadBalancer.httpPort`                                             | Port to expose service                                                                                             | `80`                            |
 | `service.loadBalancer.httpsPort`                                            | Port to expose service in tls                                                                                      | `443`                           |
 | `service.loadBalancer.annotations`                                          | Service annotations                                                                                                | `{}`                            |
