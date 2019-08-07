@@ -65,6 +65,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
 | `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.9.2`                         |
 | `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
+| `image.pullSecret`                                                          | nifi Image pull secret                                                                                             | `nil`                           |
 | **SecurityContext**                                                         |
 | `securityContext.runAsUser`                                                 | nifi Docker User                                                                                                   | `1000`                          |
 | `securityContext.fsGroup`                                                   | nifi Docker Group                                                                                                  | `1000`                          |
