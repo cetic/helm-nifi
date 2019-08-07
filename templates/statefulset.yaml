@@ -75,6 +75,10 @@ spec:
             echo "waiting for zookeeper..."
             sleep 2
           done
+      {{- if .Values.image.pullSecret -}}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      {{- end }}
       containers:
       - name: server
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
