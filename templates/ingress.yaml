@@ -2,7 +2,7 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "apache-nifi.fullname" . -}}
 {{- $ingressPath := .Values.ingress.path -}}
-{{- $ingressPort := .Values.properties.httpPort -}}
+{{- $ingressPort := .Values.service.loadBalancer.httpPort -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:

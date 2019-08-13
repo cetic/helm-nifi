@@ -75,7 +75,7 @@ spec:
             echo "waiting for zookeeper..."
             sleep 2
           done
-      {{- if .Values.image.pullSecret -}}
+      {{- if .Values.image.pullSecret }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       {{- end }}
