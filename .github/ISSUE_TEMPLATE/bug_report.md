@@ -20,9 +20,6 @@ A clear and concise description of what the bug is.
 **Version of Helm and Kubernetes**:
 
 
-**Which chart**:
-
-
 **What happened**:
 
 
