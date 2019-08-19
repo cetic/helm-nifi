@@ -78,7 +78,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.httpPort`                                                       | web properties HTTP port                                                                                           | `8080`                          |
 | `properties.httpsPort`                                                      | web properties HTTPS port                                                                                          | `null`                          |
 | `properties.clusterPort`                                                    | cluster node port                                                                                                  | `6007`                          |
-| `properties.clusterSecure`                                                  | cluster nodes secure mode                                                                                         | `false`                         |
+| `properties.clusterSecure`                                                  | cluster nodes secure mode                                                                                          | `false`                         |
 | `properties.needClientAuth`                                                 | nifi security client auth                                                                                          | `false`                         |
 | `properties.provenanceStorage`                                              | nifi provenance repository max storage size                                                                        | `8 GB`                          |
 | `properties.siteToSite.secure`                                              | Site to Site properties Secure mode                                                                                | `false`                         |
@@ -91,8 +91,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
 | **Service**                                                                 |
 | `service.headless.type`                                                     | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
-| `service.loadBalancer.enabled`                                              | Enable the LoadBalancerIP service                                                                                    | `true`                          |
-| `service.loadBalancer.type`                                                 | Type of the LoadBalancerIP service for nifi                                                                          | `LoadBalancer`                  |
+| `service.loadBalancer.enabled`                                              | Enable the LoadBalancerIP service                                                                                  | `true`                          |
+| `service.loadBalancer.type`                                                 | Type of the LoadBalancerIP service for nifi                                                                        | `LoadBalancer`                  |
 | `service.loadBalancer.httpPort`                                             | Port to expose service                                                                                             | `80`                            |
 | `service.loadBalancer.httpsPort`                                            | Port to expose service in tls                                                                                      | `443`                           |
 | `service.loadBalancer.annotations`                                          | Service annotations                                                                                                | `{}`                            |
@@ -140,6 +140,12 @@ Initially inspired from https://github.com/YolandaMDavis/apache-nifi.
 * Nifi replicaCount > 1 is unstable for the moment.
 * Add LDAP support.
 * ...
+
+## Contributing
+
+Feel free to contribute by making a [pull request](https://github.com/cetic/helm-nifi/pull/new/master).
+
+Please read the official [Contribution Guide](CONTRIBUTING.md) from Helm for more information on how you can contribute to this Chart.
 
 ## License
 
