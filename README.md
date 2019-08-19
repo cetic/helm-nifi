@@ -145,7 +145,7 @@ Initially inspired from https://github.com/YolandaMDavis/apache-nifi.
 
 Feel free to contribute by making a [pull request](https://github.com/cetic/helm-nifi/pull/new/master).
 
-Please read the official [Contribution Guide](CONTRIBUTING.md) from Helm for more information on how you can contribute to this Chart.
+Please read the official [Contribution Guide](https://github.com/helm/charts/blob/master/CONTRIBUTING.md) from Helm for more information on how you can contribute to this Chart.
 
 ## License
 
