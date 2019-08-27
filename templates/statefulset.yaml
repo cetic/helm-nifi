@@ -138,6 +138,11 @@ spec:
               - -c
               - |
                 $NIFI_HOME/bin/nifi.sh stop
+{{- if .Values.postStart }}
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", {{ .Values.postStart | quote }}]
+{{- end }}
         readinessProbe:
           initialDelaySeconds: 60
           periodSeconds: 20

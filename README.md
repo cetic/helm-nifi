@@ -89,6 +89,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
 | `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
 | `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
+| **postStart**                                                               |
+| `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
 | **Service**                                                                 |
 | `service.headless.type`                                                     | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
 | `service.loadBalancer.enabled`                                              | Enable the LoadBalancerIP service                                                                                  | `true`                          |

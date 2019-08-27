@@ -41,6 +41,10 @@ properties:
     port: 10000
   authorizer: managed-authorizer
 
+## Include additional libraries in the Nifi containers by using the postStart handler
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/
+# postStart: /opt/nifi/psql; wget -P /opt/nifi/psql https://jdbc.postgresql.org/download/postgresql-42.2.6.jar
+
 # Nifi User Authentication
 auth:
   ldap:
