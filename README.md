@@ -137,12 +137,6 @@ The following table lists the configurable parameters of the nifi chart and the 
 
 Initially inspired from https://github.com/YolandaMDavis/apache-nifi.
 
-## Todo list
-
-* Nifi replicaCount > 1 is unstable for the moment.
-* Add LDAP support.
-* ...
-
 ## Contributing
 
 Feel free to contribute by making a [pull request](https://github.com/cetic/helm-nifi/pull/new/master).
