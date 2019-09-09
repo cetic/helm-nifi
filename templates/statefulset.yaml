@@ -105,6 +105,7 @@ spec:
 
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
+          prop_replace nifi.web.http.host ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
 
           exec bin/nifi.sh run
