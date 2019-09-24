@@ -26,6 +26,15 @@ sts:
   AntiAffinity: soft
   hostPort: null
 
+## Useful if using any custom secrets
+## Pass in some secrets to use (if required)
+# secrets:
+# - name: myNifiSecret
+#   keys:
+#     - key1
+#     - key2
+#   mountPath: /opt/nifi/secret
+
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false

@@ -72,6 +72,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **sts**                                                                     |
 | `sts.podManagementPolicy`                                                   | Parallel podManagementPolicy                                                                                       | `Parallel`                      |
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
+| **secrets**
+| `secrets`                                                                   | Pass any secrets to the nifi pods. The secret can also be mounted to a specific path if required.                               | `nil` |
 | **nifi properties**                                                         |
 | `properties.externalSecure`                                                 | externalSecure for when inbound SSL                                                                                | `false`                         |
 | `properties.isNode`                                                         | cluster node properties (only configure for cluster nodes)                                                         | `true`                          |
