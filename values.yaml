@@ -113,8 +113,8 @@ persistence:
   # For example:
   # storageClass: standard
   #
+  # The default storage class is used if this variable is not set.
 
-  storageClass: standard
   accessModes:  [ReadWriteOnce]
   ## Storage Capacities for persistent volumes
   # Storage capacity for the 'data' directory, which is used to hold things such as the flow.xml.gz, configuration, state, etc.
