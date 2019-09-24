@@ -215,6 +215,22 @@ spec:
           - name: "zookeeper-properties"
             mountPath: /opt/nifi/nifi-current/conf/zookeeper.properties
             subPath: "zookeeper.properties"
+          {{- range $secret := .Values.secrets }}
+            {{- if $secret.mountPath }}
+              {{- if $secret.keys }}
+                {{- range $key := $secret.keys }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $secret.name }}
+            mountPath: {{ $secret.mountPath }}/{{ $key }}
+            subPath: {{ $key }}
+            readOnly: true
+                {{- end }}
+              {{- else }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $secret.name }}
+            mountPath: {{ $secret.mountPath }}
+            readOnly: true
+              {{- end }}
+            {{- end }}
+          {{- end }}
       - name: app-log
         image: {{ .Values.sidecar.image }}
         args: [tail, -n+1, -F, /var/log/nifi-app.log]
@@ -294,6 +310,11 @@ spec:
           items:
             - key: "zookeeper.properties"
               path: "zookeeper.properties"
+      {{- range .Values.secrets }}
+      - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
+        secret:
+          secretName: {{ .name }}
+      {{- end }}
 {{- if not .Values.persistence.enabled }}
       - name: data
         emptyDir: {}
