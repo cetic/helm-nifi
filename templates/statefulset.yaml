@@ -1,5 +1,5 @@
 ---
-apiVersion: apps/v1beta2
+apiVersion: {{ template "apache-nifi.statefulset.apiVersion" . }}
 kind: StatefulSet
 metadata:
   name: {{ template "apache-nifi.fullname" . }}
