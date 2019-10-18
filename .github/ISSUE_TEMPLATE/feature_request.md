@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: '[name of the chart e.g. cetic/chart] issue title'
+title: '[cetic/nifi] issue title'
 labels: ''
 assignees: ''
 
