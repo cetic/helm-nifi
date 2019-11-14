@@ -14,11 +14,22 @@ This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://ni
 
 ## Installation
 
-### Add Helm repository
+### Install directly from the repo
 
 ```bash
 helm repo add cetic https://cetic.github.io/helm-charts
 helm repo update
+```
+
+### Download and install from the local clone
+
+```bash
+git clone https://github.com/cetic/helm-nifi.git
+cd helm-nifi
+helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
+helm repo update
+helm dep up
+helm install --name nifi --namespace nifi .
 ```
 
 ### Configure the chart
