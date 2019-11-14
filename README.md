@@ -24,12 +24,12 @@ helm repo update
 ### Install from local clone
 
 ```bash
-git clone https://github.com/cetic/helm-nifi.git
-cd helm-nifi
+git clone https://github.com/cetic/helm-nifi.git nifi
+cd nifi
 helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
 helm repo update
 helm dep up
-helm install --name nifi --namespace nifi .
+helm install --name nifi .
 ```
 
 ### Configure the chart
