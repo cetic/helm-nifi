@@ -14,14 +14,14 @@ This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://ni
 
 ## Installation
 
-### Install directly from the repo
+### Install from repo
 
 ```bash
 helm repo add cetic https://cetic.github.io/helm-charts
 helm repo update
 ```
 
-### Download and install from the local clone
+### Install from local clone
 
 ```bash
 git clone https://github.com/cetic/helm-nifi.git
