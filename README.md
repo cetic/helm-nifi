@@ -14,22 +14,11 @@ This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://ni
 
 ## Installation
 
-### Install from repo
+### Add Helm repository
 
 ```bash
 helm repo add cetic https://cetic.github.io/helm-charts
 helm repo update
-```
-
-### Install from local clone
-
-```bash
-git clone https://github.com/cetic/helm-nifi.git nifi
-cd nifi
-helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
-helm repo update
-helm dep up
-helm install --name nifi .
 ```
 
 ### Configure the chart
@@ -54,6 +43,17 @@ Install the nifi helm chart with a release name `my-release`:
 
 ```bash
 helm install --name my-release cetic/nifi
+```
+
+### Install from local clone
+
+```bash
+git clone https://github.com/cetic/helm-nifi.git nifi
+cd nifi
+helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
+helm repo update
+helm dep up
+helm install --name nifi .
 ```
 
 ## Uninstallation
