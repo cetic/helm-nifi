@@ -45,6 +45,17 @@ Install the nifi helm chart with a release name `my-release`:
 helm install --name my-release cetic/nifi
 ```
 
+### Install from local clone
+
+```bash
+git clone https://github.com/cetic/helm-nifi.git nifi
+cd nifi
+helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
+helm repo update
+helm dep up
+helm install --name nifi .
+```
+
 ## Uninstallation
 
 To uninstall/delete the `my-release` deployment:
