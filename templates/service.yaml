@@ -48,7 +48,7 @@ spec:
   {{- end }}
   {{- if .Values.service.loadBalancer.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
-  {{ with .Values.service.loadBalancerSourceRanges }}
+  {{ with .Values.service.loadBalancer.loadBalancerSourceRanges }}
 {{ toYaml . | indent 4 }}
 {{- end }}
   {{- end }}
