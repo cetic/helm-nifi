@@ -97,6 +97,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.siteToSite.secure`                                              | Site to Site properties Secure mode                                                                                | `false`                         |
 | `properties.siteToSite.port`                                                | Site to Site properties Secure port                                                                                | `10000`                         |
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
+| `properties.safetyValve`                                                    | Map of explicit 'property: value' pairs that overwrite other configuration                                         | `nil`                           |
 | **nifi user authentication**                                                |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
 | `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |

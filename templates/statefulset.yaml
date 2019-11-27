@@ -88,9 +88,13 @@ spec:
         - -ce
         - |
           prop_replace () {
-            target_file=${NIFI_HOME}/conf/nifi.properties
-            echo 'replacing target file ' ${target_file}
-            sed -i -e "s|^$1=.*$|$1=$2|"  ${target_file}
+            target_file=${NIFI_HOME}/conf/${3:-nifi.properties}
+            echo "updating ${1} in ${target_file}"
+            if egrep "^${1}=" ${target_file} &> /dev/null; then
+              sed -i -e "s|^$1=.*$|$1=$2|"  ${target_file}
+            else
+              echo ${1}=${2} >> ${target_file}
+            fi
           }
 
           FQDN=$(hostname -f)
@@ -107,6 +111,12 @@ spec:
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.web.http.host ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
+
+{{- if .Values.properties.safetyValve }}
+  {{- range $prop, $val := .Values.properties.safetyValve }}
+          prop_replace {{ $prop }} "{{ $val }}" nifi.properties
+  {{- end }}
+{{- end }}
 
           exec bin/nifi.sh run
         resources:
