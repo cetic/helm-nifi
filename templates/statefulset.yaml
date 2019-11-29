@@ -64,6 +64,25 @@ spec:
 {{ toYaml .Values.securityContext | indent 8 }}
 {{- end }}
       initContainers:
+      - name: installcerts
+        image: anapsix/alpine-java
+        command:
+        - sh
+        - -c
+        - |
+          echo "creating certs..."
+          FQDN=$(hostname -f)
+          echo $FQDN
+          wget https://www-eu.apache.org/dist/nifi/1.10.0/nifi-toolkit-1.10.0-bin.tar.gz
+          tar xvf nifi-toolkit-1.10.0-bin.tar.gz
+          cd nifi-toolkit-1.10.0
+          ./bin/tls-toolkit.sh standalone --hostnames $FQDN --isOverwrite --trustStorePassword truststore --keyStorePassword nifi --keyStoreType jks
+          mv $FQDN/* /opt/certs
+          chmod -R 744 /opt/certs
+        volumeMounts:
+        - name: certs
+          mountPath: /opt/certs
+          subPath: certs
       - name: zookeeper
         image: busybox
         command:
@@ -110,6 +129,7 @@ spec:
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.web.http.host ${FQDN}
+          prop_replace nifi.web.https.host ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
 
 {{- if .Values.properties.safetyValve }}
@@ -188,6 +208,9 @@ spec:
             port: {{ .Values.properties.httpPort }}
 {{- end }}
         volumeMounts:
+          - name: certs
+            mountPath: /opt/certs
+            subPath: certs
           - name: "data"
             mountPath: /opt/nifi/data
           - name: "flowfile-repository"
@@ -339,6 +362,13 @@ spec:
 {{- end }}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
+    - metadata:
+        name: certs
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
     - metadata:
         name: data
       spec:

@@ -17,7 +17,7 @@ image:
   # pullSecret: myRegistrKeySecretName
 
 securityContext:
-  runAsUser: 1000
+  runAsUser: 0
   fsGroup: 1000
 
 sts:
