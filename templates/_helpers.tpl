@@ -32,17 +32,6 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
-Return the appropriate apiVersion for deployment.
-*/}}
-{{- define "apache-nifi.statefulset.apiVersion" }}
-{{- if semverCompare "<1.9-0" .Capabilities.KubeVersion.GitVersion -}}
-{{- print "apps/v1beta2" }}
-{{- else if semverCompare "^1.9-0" .Capabilities.KubeVersion.GitVersion -}}
-{{- print "apps/v1" }}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Form the Zookeeper Server part of the URL. If zookeeper is installed as part of this chart, use k8s service discovery,
 else use user-provided server name
 */}}
