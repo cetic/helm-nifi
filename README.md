@@ -107,8 +107,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
 | **Headless Service**                                                        |
 | `headless.type`                                                             | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
-| `headless.annotations`                                                      | Headless Service annotations                                                                                       | `{service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"}
-`|
+| `headless.annotations`                                                      | Headless Service annotations                                                                                       | `service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"`|
 | **UI Service**                                                              |
 | `service.type`                                                              | Type of the UI service for nifi                                                                                    | `LoadBalancer`                  |
 | `service.httpPort`                                                          | Port to expose service                                                                                             | `80`                            |
