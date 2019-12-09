@@ -2,32 +2,33 @@
 apiVersion: v1
 kind: Service
 metadata:
-    name: {{ template "apache-nifi.fullname" . }}-headless
-    labels:
-        app: {{ include "apache-nifi.name" . | quote }}
-        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-        release: {{ .Release.Name | quote }}
-        heritage: {{ .Release.Service | quote }}
-    annotations:
-        service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-spec:
-    type: {{ .Values.service.headless.type }}
-    clusterIP: None
-    ports:
-{{- if .Values.properties.clusterSecure }}
-    - port: {{ .Values.properties.httpsPort }}
-      name: https
-{{- else}}
-    - port: {{ .Values.properties.httpPort }}
-      name: http
+  name: {{ template "apache-nifi.fullname" . }}-headless
+  labels:
+    app: {{ include "apache-nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+{{- if .Values.headless.annotations }}
+  annotations:
+{{ toYaml .Values.headless.annotations | indent 4 }}
 {{- end }}
-    - port: {{ .Values.properties.clusterPort }}
-      name: cluster
-    selector:
-        app: {{ include "apache-nifi.name" . | quote }}
-        release: {{ .Release.Name | quote }}
+spec:
+  type: {{ .Values.headless.type }}
+  clusterIP: None
+  ports:
+{{- if .Values.properties.clusterSecure }}
+  - port: {{ .Values.properties.httpsPort }}
+    name: https
+{{- else}}
+  - port: {{ .Values.properties.httpPort }}
+    name: http
+{{- end }}
+  - port: {{ .Values.properties.clusterPort }}
+    name: cluster
+  selector:
+    app: {{ include "apache-nifi.name" . | quote }}
+    release: {{ .Release.Name | quote }}
 ---
-{{- if .Values.service.loadBalancer.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -37,32 +38,31 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: {{ .Release.Name | quote }}
     heritage: {{ .Release.Service | quote }}
-{{- if .Values.service.loadBalancer.annotations }}
+{{- if .Values.service.annotations }}
   annotations:
-{{ toYaml .Values.service.loadBalancer.annotations | indent 4 }}
+{{ toYaml .Values.service.annotations | indent 4 }}
 {{- end }}
 spec:
-  type: {{ .Values.service.loadBalancer.type }}
-  {{- if .Values.service.loadBalancer.loadBalancerIP }}
-  loadBalancerIP: {{ .Values.service.loadBalancer.loadBalancerIP }}
+  type: {{ .Values.service.type }}
+  {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
   {{- end }}
-  {{- if .Values.service.loadBalancer.loadBalancerSourceRanges }}
+  {{- if .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
-  {{ with .Values.service.loadBalancer.loadBalancerSourceRanges }}
+  {{ with .Values.service.loadBalancerSourceRanges }}
 {{ toYaml . | indent 4 }}
 {{- end }}
   {{- end }}
   ports:
 {{- if .Values.properties.clusterSecure }}
-    - port: {{ .Values.service.loadBalancer.httpsPort }}
+    - port: {{ .Values.service.httpsPort }}
       name: https
-      targetPort: {{ .Values.properties.httpsPort }}
+      targetPort: {{ .Values.httpsPort }}
 {{- else }}
-    - port: {{ .Values.service.loadBalancer.httpPort }}
+    - port: {{ .Values.service.httpPort }}
       name: http
       targetPort: {{ .Values.properties.httpPort }}
 {{- end }}
   selector:
     app: {{ template "apache-nifi.name" . }}
     release: {{ .Release.Name }}
-{{- end }}

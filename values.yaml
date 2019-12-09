@@ -1,6 +1,6 @@
 ---
 # Number of nifi nodes
-replicaCount: 2
+replicaCount: 1
 
 ## Set default image, imageTag, and imagePullPolicy. 
 ## ref: https://hub.docker.com/r/apache/nifi/
@@ -69,21 +69,25 @@ auth:
 ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
 ## ref: http://kubernetes.io/docs/user-guide/services/
 ##
+
+# headless service
+headless:
+  type: ClusterIP
+  annotations: 
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+
+# ui service
 service:
-  headless:
-    type: ClusterIP
-  loadBalancer:
-    enabled: true
-    type: LoadBalancer
-    httpPort: 80
-    httpsPort: 443
-    annotations: {}
-    # loadBalancerIP:
-    ## Load Balancer sources
-    ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
-    ##
-    # loadBalancerSourceRanges:
-    # - 10.10.10.0/24
+  type: LoadBalancer
+  httpPort: 80
+  httpsPort: 443
+  annotations: {}
+  # loadBalancerIP:
+  ## Load Balancer sources
+  ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+  ##
+  # loadBalancerSourceRanges:
+  # - 10.10.10.0/24
 
 ## Configure Ingress based on the documentation here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##

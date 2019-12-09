@@ -105,15 +105,17 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
 | **postStart**                                                               |
 | `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
-| **Service**                                                                 |
-| `service.headless.type`                                                     | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
-| `service.loadBalancer.enabled`                                              | Enable the LoadBalancerIP service                                                                                  | `true`                          |
-| `service.loadBalancer.type`                                                 | Type of the LoadBalancerIP service for nifi                                                                        | `LoadBalancer`                  |
-| `service.loadBalancer.httpPort`                                             | Port to expose service                                                                                             | `80`                            |
-| `service.loadBalancer.httpsPort`                                            | Port to expose service in tls                                                                                      | `443`                           |
-| `service.loadBalancer.annotations`                                          | Service annotations                                                                                                | `{}`                            |
-| `service.loadBalancer.loadBalancerIP`                                       | LoadBalancerIP if service type is `LoadBalancer`                                                                   | `nil`                           |
-| `service.loadBalancer.loadBalancerSourceRanges`                             | Address that are allowed when svc is `LoadBalancer`                                                                | `[]`                            |
+| **Headless Service**                                                        |
+| `headless.type`                                                             | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
+| `headless.annotations`                                                      | Headless Service annotations                                                                                       | `{service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"}
+`|
+| **UI Service**                                                              |
+| `service.type`                                                              | Type of the UI service for nifi                                                                                    | `LoadBalancer`                  |
+| `service.httpPort`                                                          | Port to expose service                                                                                             | `80`                            |
+| `service.httpsPort`                                                         | Port to expose service in tls                                                                                      | `443`                           |
+| `service.annotations`                                                       | Service annotations                                                                                                | `{}`                            |
+| `service.loadBalancerIP`                                                    | LoadBalancerIP if service type is `LoadBalancer`                                                                   | `nil`                           |
+| `service.loadBalancerSourceRanges`                                          | Address that are allowed when svc is `LoadBalancer`                                                                | `[]`                            |
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
 | `ingress.annotations`                                                       | Ingress annotations                                                                                                | `{}`                            |

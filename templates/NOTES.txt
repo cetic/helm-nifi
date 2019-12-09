@@ -1,13 +1,5 @@
 Cluster endpoint IP address will be available at:
-{{- if .Values.service.loadBalancer.enabled }}
-kubectl get svc {{ .Release.Name }}-apache-nifi-load-balancer -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[*].ip}'
-{{- else }}
-{{- if .Values.sts.hostPort }}
-kubectl get nodes -o jsonpath='{.items[*].status.addresses[].address}'
-{{- else }}
-Unavailable (need to specify loadBalancer or hostPort for the nifi container)
-{{- end }}
-{{- end }}
+kubectl get svc {{ .Release.Name }} -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[*].ip}'
 
 Cluster endpoint domain name is: {{.Values.properties.webProxyHost}} - please update your DNS or /etc/hosts accordingly! 
 
