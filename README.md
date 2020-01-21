@@ -118,7 +118,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
 | `ingress.annotations`                                                       | Ingress annotations                                                                                                | `{}`                            |
-| `ingress.path`                                                              | Path to access frontend                                                                                            | `/`                             |
+| `ingress.path`                                                              | Path to access frontend (See issue [#22](https://github.com/cetic/helm-nifi/issues/22))                            | `/`                             |
 | `ingress.hosts`                                                             | Ingress hosts                                                                                                      | `[]`                            |
 | `ingress.tls`                                                               | Ingress TLS configuration                                                                                          | `[]`                            |
 | **Persistence**                                                             |
