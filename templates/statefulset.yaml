@@ -148,7 +148,16 @@ spec:
               - bash
               - -c
               - |
-                $NIFI_HOME/bin/nifi.sh stop
+                FQND=$(hostname -f)
+                if [[ "$FQND" != "nifi-0.nifi-headless.default.svc.cluster.local" ]]; then
+                  $NIFI_TOOLKIT_HOME/bin/cli.sh nifi get-nodes -ot json -u http://nifi.default.svc.cluster.local > nodes.json
+                  nnid=$(jq --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .nodeId' nodes.json)
+                  $NIFI_TOOLKIT_HOME/bin/cli.sh nifi disconnect-node -nnid $nnid -u http://nifi.default.svc.cluster.local
+                  $NIFI_TOOLKIT_HOME/bin/cli.sh nifi offload-node -nnid $nnid -u http://nifi.default.svc.cluster.local
+                  $NIFI_TOOLKIT_HOME/bin/cli.sh nifi delete-node -nnid $nnid -u http://nifi.default.svc.cluster.local
+                else
+                  $NIFI_HOME/bin/nifi.sh stop
+                fi
 {{- if .Values.postStart }}
           postStart:
             exec:
