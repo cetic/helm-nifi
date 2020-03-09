@@ -241,6 +241,22 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+          {{- range $configmap := .Values.configmaps }}
+            {{- if $configmap.mountPath }}
+              {{- if $configmap.keys }}
+                {{- range $key := $configmap.keys }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $configmap.name }}
+            mountPath: {{ $configmap.mountPath }}/{{ $key }}
+            subPath: {{ $key }}
+            readOnly: true
+                {{- end }}
+              {{- else }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $configmap.name }}
+            mountPath: {{ $configmap.mountPath }}
+            readOnly: true
+              {{- end }}
+            {{- end }}
+          {{- end }}
       - name: app-log
         image: {{ .Values.sidecar.image }}
         args: [tail, -n+1, -F, /var/log/nifi-app.log]
@@ -324,6 +340,11 @@ spec:
       - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
         secret:
           secretName: {{ .name }}
+      {{- end }}
+      {{- range .Values.configmaps }}
+      - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
+        configMap:
+          name: {{ .name }}
       {{- end }}
 {{- if not .Values.persistence.enabled }}
       - name: data

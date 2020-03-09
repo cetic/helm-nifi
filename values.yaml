@@ -35,6 +35,15 @@ sts:
 #     - key2
 #   mountPath: /opt/nifi/secret
 
+## Useful if using any custom configmaps
+## Pass in some configmaps to use (if required)
+# configmaps:
+#   - name: myNifiConf
+#     keys:
+#       - myconf.conf
+#     mountPath: /opt/nifi/custom-config
+
+
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
