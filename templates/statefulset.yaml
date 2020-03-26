@@ -116,9 +116,11 @@ spec:
           prop_replace {{ $prop }} "{{ $val }}" nifi.properties
   {{- end }}
 {{- end }}
-
-          #/opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n 'localhost(2)' -C 'CN=bbende, OU=ApacheNiFi' -o '/opt/nifi/nifi-toolkit-current/bin/target'
-          #cp /opt/nifi/nifi-toolkit-current/bin/target/localhost/* /opt/nifi/nifi-current/conf/
+          /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n 'localhost' -C 'CN=bbende, OU=ApacheNiFi' -o '/opt/nifi/nifi-current/conf/'
+          grep -o 'nifi.security.keystorePasswd=.*' ./conf/localhost/nifi.properties | sed 's/nifi.security.keystorePasswd=//g' > keystorePasswd.password
+          grep -o 'nifi.security.truststorePasswd=.*' ./conf/localhost/nifi.properties | sed 's/nifi.security.truststorePasswd=//g' > truststorePasswd.password
+          cat /opt/nifi/nifi-current/keystorePasswd.password | keytool -storepasswd -new keystorePasswdfadi -keystore ./conf/localhost/keystore.jks
+          cat /opt/nifi/nifi-current/truststorePasswd.password | keytool -storepasswd -new truststorePasswdfadi -keystore ./conf/localhost/truststore.jks
           exec bin/nifi.sh run
         resources:
 {{ toYaml .Values.resources | indent 10 }}
@@ -226,12 +228,6 @@ spec:
           - name: "zookeeper-properties"
             mountPath: /opt/nifi/nifi-current/conf/zookeeper.properties
             subPath: "zookeeper.properties"
-          #- name: "truststore.jks"
-          #  mountPath: /opt/nifi/nifi-current/conf/truststore.jks
-          #  subPath: "truststore.jks"
-          #- name: "keystore.jks"
-          #  mountPath: /opt/nifi/nifi-current/conf/keystore.jks
-          #  subPath: "keystore.jks"
           {{- range $secret := .Values.secrets }}
             {{- if $secret.mountPath }}
               {{- if $secret.keys }}
@@ -297,7 +293,7 @@ spec:
               path: "bootstrap.conf"
       - name: "nifi-properties"
         configMap:
-          name: {{ template "apache-nifi.fullname" . }}-properties
+          name: {{ template "apache-nifi.fullname" . }}-config
           items:
             - key: "nifi.properties"
               path: "nifi.temp"
@@ -343,18 +339,6 @@ spec:
           items:
             - key: "zookeeper.properties"
               path: "zookeeper.properties"
-      #- name: "truststore.jks"
-      #  configMap:
-      #    name: {{ template "apache-nifi.fullname" . }}-config
-      #    items:
-      #        - key: "truststore.jks"
-      #          path: "truststore.jks"
-      #- name: "keystore.jks"
-      #  configMap:
-      #    name: {{ template "apache-nifi.fullname" . }}-config
-      #    items:
-      #        - key: "keystore.jks"
-      #          path: "keystore.jks"
       {{- range .Values.secrets }}
       - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
         secret:
