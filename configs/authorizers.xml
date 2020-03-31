@@ -263,7 +263,7 @@
         <class>org.apache.nifi.authorization.FileAuthorizer</class>
         <property name="Authorizations File">./conf/authorizations.xml</property>
         <property name="Users File">./conf/users.xml</property>
-        <property name="Initial Admin Identity">CN=bbende, OU=ApacheNiFi</property>
+        <property name="Initial Admin Identity">CN=Cetic, OU=ApacheNiFi</property>
         <property name="Legacy Authorized Users File"></property>
 
         <property name="Node Identity 1">CN=localhost, OU=NIFI</property>

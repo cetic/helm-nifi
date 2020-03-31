@@ -48,10 +48,10 @@ properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
   isNode: true
-  httpPort: 8080
-  httpsPort: null
+  httpPort: null
+  httpsPort: 8080
   clusterPort: 6007
-  clusterSecure: false
+  clusterSecure: true
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
