@@ -49,13 +49,13 @@ properties:
   externalSecure: false
   isNode: true
   httpPort: null
-  httpsPort: 8080
-  clusterPort: 6007
+  httpsPort: 9443
+  clusterPort: 8443
   clusterSecure: true
-  needClientAuth: false
+  needClientAuth: true
   provenanceStorage: "8 GB"
   siteToSite:
-    secure: false
+    secure: true
     port: 10000
   authorizer: managed-authorizer
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
@@ -70,9 +70,9 @@ properties:
 auth:
   ldap:
     enabled: false
-    host: ldap://<hostname>:<port>
-    searchBase: CN=Users,DC=example,DC=com
-    searchFilter: CN=john
+    host: ldap://fadi.openldap:389
+    searchBase: CN=admin,dc=ldap,dc=cetic,dc=be
+    searchFilter: CN=admin
 
 
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).

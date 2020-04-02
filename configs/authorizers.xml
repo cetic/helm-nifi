@@ -266,7 +266,6 @@
         <property name="Initial Admin Identity">CN=Cetic, OU=ApacheNiFi</property>
         <property name="Legacy Authorized Users File"></property>
 
-        <property name="Node Identity 1">CN=localhost, OU=NIFI</property>
     </authorizer>
 
     <!-- <authorizer>

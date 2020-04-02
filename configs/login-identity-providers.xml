@@ -67,17 +67,17 @@
         <identifier>ldap-provider</identifier>
         <class>org.apache.nifi.ldap.LdapProvider</class>
         <property name="Authentication Strategy">START_TLS</property>
-        <property name="Manager DN"></property>
-        <property name="Manager Password"></property>
-        <property name="TLS - Keystore"></property>
-        <property name="TLS - Keystore Password"></property>
-        <property name="TLS - Keystore Type"></property>
-        <property name="TLS - Truststore"></property>
-        <property name="TLS - Truststore Password"></property>
-        <property name="TLS - Truststore Type"></property>
-        <property name="TLS - Client Auth"></property>
-        <property name="TLS - Protocol"></property>
-        <property name="TLS - Shutdown Gracefully"></property>
+        <property name="Manager DN">cn=admin,dc=ldap,dc=cetic,dc=be</property>
+        <property name="Manager Password">password1</property>
+        <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/localhost/keystore.jks</property>
+        <property name="TLS - Keystore Password">keystorePasswdfadi</property>
+        <property name="TLS - Keystore Type">JKS</property>
+        <property name="TLS - Truststore">/opt/nifi/nifi-current/conf/localhost/truststore.jks</property>
+        <property name="TLS - Truststore Password">truststorePasswdfadi</property>
+        <property name="TLS - Truststore Type">JKS</property>
+        <property name="TLS - Client Auth">REQUIRED</property>
+        <property name="TLS - Protocol">TLS</property>
+        <property name="TLS - Shutdown Gracefully">false</property>
         
         <property name="Referral Strategy">FOLLOW</property>
         <property name="Connect Timeout">10 secs</property>
