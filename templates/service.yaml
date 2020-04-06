@@ -5,7 +5,7 @@ metadata:
   name: {{ template "apache-nifi.fullname" . }}-headless
   labels:
     app: {{ include "apache-nifi.name" . | quote }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     release: {{ .Release.Name | quote }}
     heritage: {{ .Release.Service | quote }}
 {{- if .Values.headless.annotations }}
@@ -35,7 +35,7 @@ metadata:
   name: {{ template "apache-nifi.fullname" . }}
   labels:
     app: {{ include "apache-nifi.name" . | quote }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     release: {{ .Release.Name | quote }}
     heritage: {{ .Release.Service | quote }}
 {{- if .Values.service.annotations }}
@@ -62,6 +62,20 @@ spec:
     - port: {{ .Values.service.httpPort }}
       name: http
       targetPort: {{ .Values.properties.httpPort }}
+{{- end }}
+{{- if .Values.service.processors  }}
+{{- if .Values.service.processors.enabled }}
+{{- with .Values.service.processors.ports  }}
+{{- range . }}
+    - port: {{ .port }}
+      name: {{ .name }}
+      targetPort: {{ .targetPort }}
+      {{- if eq $.Values.service.type "NodePort" }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
   selector:
     app: {{ template "apache-nifi.name" . }}
