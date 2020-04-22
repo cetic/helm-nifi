@@ -145,6 +145,9 @@ spec:
         env:
         - name: NIFI_ZOOKEEPER_CONNECT_STRING
           value: {{ template "zookeeper.url" . }}
+{{- if .Values.environmentVariables }}
+{{ toYaml .Values.environmentVariables | indent 8 }}
+{{- end }}
         lifecycle:
           preStop:
             exec:
