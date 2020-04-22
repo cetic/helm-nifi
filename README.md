@@ -147,6 +147,12 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
 | **tolerations**                                                             |
 | `tolerations`                                                               | Tolerations for pod assignment                                                                                     | `[]`                            |
+| **initContainers**                                                          |
+| `initContainers`                                                            | Container definition that will be added to the pod as [initContainers](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core) | `[]`                            |
+| **extraVolumes**                                                            |
+| `extraVolumes`                                                              | Additional Volumes available within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volume-v1-core) for format)       | `[]`                            |
+| **extraVolumeMounts**                                                       |
+| `extraVolumeMounts`                                                         | VolumeMounts for the nifi-server container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volumemount-v1-core) for details)  | `[]`                            |
 | **zookeeper**                                                               |
 |`zookeeper.enabled`                                                          | If true, deploy Zookeeper                                                                                          | `true`                          |
 |`zookeeper.url`                                                              | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
