@@ -9,7 +9,7 @@ This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://ni
 ## Prerequisites
 
 - Kubernetes cluster 1.10+
-- Helm 2.8.0+
+- Helm 3.0.0+
 - PV provisioner support in the underlying infrastructure.
 
 ## Installation
@@ -74,7 +74,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `replicaCount`                                                              | Number of nifi nodes                                                                                               | `1`                             |
 | **Image**                                                                   |
 | `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
-| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.11.0`                         |
+| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.11.4`                        |
 | `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
 | `image.pullSecret`                                                          | nifi Image pull secret                                                                                             | `nil`                           |
 | **SecurityContext**                                                         |
@@ -117,6 +117,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `service.annotations`                                                       | Service annotations                                                                                                | `{}`                            |
 | `service.loadBalancerIP`                                                    | LoadBalancerIP if service type is `LoadBalancer`                                                                   | `nil`                           |
 | `service.loadBalancerSourceRanges`                                          | Address that are allowed when svc is `LoadBalancer`                                                                | `[]`                            |
+| `service.processors.enabled`                                                | Enables additional port/ports to nifi service for internal processors                                              | `false`                         |
+| `service.processors.ports`                                                  | Specify "name/port/targetPort/nodePort" for processors  sockets                                                    | `[]`                            |
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
 | `ingress.annotations`                                                       | Ingress annotations                                                                                                | `{}`                            |
