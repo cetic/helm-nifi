@@ -97,6 +97,8 @@ service:
   ##
   # loadBalancerSourceRanges:
   # - 10.10.10.0/24
+  
+  # Enables additional port/ports to nifi service for internal processors
   processors:
     enabled: false
     ports:
