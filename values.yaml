@@ -216,7 +216,8 @@ extraVolumeMounts: []
 
 extraVolumes: []
 
-environmentVariables: []
+## Extra environment variables that will be pass onto deployment pods
+env: []
 
 # ------------------------------------------------------------------------------
 # Zookeeper:

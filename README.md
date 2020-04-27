@@ -153,8 +153,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `extraVolumes`                                                              | Additional Volumes available within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volume-v1-core) for format)       | `[]`                            |
 | **extraVolumeMounts**                                                       |
 | `extraVolumeMounts`                                                         | VolumeMounts for the nifi-server container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volumemount-v1-core) for details)  | `[]`                            |
-| **environmentVariables**                                                    |
-| `environmentVariables`                                                      | Additional environment variables for the nifi-container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#envvar-v1-core) for details)  | `[]`                            |
+| **ens**                                                                     |
+| `env`                                                                       | Additional environment variables for the nifi-container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#envvar-v1-core) for details)  | `[]`                            |
 | **zookeeper**                                                               |
 |`zookeeper.enabled`                                                          | If true, deploy Zookeeper                                                                                          | `true`                          |
 |`zookeeper.url`                                                              | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
