@@ -9,7 +9,7 @@ This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://ni
 ## Prerequisites
 
 - Kubernetes cluster 1.10+
-- Helm 2.8.0+
+- Helm 3.0.0+
 - PV provisioner support in the underlying infrastructure.
 
 ## Installation
@@ -74,7 +74,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `replicaCount`                                                              | Number of nifi nodes                                                                                               | `1`                             |
 | **Image**                                                                   |
 | `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
-| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.11.0`                         |
+| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.11.4`                        |
 | `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
 | `image.pullSecret`                                                          | nifi Image pull secret                                                                                             | `nil`                           |
 | **SecurityContext**                                                         |
@@ -85,6 +85,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
 | **secrets**
 | `secrets`                                                                   | Pass any secrets to the nifi pods. The secret can also be mounted to a specific path if required.                  | `nil`                           |
+| **configmaps**
+| `configmaps`                                                                | Pass any configmaps to the nifi pods. The configmap can also be mounted to a specific path if required.            | `nil`                           |
 | **nifi properties**                                                         |
 | `properties.externalSecure`                                                 | externalSecure for when inbound SSL                                                                                | `false`                         |
 | `properties.isNode`                                                         | cluster node properties (only configure for cluster nodes)                                                         | `true`                          |
@@ -115,6 +117,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `service.annotations`                                                       | Service annotations                                                                                                | `{}`                            |
 | `service.loadBalancerIP`                                                    | LoadBalancerIP if service type is `LoadBalancer`                                                                   | `nil`                           |
 | `service.loadBalancerSourceRanges`                                          | Address that are allowed when svc is `LoadBalancer`                                                                | `[]`                            |
+| `service.processors.enabled`                                                | Enables additional port/ports to nifi service for internal processors                                              | `false`                         |
+| `service.processors.ports`                                                  | Specify "name/port/targetPort/nodePort" for processors  sockets                                                    | `[]`                            |
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
 | `ingress.annotations`                                                       | Ingress annotations                                                                                                | `{}`                            |
@@ -143,6 +147,14 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
 | **tolerations**                                                             |
 | `tolerations`                                                               | Tolerations for pod assignment                                                                                     | `[]`                            |
+| **initContainers**                                                          |
+| `initContainers`                                                            | Container definition that will be added to the pod as [initContainers](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core) | `[]`                            |
+| **extraVolumes**                                                            |
+| `extraVolumes`                                                              | Additional Volumes available within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volume-v1-core) for format)       | `[]`                            |
+| **extraVolumeMounts**                                                       |
+| `extraVolumeMounts`                                                         | VolumeMounts for the nifi-server container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volumemount-v1-core) for details)  | `[]`                            |
+| **ens**                                                                     |
+| `env`                                                                       | Additional environment variables for the nifi-container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#envvar-v1-core) for details)  | `[]`                            |
 | **zookeeper**                                                               |
 |`zookeeper.enabled`                                                          | If true, deploy Zookeeper                                                                                          | `true`                          |
 |`zookeeper.url`                                                              | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |

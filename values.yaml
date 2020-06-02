@@ -7,7 +7,7 @@ replicaCount: 1
 ##
 image:
   repository: apache/nifi
-  tag: "1.11.0"
+  tag: "1.11.4"
   pullPolicy: IfNotPresent
 
   ## Optionally specify an imagePullSecret.
@@ -34,6 +34,15 @@ sts:
 #     - key1
 #     - key2
 #   mountPath: /opt/nifi/secret
+
+## Useful if using any custom configmaps
+## Pass in some configmaps to use (if required)
+# configmaps:
+#   - name: myNifiConf
+#     keys:
+#       - myconf.conf
+#     mountPath: /opt/nifi/custom-config
+
 
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
@@ -88,6 +97,32 @@ service:
   ##
   # loadBalancerSourceRanges:
   # - 10.10.10.0/24
+
+  # Enables additional port/ports to nifi service for internal processors
+  processors:
+    enabled: false
+    ports:
+      - name: processor01
+        port: 7001
+        targetPort: 7001
+        #nodePort: 30701
+      - name: processor02
+        port: 7002
+        targetPort: 7002
+        #nodePort: 30702
+
+  # Enables additional port/ports to nifi service for internal processors
+  processors:
+    enabled: false
+    ports:
+      - name: processor01
+        port: 7001
+        targetPort: 7001
+        #nodePort: 30701
+      - name: processor02
+        port: 7002
+        targetPort: 7002
+        #nodePort: 30702
 
 ## Configure Ingress based on the documentation here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
@@ -167,6 +202,22 @@ logresources:
 nodeSelector: {}
 
 tolerations: []
+
+initContainers: {}
+  # foo-init:  # <- will be used as container name
+  #   image: "busybox:1.30.1"
+  #   imagePullPolicy: "IfNotPresent"
+  #   command: ['sh', '-c', 'echo this is an initContainer']
+  #   volumeMounts:
+#     - mountPath: /tmp/foo
+#       name: foo
+
+extraVolumeMounts: []
+
+extraVolumes: []
+
+## Extra environment variables that will be pass onto deployment pods
+env: []
 
 # ------------------------------------------------------------------------------
 # Zookeeper:

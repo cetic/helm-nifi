@@ -5,7 +5,7 @@ metadata:
   name: {{ template "apache-nifi.fullname" . }}
   labels:
     app: {{ include "apache-nifi.name" . | quote }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     release: {{ .Release.Name | quote }}
     heritage: {{ .Release.Service | quote }}
 spec:
@@ -22,7 +22,7 @@ spec:
         security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
       labels:
         app: {{ include "apache-nifi.name" . | quote }}
-        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
     spec:
@@ -75,6 +75,10 @@ spec:
             echo "waiting for zookeeper..."
             sleep 2
           done
+{{- range $key, $value := .Values.initContainers }}
+      - name: {{ $key }}
+{{ toYaml $value | indent 8 }}
+{{- end }}
       {{- if .Values.image.pullSecret }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
@@ -141,6 +145,9 @@ spec:
         env:
         - name: NIFI_ZOOKEEPER_CONNECT_STRING
           value: {{ template "zookeeper.url" . }}
+{{- if .Values.env }}
+{{ toYaml .Values.env | indent 8 }}
+{{- end }}
         lifecycle:
           preStop:
             exec:
@@ -250,6 +257,25 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+          {{- range $configmap := .Values.configmaps }}
+            {{- if $configmap.mountPath }}
+              {{- if $configmap.keys }}
+                {{- range $key := $configmap.keys }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $configmap.name }}
+            mountPath: {{ $configmap.mountPath }}/{{ $key }}
+            subPath: {{ $key }}
+            readOnly: true
+                {{- end }}
+              {{- else }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $configmap.name }}
+            mountPath: {{ $configmap.mountPath }}
+            readOnly: true
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 10 }}
+          {{- end }}
       - name: app-log
         image: {{ .Values.sidecar.image }}
         args: [tail, -n+1, -F, /var/log/nifi-app.log]
@@ -334,6 +360,11 @@ spec:
         secret:
           secretName: {{ .name }}
       {{- end }}
+      {{- range .Values.configmaps }}
+      - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
+        configMap:
+          name: {{ .name }}
+      {{- end }}
 {{- if not .Values.persistence.enabled }}
       - name: data
         emptyDir: {}
@@ -345,6 +376,9 @@ spec:
         emptyDir: {}
       - name: logs
         emptyDir: {}
+{{- end }}
+{{- if .Values.extraVolumes }}
+{{ toYaml .Values.extraVolumes | indent 6 }}
 {{- end }}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
