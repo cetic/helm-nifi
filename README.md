@@ -145,16 +145,20 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `logresources.`                                                             | Pod resource requests and limits                                                                                   | `{}`                            |
 | **nodeSelector**                                                            |
 | `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
+| **terminationGracePeriodSeconds**                                           |
+| `terminationGracePeriodSeconds`                                             | Number of seconds the pod needs to terminate gracefully. For clean scale down of the nifi-cluster the default is set to 60, opposed to k8s-default 30. | `60`                            |
 | **tolerations**                                                             |
 | `tolerations`                                                               | Tolerations for pod assignment                                                                                     | `[]`                            |
 | **initContainers**                                                          |
-| `initContainers`                                                            | Container definition that will be added to the pod as [initContainers](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core) | `[]`                            |
+| `initContainers`                                                            | Container definition that will be added to the pod as [initContainers](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core) | `[]`                            |
 | **extraVolumes**                                                            |
-| `extraVolumes`                                                              | Additional Volumes available within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volume-v1-core) for format)       | `[]`                            |
+| `extraVolumes`                                                              | Additional Volumes available within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core) for format)       | `[]`                            |
 | **extraVolumeMounts**                                                       |
-| `extraVolumeMounts`                                                         | VolumeMounts for the nifi-server container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volumemount-v1-core) for details)  | `[]`                            |
-| **ens**                                                                     |
-| `env`                                                                       | Additional environment variables for the nifi-container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#envvar-v1-core) for details)  | `[]`                            |
+| `extraVolumeMounts`                                                         | VolumeMounts for the nifi-server container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core) for details)  | `[]`                            |
+| **env**                                                                     |
+| `env`                                                                       | Additional environment variables for the nifi-container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core) for details)  | `[]`                            |
+| **extraContainers                                                           |
+| `extraContainers`                                                           | Additional container-specifications that should run within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core) for details)  | `[]`                            |
 | **zookeeper**                                                               |
 |`zookeeper.enabled`                                                          | If true, deploy Zookeeper                                                                                          | `true`                          |
 |`zookeeper.url`                                                              | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
