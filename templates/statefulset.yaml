@@ -116,7 +116,7 @@ spec:
           prop_replace {{ $prop }} "{{ $val }}" nifi.properties
   {{- end }}
 {{- end }}
-          /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n 'localhost' -C 'CN=Cetic, OU=ApacheNiFi' -o '/opt/nifi/nifi-current/conf/' -P truststorePasswdfadi  -S keystorePasswdfadi --additionalCACertificate /opt/nifi/nifi-current/conf/nifi-cert.pem
+          /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n 'localhost' -C 'CN=Cetic, OU=ApacheNiFi' -o '/opt/nifi/nifi-current/conf/' -P truststorePasswdfadi  -S keystorePasswdfadi  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           exec bin/nifi.sh run
         resources:
 {{ toYaml .Values.resources | indent 10 }}
