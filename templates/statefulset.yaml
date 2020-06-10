@@ -324,8 +324,8 @@ spec:
                     echo "offloading node" >> /tmp/preStop.out
                     ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi offload-node -nnid $nnid -u ${baseUrl} >> /tmp/preStop.out
                     echo "" >> /tmp/preStop.out
-                    echo "wait until node has state 'OFFLOADING'" >> /tmp/preStop.out
-                    while [[ "$node_state" != "OFFLOADING" ]]; do
+                    echo "wait until node has state 'OFFLOADED'" >> /tmp/preStop.out
+                    while [[ "$node_state" != "OFFLOADED" ]]; do
                         sleep 1
                         ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} > nodes.json
                         node_state=$(jq -r --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .status' nodes.json)
