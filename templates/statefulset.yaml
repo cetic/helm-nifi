@@ -51,7 +51,7 @@ spec:
                          - {{ include "apache-nifi.name" . | quote }}
                  topologyKey: "kubernetes.io/hostname"
       {{- end}}
-{{- if .Values.tolerations }}
+{{- if .Values.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
 {{- end }}
 {{- if .Values.tolerations }}
@@ -331,7 +331,6 @@ spec:
                         node_state=$(jq -r --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .status' nodes.json)
                         echo "$(date +%T) - state is '$node_state'" >> /tmp/preStop.out
                     done
-
                     echo "" >> /tmp/preStop.out
                     echo "deleting node" >> /tmp/preStop.out
                     ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi delete-node -nnid ${nnid} -u ${baseUrl} >> /tmp/preStop.out
