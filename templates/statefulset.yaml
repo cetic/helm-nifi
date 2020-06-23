@@ -51,6 +51,9 @@ spec:
                          - {{ include "apache-nifi.name" . | quote }}
                  topologyKey: "kubernetes.io/hostname"
       {{- end}}
+{{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+{{- end }}
 {{- if .Values.tolerations }}
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
@@ -122,7 +125,55 @@ spec:
   {{- end }}
 {{- end }}
 
-          exec bin/nifi.sh run
+          exec bin/nifi.sh run & nifi_pid="$!"
+
+          function offloadNode() {
+              echo executing preStop > /tmp/preStop.out
+              FQDN=$(hostname -f)
+              echo disconnecting node '$FQDN'
+              baseUrl=http://nifi-0.nifi-headless:8080
+              echo baseUrl ${baseUrl}
+              # no cluster without initial node
+              if [[ "$FQDN" != nifi-0.nifi-headless* ]]; then
+                echo "gracefully disconnecting node '$FQDN' from cluster"
+                ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} > nodes.json
+                nnid=$(jq --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .nodeId' nodes.json)
+                echo "disconnecting node ${nnid}"
+                ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi disconnect-node -nnid $nnid -u ${baseUrl}
+                echo ""
+                echo "wait until node has state 'DISCONNECTED'"
+                while [[ "$node_state" != "DISCONNECTED" ]]; do
+                    sleep 1
+                    ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} > nodes.json
+                    node_state=$(jq -r --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .status' nodes.json)
+                    echo "state is '$node_state'"
+                done
+                echo ""
+                echo "node '${nnid}' was disconnected"
+                echo "offloading node"
+                ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi offload-node -nnid $nnid -u ${baseUrl}
+                echo ""
+                echo "wait until node has state 'OFFLOADED'"
+                while [[ "$node_state" != "OFFLOADED" ]]; do
+                    sleep 1
+                    ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} > nodes.json
+                    node_state=$(jq -r --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .status' nodes.json)
+                    echo "state is '$node_state'"
+                done
+              fi
+          }
+
+          deleteNode() {
+                echo "deleting node"
+                ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi delete-node -nnid ${nnid} -u ${baseUrl}
+                echo "node deleted"
+          }
+
+          trap 'echo Received trapped signal, beginning shutdown...;offloadNode;./bin/nifi.sh stop;deleteNode;exit 0;' TERM HUP INT;
+          trap ":" EXIT
+
+          echo NiFi running with PID ${nifi_pid}.
+          wait ${nifi_pid}
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -148,15 +199,8 @@ spec:
 {{- if .Values.env }}
 {{ toYaml .Values.env | indent 8 }}
 {{- end }}
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - bash
-              - -c
-              - |
-                $NIFI_HOME/bin/nifi.sh stop
 {{- if .Values.postStart }}
+        lifecycle:
           postStart:
             exec:
               command: ["/bin/sh", "-c", {{ .Values.postStart | quote }}]

@@ -59,8 +59,11 @@ properties:
     port: 10000
   authorizer: managed-authorizer
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
-  # safetyValve:
+  safetyValve:
     #nifi.variable.registry.properties: "${NIFI_HOME}/example1.properties, ${NIFI_HOME}/example2.properties"
+    nifi.web.http.network.interface.default: eth0
+    # listen to loopback interface so "kubectl port-forward ..." works
+    nifi.web.http.network.interface.lo: lo
 
 ## Include additional libraries in the Nifi containers by using the postStart handler
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/
@@ -87,8 +90,8 @@ headless:
 
 # ui service
 service:
-  type: LoadBalancer
-  httpPort: 80
+  type: NodePort
+  httpPort: 8080
   httpsPort: 443
   annotations: {}
   # loadBalancerIP:
@@ -97,19 +100,6 @@ service:
   ##
   # loadBalancerSourceRanges:
   # - 10.10.10.0/24
-
-  # Enables additional port/ports to nifi service for internal processors
-  processors:
-    enabled: false
-    ports:
-      - name: processor01
-        port: 7001
-        targetPort: 7001
-        #nodePort: 30701
-      - name: processor02
-        port: 7002
-        targetPort: 7002
-        #nodePort: 30702
 
   # Enables additional port/ports to nifi service for internal processors
   processors:
@@ -216,6 +206,11 @@ extraVolumeMounts: []
 
 extraVolumes: []
 
+## Extra containers
+extraContainers: []
+
+terminationGracePeriodSeconds: 30
+
 ## Extra environment variables that will be pass onto deployment pods
 env: []
 
@@ -226,7 +221,6 @@ zookeeper:
   ## If true, install the Zookeeper chart
   ## ref: https://github.com/kubernetes/charts/tree/master/incubator/zookeeper
   enabled: true
-
   ## If the Zookeeper Chart is disabled a URL and port are required to connect
   url: ""
   port: 2181
