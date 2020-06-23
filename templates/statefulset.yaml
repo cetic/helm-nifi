@@ -67,6 +67,7 @@ spec:
 {{ toYaml .Values.securityContext | indent 8 }}
 {{- end }}
       initContainers:
+{{- if .Values.properties.isNode }}
       - name: zookeeper
         image: busybox
         command:
@@ -78,6 +79,7 @@ spec:
             echo "waiting for zookeeper..."
             sleep 2
           done
+{{- end }}
 {{- range $key, $value := .Values.initContainers }}
       - name: {{ $key }}
 {{ toYaml $value | indent 8 }}
@@ -205,6 +207,7 @@ spec:
             exec:
               command: ["/bin/sh", "-c", {{ .Values.postStart | quote }}]
 {{- end }}
+{{- if .Values.properties.isNode }}
         readinessProbe:
           initialDelaySeconds: 60
           periodSeconds: 20
@@ -229,6 +232,7 @@ spec:
                 jq . $NIFI_BASE_DIR/data/cluster.state
                 exit 1
               fi
+{{- end }}
         livenessProbe:
           initialDelaySeconds: 90
           periodSeconds: 60
