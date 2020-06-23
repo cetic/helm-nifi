@@ -1,6 +1,6 @@
 ---
 # Number of nifi nodes
-replicaCount: 2
+replicaCount: 1
 
 ## Set default image, imageTag, and imagePullPolicy. 
 ## ref: https://hub.docker.com/r/apache/nifi/
@@ -90,7 +90,7 @@ headless:
 
 # ui service
 service:
-  type: ClusterIP
+  type: NodePort
   httpPort: 8080
   httpsPort: 443
   annotations: {}
@@ -221,9 +221,6 @@ zookeeper:
   ## If true, install the Zookeeper chart
   ## ref: https://github.com/kubernetes/charts/tree/master/incubator/zookeeper
   enabled: true
-
   ## If the Zookeeper Chart is disabled a URL and port are required to connect
   url: ""
   port: 2181
-
-
