@@ -153,30 +153,6 @@ spec:
             exec:
               command: ["/bin/sh", "-c", {{ .Values.postStart | quote }}]
 {{- end }}
-        readinessProbe:
-          initialDelaySeconds: 60
-          periodSeconds: 20
-          exec:
-            command:
-            - bash
-            - -c
-            - |
-{{- if .Values.properties.httpsPort }}
-              curl -kv \
-                --cert ${NIFI_BASE_DIR}/data/cert/admin/crt.pem --cert-type PEM \
-                --key ${NIFI_BASE_DIR}/data/cert/admin/key.pem --key-type PEM \
-                https://$(hostname -f):8443/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
-{{- else }}
-              curl -kv \
-                http://$(hostname -f):{{ .Values.properties.httpPort }}/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
-{{- end }}
-              STATUS=$(jq -r ".cluster.nodes[] | select((.address==\"$(hostname -f)\") or .address==\"localhost\") | .status" $NIFI_BASE_DIR/data/cluster.state)
-
-              if [[ ! $STATUS = "CONNECTED" ]]; then
-                echo "Node not found with CONNECTED state. Full cluster state:"
-                jq . $NIFI_BASE_DIR/data/cluster.state
-                exit 1
-              fi
         livenessProbe:
           initialDelaySeconds: 90
           periodSeconds: 60

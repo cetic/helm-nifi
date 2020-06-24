@@ -112,33 +112,33 @@
         NOTE: Any identity mapping rules specified in nifi.properties will also be applied to the user identities.
             Group names are not mapped.
     -->
-    <!-- To enable the ldap-user-group-provider remove 2 lines. This is 1 of 2.
+
     <userGroupProvider>
         <identifier>ldap-user-group-provider</identifier>
         <class>org.apache.nifi.ldap.tenants.LdapUserGroupProvider</class>
-        <property name="Authentication Strategy">START_TLS</property>
-        <property name="Manager DN"></property>
-        <property name="Manager Password"></property>
-        <property name="TLS - Keystore"></property>
-        <property name="TLS - Keystore Password"></property>
-        <property name="TLS - Keystore Type"></property>
-        <property name="TLS - Truststore"></property>
-        <property name="TLS - Truststore Password"></property>
-        <property name="TLS - Truststore Type"></property>
-        <property name="TLS - Client Auth"></property>
-        <property name="TLS - Protocol"></property>
-        <property name="TLS - Shutdown Gracefully"></property>
+        <property name="Authentication Strategy">SIMPLE</property>
+        <property name="Manager DN">cn=admin,dc=ldap,dc=cetic,dc=be</property>
+        <property name="Manager Password">password1</property>
+        <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/localhost/keystore.jks</property>
+        <property name="TLS - Keystore Password">keystorePasswdfadi</property>
+        <property name="TLS - Keystore Type">JKS</property>
+        <property name="TLS - Truststore">/opt/nifi/nifi-current/conf/localhost/truststore.jks</property>
+        <property name="TLS - Truststore Password">truststorePasswdfadi</property>
+        <property name="TLS - Truststore Type">JKS</property>
+        <property name="TLS - Client Auth">NONE</property>
+        <property name="TLS - Protocol">TLS</property>
+        <property name="TLS - Shutdown Gracefully">false</property>
         <property name="Referral Strategy">FOLLOW</property>
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
-        <property name="Url"></property>
+        <property name="Url">ldap://fadi-openldap:389</property>
         <property name="Page Size"></property>
         <property name="Sync Interval">30 mins</property>
-        <property name="User Search Base"></property>
+        <property name="User Search Base">CN=admin,dc=ldap,dc=cetic,dc=be</property>
         <property name="User Object Class">person</property>
         <property name="User Search Scope">ONE_LEVEL</property>
-        <property name="User Search Filter"></property>
-        <property name="User Identity Attribute"></property>
+        <property name="User Search Filter">(objectClass=inetOrgPerson)</property>
+        <property name="User Identity Attribute">cn</property>
         <property name="User Group Name Attribute"></property>
         <property name="User Group Name Attribute - Referenced Group Attribute"></property>
         <property name="Group Search Base"></property>
@@ -149,7 +149,7 @@
         <property name="Group Member Attribute"></property>
         <property name="Group Member Attribute - Referenced User Attribute"></property>
     </userGroupProvider>
-    To enable the ldap-user-group-provider remove 2 lines. This is 2 of 2. -->
+
 
     <!--
         The CompositeUserGroupProvider will provide support for retrieving users and groups from multiple sources.
@@ -228,12 +228,14 @@
         These users, groups, and policies will be used to make all access decisions during authorization
         requests.
         - Access Policy Provider - The identifier for an Access Policy Provider defined above.
-    -->
-    <authorizer>
+
+            <authorizer>
         <identifier>managed-authorizer</identifier>
         <class>org.apache.nifi.authorization.StandardManagedAuthorizer</class>
         <property name="Access Policy Provider">file-access-policy-provider</property>
     </authorizer>
+    -->
+
     <!--
         NOTE: This Authorizer has been replaced with the more granular approach configured above with the Standard
         Managed Authorizer. However, it is still available for backwards compatibility reasons.

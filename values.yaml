@@ -69,10 +69,10 @@ properties:
 # Nifi User Authentication
 auth:
   ldap:
-    enabled: false
-    host: ldap://fadi.openldap:389
+    enabled: true
+    host: ldap://fadi-openldap:389
     searchBase: CN=admin,dc=ldap,dc=cetic,dc=be
-    searchFilter: CN=admin
+    searchFilter: cn=admin
 
 
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
@@ -88,7 +88,7 @@ headless:
 
 # ui service
 service:
-  type: LoadBalancer
+  type: NodePort
   httpPort: 80
   httpsPort: 443
   annotations: {}
