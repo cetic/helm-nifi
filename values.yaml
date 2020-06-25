@@ -131,6 +131,10 @@ jvmMemory: 2g
 sidecar:
   image: ez123/alpine-tini
 
+# Busybox image
+busybox:
+  image: busybox
+
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
 ##

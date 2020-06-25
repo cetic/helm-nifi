@@ -139,6 +139,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `jvmMemory`                                                                 | bootstrap jvm size                                                                                                 | `2g`                            |
 | **SideCar**                                                                 |
 | `sidecar.image`                                                             | Separate image for tailing each log separately                                                                     | `ez123/alpine-tini`             |
+| **BusyBox**                                                                 |
+| `busybox.image`                                                             | Separate image for initContainer that verifies zookeeper is accessible                                             | `busybox`                       |
 | **Resources**                                                               |
 | `resources`                                                                 | Pod resource requests and limits for logs                                                                          | `{}`                            |
 | **logResources**                                                            |

@@ -68,7 +68,7 @@ spec:
 {{- end }}
       initContainers:
       - name: zookeeper
-        image: busybox
+        image: {{ .Values.busybox.image }}
         command:
         - sh
         - -c
