@@ -16,9 +16,6 @@ maintainers:
   - name: alexnuttinck
     email: alexandre.nuttinck@cetic.be
     url: https://github.com/alexnuttinck
-  - name: daniel-yavorovich
-    email: daniel@dysnix.com
-    url: https://github.com/daniel-yavorovich
 dependencies:
   - name: zookeeper
     version: 2.1.1
