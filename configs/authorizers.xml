@@ -128,16 +128,16 @@
         <property name="TLS - Client Auth">NONE</property>
         <property name="TLS - Protocol">TLS</property>
         <property name="TLS - Shutdown Gracefully">false</property>
-        <property name="Referral Strategy">FOLLOW</property>
+        <property name="Referral Strategy">IGNORE</property>
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
         <property name="Url">ldap://fadi-openldap:389</property>
         <property name="Page Size"></property>
         <property name="Sync Interval">30 mins</property>
-        <property name="User Search Base">CN=admin,dc=ldap,dc=cetic,dc=be</property>
+        <property name="User Search Base">cn=admin,dc=ldap,dc=cetic,dc=be</property>
         <property name="User Object Class">person</property>
         <property name="User Search Scope">ONE_LEVEL</property>
-        <property name="User Search Filter">(objectClass=inetOrgPerson)</property>
+        <property name="User Search Filter">(objectClass=*)</property>
         <property name="User Identity Attribute">cn</property>
         <property name="User Group Name Attribute"></property>
         <property name="User Group Name Attribute - Referenced Group Attribute"></property>

@@ -88,9 +88,9 @@ headless:
 
 # ui service
 service:
-  type: NodePort
+  type: LoadBalancer
   httpPort: 80
-  httpsPort: 443
+  httpsPort: 9443
   annotations: {}
   # loadBalancerIP:
   ## Load Balancer sources
