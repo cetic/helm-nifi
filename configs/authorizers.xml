@@ -49,7 +49,7 @@
 {{- range $i := until $replicas }}
         <property name="Initial User Identity {{ $i }}">CN={{ $release }}-{{ $chart }}-{{ $i }}.{{ $release }}-{{ $chart }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
 {{- end }}
-        <property name="Initial User Identity admin">CN=admin, OU=NIFI</property>
+        <property name="Initial User Identity admin">cn=admin,dc=ldap,dc=cetic,dc=be</property>
     </userGroupProvider>
     <!--
         The LdapUserGroupProvider will retrieve users and groups from an LDAP server. The users and groups
@@ -216,7 +216,7 @@
         <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
         <property name="User Group Provider">file-user-group-provider</property>
         <property name="Authorizations File">./conf/authorizations.xml</property>
-        <property name="Initial Admin Identity">CN=admin, OU=NIFI</property>
+        <property name="Initial Admin Identity">cn=admin,dc=ldap,dc=cetic,dc=be</property>
         <property name="Legacy Authorized Users File"></property>
 {{- range $i := until $replicas }}
         <property name="Node Identity {{ $i }}">CN={{ $release }}-{{ $chart }}-{{ $i }}.{{ $release }}-{{ $chart }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
@@ -265,7 +265,7 @@
         <class>org.apache.nifi.authorization.FileAuthorizer</class>
         <property name="Authorizations File">./conf/authorizations.xml</property>
         <property name="Users File">./conf/users.xml</property>
-        <property name="Initial Admin Identity">CN=Cetic, OU=ApacheNiFi</property>
+        <property name="Initial Admin Identity">cn=admin,dc=ldap,dc=cetic,dc=be</property>
         <property name="Legacy Authorized Users File"></property>
 
     </authorizer>
