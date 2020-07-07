@@ -131,15 +131,10 @@ ingress:
 # Amount of memory to give the NiFi java heap
 jvmMemory: 2g
 
-# Separate image for tailing each log separately
+# Separate image for tailing each log separately and checking zookeeper connectivity
 sidecar:
-  image: ez123/alpine-tini
-  tag: latest
-
-# Busybox image
-busybox:
   image: busybox
-  tag: latest
+  tag: "1.32.0"
 
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
