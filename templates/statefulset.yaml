@@ -18,8 +18,13 @@ spec:
       release: {{ .Release.Name }}
   template:
     metadata:
+{{- if .Values.sts.pod.annotations }}
+      annotations:
+{{ toYaml .Values.sts.pod.annotations | indent 8 }}
+{{- else }}
       annotations:
         security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
+{{- end }}
       labels:
         app: {{ include "apache-nifi.name" . | quote }}
         chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
