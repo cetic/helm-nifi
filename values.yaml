@@ -243,3 +243,5 @@ registry:
   enabled: true
   url: ""
   port: 80
+  ## Add values for the nifi-registry here
+  ## ref: https://github.com/dysnix/charts/blob/master/nifi-registry/values.yaml

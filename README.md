@@ -171,7 +171,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **registry**                                                                |
 |`registry.enabled`                                                           | If true, deploy Nifi Registry                                                                                          | `true`                          |
 |`registry.url`                                                               | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `nil`                           |
-|`registry.port`                                                              | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `2181`                          |
+|`registry.port`                                                              | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `80`                            |
 
 ## Credits
 
