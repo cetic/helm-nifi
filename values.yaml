@@ -25,6 +25,10 @@ sts:
   podManagementPolicy: Parallel
   AntiAffinity: soft
   hostPort: null
+  pod:
+    annotations:
+      security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
+      #prometheus.io/scrape: "true"      
 
 ## Useful if using any custom secrets
 ## Pass in some secrets to use (if required)
