@@ -130,10 +130,12 @@ jvmMemory: 2g
 # Separate image for tailing each log separately
 sidecar:
   image: ez123/alpine-tini
+  tag: latest
 
 # Busybox image
 busybox:
   image: busybox
+  tag: latest
 
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/

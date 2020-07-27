@@ -69,7 +69,7 @@ spec:
       initContainers:
 {{- if .Values.properties.isNode }}
       - name: zookeeper
-        image: {{ .Values.busybox.image }}
+        image: "{{ .Values.busybox.image }}:{{ .Values.busybox.tag }}"
         command:
         - sh
         - -c
@@ -317,7 +317,7 @@ spec:
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
       - name: app-log
-        image: {{ .Values.sidecar.image }}
+        image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-app.log]
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
@@ -325,7 +325,7 @@ spec:
         - name: logs
           mountPath: /var/log
       - name: bootstrap-log
-        image: {{ .Values.sidecar.image }}
+        image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
@@ -333,7 +333,7 @@ spec:
         - name: logs
           mountPath: /var/log
       - name: user-log
-        image: {{ .Values.sidecar.image }}
+        image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-user.log]
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
