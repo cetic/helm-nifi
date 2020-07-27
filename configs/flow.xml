@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flowController encoding-version="1.3">
+    <maxTimerDrivenThreadCount>10</maxTimerDrivenThreadCount>
+    <maxEventDrivenThreadCount>5</maxEventDrivenThreadCount>
+    <registries>
+        <flowRegistry>
+            <id>{{ default uuidv4 }}</id>
+            <name>default</name>
+            <url>{{ template "registry.url" . }}</url>
+            <description/>
+        </flowRegistry>
+    </registries>
+    <rootGroup>
+        <id>{{ default uuidv4 }}</id>
+        <name>Nifi Flow</name>
+        <position x="0.0" y="0.0"/>
+        <comment/>
+    </rootGroup>
+    <controllerServices/>
+    <reportingTasks/>
+</flowController>

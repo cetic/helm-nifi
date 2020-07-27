@@ -121,6 +121,10 @@ spec:
             cat "${NIFI_HOME}/conf/authorizers.empty" > "${NIFI_HOME}/conf/authorizers.xml"
           fi
 
+          if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
+            gzip /opt/nifi/data/flow.xml
+          fi
+
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.web.http.host ${FQDN}
@@ -286,6 +290,9 @@ spec:
           - name: "zookeeper-properties"
             mountPath: /opt/nifi/nifi-current/conf/zookeeper.properties
             subPath: "zookeeper.properties"
+          - name: "flow-content"
+            mountPath: /opt/nifi/data/flow.xml
+            subPath: "flow.xml"
           {{- range $secret := .Values.secrets }}
             {{- if $secret.mountPath }}
               {{- if $secret.keys }}
@@ -400,6 +407,12 @@ spec:
           items:
             - key: "zookeeper.properties"
               path: "zookeeper.properties"
+      - name: "flow-content"
+        configMap:
+          name: {{ template "apache-nifi.fullname" . }}-config
+          items:
+            - key: "flow.xml"
+              path: "flow.xml"
       {{- range .Values.secrets }}
       - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
         secret:

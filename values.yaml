@@ -2,7 +2,7 @@
 # Number of nifi nodes
 replicaCount: 1
 
-## Set default image, imageTag, and imagePullPolicy. 
+## Set default image, imageTag, and imagePullPolicy.
 ## ref: https://hub.docker.com/r/apache/nifi/
 ##
 image:
@@ -89,7 +89,7 @@ auth:
 # headless service
 headless:
   type: ClusterIP
-  annotations: 
+  annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
 
 # ui service
@@ -161,19 +161,19 @@ persistence:
   accessModes:  [ReadWriteOnce]
   ## Storage Capacities for persistent volumes
   # Storage capacity for the 'data' directory, which is used to hold things such as the flow.xml.gz, configuration, state, etc.
-  dataStorage: 
+  dataStorage:
     size: 1Gi
   # Storage capacity for the FlowFile repository
-  flowfileRepoStorage: 
+  flowfileRepoStorage:
     size: 10Gi
   # Storage capacity for the Content repository
-  contentRepoStorage: 
+  contentRepoStorage:
     size: 10Gi
   # Storage capacity for the Provenance repository. When changing this, one should also change the properties.provenanceStorage value above, also.
-  provenanceRepoStorage: 
+  provenanceRepoStorage:
     size: 10Gi
   # Storage capacity for nifi logs
-  logStorage: 
+  logStorage:
     size: 5Gi
 
 ## Configure resource requests and limits
@@ -234,3 +234,12 @@ zookeeper:
   ## If the Zookeeper Chart is disabled a URL and port are required to connect
   url: ""
   port: 2181
+
+# ------------------------------------------------------------------------------
+# Nifi registry:
+# ------------------------------------------------------------------------------
+registry:
+  ## If true, install the Nifi registry
+  enabled: true
+  url: ""
+  port: 80
