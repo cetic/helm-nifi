@@ -47,7 +47,7 @@ sts:
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
-  isNode: true
+  isNode: false
   httpPort: null
   httpsPort: 9443
   clusterPort: 8443

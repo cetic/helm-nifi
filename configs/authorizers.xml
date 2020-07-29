@@ -178,14 +178,14 @@
             NOTE: Any identity mapping rules specified in nifi.properties are not applied in this implementation. This behavior
             would need to be applied by the base implementation.
     -->
-    <!-- To enable the composite-configurable-user-group-provider remove 2 lines. This is 1 of 2.
+
     <userGroupProvider>
         <identifier>composite-configurable-user-group-provider</identifier>
         <class>org.apache.nifi.authorization.CompositeConfigurableUserGroupProvider</class>
         <property name="Configurable User Group Provider">file-user-group-provider</property>
-        <property name="User Group Provider 1"></property>
+        <property name="User Group Provider 1">ldap-user-group-provider</property>
     </userGroupProvider>
-    To enable the composite-configurable-user-group-provider remove 2 lines. This is 2 of 2. -->
+
 
     <!--
         The FileAccessPolicyProvider will provide support for managing access policies which is backed by a file
@@ -222,6 +222,13 @@
         <property name="Node Identity {{ $i }}">CN={{ $release }}-{{ $chart }}-{{ $i }}.{{ $release }}-{{ $chart }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
 {{- end }}
     </accessPolicyProvider>
+
+
+    <authorizer>
+        <identifier>managed-authorizer</identifier>
+        <class>org.apache.nifi.authorization.StandardManagedAuthorizer</class>
+        <property name="Access Policy Provider">file-access-policy-provider</property>
+    </authorizer>
      <!--
         The StandardManagedAuthorizer. This authorizer implementation must be configured with the
         Access Policy Provider which it will use to access and manage users, groups, and policies.
