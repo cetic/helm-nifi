@@ -22,7 +22,7 @@ dependencies:
     repository: https://kubernetes-charts-incubator.storage.googleapis.com/
     condition: zookeeper.enabled
   - name: nifi-registry
-    alias: regitsry
+    alias: registry
     version: 0.1.0
     repository: https://dysnix.github.io/charts/
     condition: registry.enabled
