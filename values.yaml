@@ -7,7 +7,7 @@ replicaCount: 1
 ##
 image:
   repository: apache/nifi
-  tag: "1.11.0"
+  tag: "1.11.4"
   pullPolicy: IfNotPresent
 
   ## Optionally specify an imagePullSecret.
@@ -48,6 +48,10 @@ properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
   isNode: false
+  webProxyHost:
+  webHttpsHost:
+  release: nifi # if you're using the secured cluster, provide the release-name here before deploying.
+  namespace: default # if you're using the secured cluster, provide the namespace here before deploying.
   httpPort: null
   httpsPort: 9443
   clusterPort: 8443
