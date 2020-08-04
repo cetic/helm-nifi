@@ -1,6 +1,8 @@
+---
+apiVersion: v2
 name: nifi
-version: 0.3.3
-appVersion: 1.11.0
+version: 0.5.1
+appVersion: 1.11.4
 description: Apache NiFi is a software project from the Apache Software Foundation designed to automate the flow of data between software systems.
 keywords:
   - nifi
@@ -12,3 +14,15 @@ source:
   - https://github.com/cetic/helm-nifi
 maintainers:
   - name: alexnuttinck
+    email: alexandre.nuttinck@cetic.be
+    url: https://github.com/alexnuttinck
+dependencies:
+  - name: zookeeper
+    version: 2.1.1
+    repository: https://kubernetes-charts-incubator.storage.googleapis.com/
+    condition: zookeeper.enabled
+  - name: nifi-registry
+    alias: registry
+    version: 0.1.0
+    repository: https://dysnix.github.io/charts/
+    condition: registry.enabled

@@ -9,7 +9,7 @@ This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://ni
 ## Prerequisites
 
 - Kubernetes cluster 1.10+
-- Helm 2.8.0+
+- Helm 3.0.0+
 - PV provisioner support in the underlying infrastructure.
 
 ## Installation
@@ -74,7 +74,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `replicaCount`                                                              | Number of nifi nodes                                                                                               | `1`                             |
 | **Image**                                                                   |
 | `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
-| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.11.0`                         |
+| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.11.4`                        |
 | `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
 | `image.pullSecret`                                                          | nifi Image pull secret                                                                                             | `nil`                           |
 | **SecurityContext**                                                         |
@@ -83,6 +83,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **sts**                                                                     |
 | `sts.podManagementPolicy`                                                   | Parallel podManagementPolicy                                                                                       | `Parallel`                      |
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
+| `sts.pod.annotations`                                                       | Pod template annotations                                                                                           | `security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000`                          |
 | **secrets**
 | `secrets`                                                                   | Pass any secrets to the nifi pods. The secret can also be mounted to a specific path if required.                  | `nil`                           |
 | **configmaps**
@@ -111,12 +112,14 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `headless.type`                                                             | Type of the headless service for nifi                                                                              | `ClusterIP`                     |
 | `headless.annotations`                                                      | Headless Service annotations                                                                                       | `service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"`|
 | **UI Service**                                                              |
-| `service.type`                                                              | Type of the UI service for nifi                                                                                    | `LoadBalancer`                  |
-| `service.httpPort`                                                          | Port to expose service                                                                                             | `80`                            |
+| `service.type`                                                              | Type of the UI service for nifi                                                                                    | `NodePort`                  |
+| `service.httpPort`                                                          | Port to expose service                                                                                             | `8080`                            |
 | `service.httpsPort`                                                         | Port to expose service in tls                                                                                      | `443`                           |
 | `service.annotations`                                                       | Service annotations                                                                                                | `{}`                            |
 | `service.loadBalancerIP`                                                    | LoadBalancerIP if service type is `LoadBalancer`                                                                   | `nil`                           |
 | `service.loadBalancerSourceRanges`                                          | Address that are allowed when svc is `LoadBalancer`                                                                | `[]`                            |
+| `service.processors.enabled`                                                | Enables additional port/ports to nifi service for internal processors                                              | `false`                         |
+| `service.processors.ports`                                                  | Specify "name/port/targetPort/nodePort" for processors  sockets                                                    | `[]`                            |
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
 | `ingress.annotations`                                                       | Ingress annotations                                                                                                | `{}`                            |
@@ -137,18 +140,38 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `jvmMemory`                                                                 | bootstrap jvm size                                                                                                 | `2g`                            |
 | **SideCar**                                                                 |
 | `sidecar.image`                                                             | Separate image for tailing each log separately                                                                     | `ez123/alpine-tini`             |
+| `sidecar.tag`                                                               | Image tag                                                                                                          | `latest`                        |
+| **BusyBox**                                                                 |
+| `busybox.image`                                                             | Separate image for initContainer that verifies zookeeper is accessible                                             | `busybox`                       |
+| `busybox.tag`                                                               | Image tag                                                                                                          | `latest`                        |
 | **Resources**                                                               |
 | `resources`                                                                 | Pod resource requests and limits for logs                                                                          | `{}`                            |
 | **logResources**                                                            |
 | `logresources.`                                                             | Pod resource requests and limits                                                                                   | `{}`                            |
 | **nodeSelector**                                                            |
 | `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
+| **terminationGracePeriodSeconds**                                           |
+| `terminationGracePeriodSeconds`                                             | Number of seconds the pod needs to terminate gracefully. For clean scale down of the nifi-cluster the default is set to 60, opposed to k8s-default 30. | `60`                            |
 | **tolerations**                                                             |
 | `tolerations`                                                               | Tolerations for pod assignment                                                                                     | `[]`                            |
+| **initContainers**                                                          |
+| `initContainers`                                                            | Container definition that will be added to the pod as [initContainers](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core) | `[]`                            |
+| **extraVolumes**                                                            |
+| `extraVolumes`                                                              | Additional Volumes available within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core) for format)       | `[]`                            |
+| **extraVolumeMounts**                                                       |
+| `extraVolumeMounts`                                                         | VolumeMounts for the nifi-server container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core) for details)  | `[]`                            |
+| **env**                                                                     |
+| `env`                                                                       | Additional environment variables for the nifi-container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core) for details)  | `[]`                            |
+| **extraContainers**                                                         |
+| `extraContainers`                                                           | Additional container-specifications that should run within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core) for details)  | `[]`                            |
 | **zookeeper**                                                               |
 |`zookeeper.enabled`                                                          | If true, deploy Zookeeper                                                                                          | `true`                          |
 |`zookeeper.url`                                                              | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
 |`zookeeper.port`                                                             | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `2181`                          |
+| **registry**                                                                |
+|`registry.enabled`                                                           | If true, deploy Nifi Registry                                                                                          | `true`                          |
+|`registry.url`                                                               | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `nil`                           |
+|`registry.port`                                                              | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `80`                            |
 
 ## Credits
 
