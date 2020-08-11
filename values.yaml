@@ -52,15 +52,16 @@ properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
   isNode: false
+  isSecure: true # switch to true if the cluster is secured ( if you're using Ldap for example )
   webProxyHost:
   webHttpsHost:
   release: nifi # if you're using the secured cluster, provide the release-name here before deploying.
   namespace: default # if you're using the secured cluster, provide the namespace here before deploying.
-  httpPort: null
-  httpsPort: 9443
+  httpPort: null # switch to null if the cluster is secured ( if you're using Ldap for example )
+  httpsPort: 9443 # switch to 9443 if the cluster is secured ( if you're using Ldap for example )
   clusterPort: 8443
-  clusterSecure: true
-  needClientAuth: true
+  clusterSecure: true # switch to true if the cluster is secured ( if you're using Ldap for example )
+  needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
     secure: true
@@ -82,8 +83,11 @@ auth:
   ldap:
     enabled: true
     host: ldap://fadi-openldap:389
-    searchBase: CN=admin,dc=ldap,dc=cetic,dc=be
-    searchFilter: cn=admin
+    searchBase: cn=admin,dc=ldap,dc=cetic,dc=be
+    admin: cn=admin,dc=ldap,dc=cetic,dc=be
+    searchFilter: (objectClass=*)
+    UserIdentityAttribute: cn
+    pass: password1
 
 
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).

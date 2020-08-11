@@ -63,6 +63,7 @@
             this duration.
     -->
 
+    {{if .Values.auth.ldap.enabled}}
     <provider>
         <identifier>ldap-provider</identifier>
         <class>org.apache.nifi.ldap.LdapProvider</class>
@@ -88,7 +89,7 @@
         <property name="Identity Strategy">USE_DN</property>
         <property name="Authentication Expiration">12 hours</property>
     </provider>
-
+    {{end}}
     <!--
         Identity Provider for users logging in with username/password against a Kerberos KDC server.
         'Default Realm' - Default realm to provide when user enters incomplete user principal (i.e. NIFI.APACHE.ORG).
