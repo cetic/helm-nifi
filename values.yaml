@@ -57,8 +57,8 @@ properties:
   webHttpsHost:
   release: nifi # if you're using the secured cluster, provide the release-name here before deploying.
   namespace: default # if you're using the secured cluster, provide the namespace here before deploying.
-  httpPort: 8080 # switch to null if the cluster is secured ( if you're using Ldap for example )
-  httpsPort: null # switch to 9443 if the cluster is secured ( if you're using Ldap for example )
+  httpPort: 8080 # switch to null ( 8080 by default )if the cluster is secured ( if you're using Ldap )
+  httpsPort: null # switch to 9443 ( null by default ) if the cluster is secured ( if you're using Ldap )
   clusterPort: 8443
   clusterSecure: false # switch to true if the cluster is secured ( if you're using Ldap for example )
   needClientAuth: false
@@ -82,12 +82,12 @@ properties:
 auth:
   ldap:
     enabled: false
-    host: ldap://fadi-openldap:389
-    searchBase: cn=admin,dc=ldap,dc=cetic,dc=be
-    admin: cn=admin,dc=ldap,dc=cetic,dc=be
+    host: ldap://<hostname>:<port>
+    searchBase: CN=Users,DC=example,DC=com
+    admin: cn=admin,dc=example,dc=com
     searchFilter: (objectClass=*)
     UserIdentityAttribute: cn
-    pass: password1
+    pass: password
 
 
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).

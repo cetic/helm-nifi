@@ -37,6 +37,12 @@ The following items can be set via `--set` flag during installation or configure
 - **Disable**: The data does not survive the termination of a pod.
 - **Persistent Volume Claim(default)**: A default `StorageClass` is needed in the Kubernetes cluster to dynamic provision the volumes. Specify another StorageClass in the `storageClass` or set `existingClaim` if you have already existing persistent volumes to use.
 
+
+#### Configure the cluster security:
+
+- **Ldap**: Enable ldap to secure the cluster and add user/password authentication. when ldap is enabled make sure to change the variables `properties.isSecure` and `properties.clusterSecure` to **true** and set `properties.httpPort` to **null** and `properties.httpsPort` to **9443**.
+- Also to use ldap you need to set the **namesapce** and the **release-name** you're going to use in advance respectivly in `properties.namespace` and `properties.release` .
+
 ### Install the chart
 
 Install the nifi helm chart with a release name `my-release`:
@@ -101,11 +107,17 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.siteToSite.port`                                                | Site to Site properties Secure port                                                                                | `10000`                         |
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
 | `properties.safetyValve`                                                    | Map of explicit 'property: value' pairs that overwrite other configuration                                         | `nil`                           |
+| `properties.isSecure`                                                    | Cluster security, set to true when securing the cluster                                          | `false`                           |
+| `properties.release`                                                    | The release name you're going to use for your deployment ( needed for ldap )                                         | `nifi`                           |
+| `properties.namespace`                                                    | The namespace you're going to use for your deployment ( needed for ldap )                                         | `default`                           |
 | **nifi user authentication**                                                |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
 | `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
 | `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
-| `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
+| `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `(objectClass=*)`                       |
+| `auth.ldap.admin`                                                    | default admin CN ( intial admin identity for NiFi )                                                                                                   | `CN=admin,dc=example,dc=com`                       |
+| `auth.ldap.UserIdentityAttribute`                                                    | User Identity Attribute                                                                                                  | `CN`                       |
+| `auth.ldap.pass`                                                    | the password for the admin user                                                                                                  | `password`                       |
 | **postStart**                                                               |
 | `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
 | **Headless Service**                                                        |
