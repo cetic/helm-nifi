@@ -60,7 +60,7 @@ properties:
   httpPort: 8080 # switch to null ( 8080 by default )if the cluster is secured ( if you're using Ldap )
   httpsPort: null # switch to 9443 ( null by default ) if the cluster is secured ( if you're using Ldap )
   clusterPort: 8443
-  clusterSecure: false # switch to true if the cluster is secured ( if you're using Ldap for example )
+  clusterSecure: false # switch to true if the cluster is secured ( if you're using Ldap )
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:

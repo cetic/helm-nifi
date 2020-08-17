@@ -221,7 +221,7 @@
         <property name="User Group Provider">file-user-group-provider</property>
         <property name="Authorizations File">./conf/authorizations.xml</property>
         {{- if .Values.auth.ldap.enabled}}
-        <property name="Initial User Identity admin">{{.Values.auth.ldap.admin}}</property>
+        <property name="Initial Admin Identity">{{.Values.auth.ldap.admin}}</property>
         {{- else }}
         <property name="Initial User Identity admin">CN=admin, OU=NIFI</property>
         {{- end}}
