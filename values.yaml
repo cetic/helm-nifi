@@ -17,8 +17,8 @@ image:
   # pullSecret: myRegistrKeySecretName
 
 securityContext:
-  runAsUser: 0
-  fsGroup: 0
+  runAsUser: 1000
+  fsGroup: 1000
 
 sts:
   # Parallel podManagementPolicy for faster bootstrap and teardown. Default is OrderedReady.
@@ -55,7 +55,6 @@ properties:
   isSecure: false # switch to true if the cluster is secured ( if you're using Ldap for example )
   webProxyHost:
   webHttpsHost:
-  release: nifi # if you're using the secured cluster, provide the release-name here before deploying.
   namespace: default # if you're using the secured cluster, provide the namespace here before deploying.
   httpPort: 8080 # switch to null ( 8080 by default )if the cluster is secured ( if you're using Ldap )
   httpsPort: null # switch to 9443 ( null by default ) if the cluster is secured ( if you're using Ldap )
@@ -64,7 +63,7 @@ properties:
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
-    secure: true
+    secure: false
     port: 10000
   authorizer: managed-authorizer
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
@@ -80,14 +79,21 @@ properties:
 
 # Nifi User Authentication
 auth:
+  SSL:
+    keystorePasswd: keystorePasswdExample
+    truststorePasswd: truststorePasswdExample
   ldap:
     enabled: false
     host: ldap://<hostname>:<port>
-    searchBase: CN=Users,DC=example,DC=com
+    searchBase: cn=Users,dc=example,dc=com
     admin: cn=admin,dc=example,dc=com
+    pass: password
     searchFilter: (objectClass=*)
     UserIdentityAttribute: cn
-    pass: password
+    AuthStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
+    IdentityStrategy: USE_DN
+    AuthExpiration: 12 hours
+
 
 
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).

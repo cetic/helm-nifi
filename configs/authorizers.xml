@@ -120,14 +120,14 @@
     <userGroupProvider>
         <identifier>ldap-user-group-provider</identifier>
         <class>org.apache.nifi.ldap.tenants.LdapUserGroupProvider</class>
-        <property name="Authentication Strategy">SIMPLE</property>
+        <property name="Authentication Strategy">{{.Values.auth.ldap.AuthStrategy}}</property>
         <property name="Manager DN">{{.Values.auth.ldap.admin}}</property>
         <property name="Manager Password">{{.Values.auth.ldap.pass}}</property>
         <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/localhost/keystore.jks</property>
-        <property name="TLS - Keystore Password">keystorePasswdfadi</property>
+        <property name="TLS - Keystore Password">{{.Values.auth.SSL.keystorePasswd}}</property>
         <property name="TLS - Keystore Type">JKS</property>
         <property name="TLS - Truststore">/opt/nifi/nifi-current/conf/localhost/truststore.jks</property>
-        <property name="TLS - Truststore Password">truststorePasswdfadi</property>
+        <property name="TLS - Truststore Password">{{.Values.auth.SSL.truststorePasswd}}</property>
         <property name="TLS - Truststore Type">JKS</property>
         <property name="TLS - Client Auth">NONE</property>
         <property name="TLS - Protocol">TLS</property>

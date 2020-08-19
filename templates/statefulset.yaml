@@ -185,7 +185,7 @@ spec:
 
           echo NiFi running with PID ${nifi_pid}.
           wait ${nifi_pid}
-          /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n '{{.Values.properties.release}}-nifi-0.{{.Values.properties.release}}-nifi-headless.{{.Values.properties.namespace}}.svc.cluster.local' -C '{{.Values.auth.ldap.admin}}' -o '/opt/nifi/nifi-current/conf/' -P truststorePasswdfadi  -S keystorePasswdfadi  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
+          /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Values.properties.namespace}}.svc.cluster.local' -C '{{.Values.auth.ldap.admin}}' -o '/opt/nifi/nifi-current/conf/' -P {{.Values.auth.SSL.truststorePasswd}}  -S {{.Values.auth.SSL.keystorePasswd}}  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           exec bin/nifi.sh run
         resources:
 {{ toYaml .Values.resources | indent 10 }}
