@@ -85,6 +85,60 @@ spec:
             sleep 2
           done
 {{- end }}
+{{- if .Values.ca.enabled }}
+      - name: cert
+        imagePullPolicy: {{ .Values.ca.image.pullPolicy | quote }}
+        image: "{{ .Values.ca.image.repository }}:{{ .Values.ca.image.tag }}"
+        command:
+        - bash
+        - -c
+        - |
+          CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.port }}"
+          until echo "" | timeout -t 2 openssl s_client -connect "${CA_ADDRESS}"; do
+            # Checking if ca server using nifi-toolkit is up
+            echo "Waiting for CA to be avaiable at ${CA_ADDRESS}"
+            sleep 2
+          done;
+          cd /data/config-data
+          rm -rf cert
+          mkdir cert
+          cd cert
+          # Generate certificate for server with webProxyHost or service name as alternate names to access nifi web ui
+          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
+            -c "{{ template "ca.server" . }}" \
+            -t {{ .Values.ca.token }} \
+{{- if .Values.nifi_properties.webProxyHost }}
+            --subjectAlternativeNames {{ .Values.nifi_properties.webProxyHost }} \
+{{- else }}
+            --subjectAlternativeNames {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
+{{- end }}
+            -D "CN=$(hostname -f), OU=NIFI" \
+            -p {{ .Values.ca.port }}
+
+          # Generate client certificate for browser with webProxyHost or service name as alternate names to access nifi web ui
+          mkdir -p /data/config-data/cert/admin
+          cd /data/config-data/cert/admin
+
+          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
+            -c "{{ template "ca.server" . }}" \
+            -t {{ .Values.ca.token }} \
+{{- if .Values.nifi_properties.webProxyHost }}
+            --subjectAlternativeNames {{ .Values.nifi_properties.webProxyHost }} \
+{{- else }}
+            --subjectAlternativeNames {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
+{{- end }}
+            -p {{ .Values.ca.port }} \
+            -D "CN={{ .Values.ca.admin.cn }}, OU=NIFI" \
+            -T PKCS12
+
+          export PASS=$(jq -r .keyStorePassword config.json)
+
+          openssl pkcs12 -in "keystore.pkcs12" -out "key.pem" -nocerts -nodes -password "env:PASS"
+          openssl pkcs12 -in "keystore.pkcs12" -out "crt.pem" -clcerts -nokeys -password "env:PASS"
+        volumeMounts:
+          - name: "data"
+            mountPath: /data/config-data
+{{- end }}
 {{- range $key, $value := .Values.initContainers }}
       - name: {{ $key }}
 {{ toYaml $value | indent 8 }}
