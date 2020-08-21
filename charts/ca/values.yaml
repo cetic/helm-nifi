@@ -1,0 +1,50 @@
+# Default values for ca.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: apache/nifi-toolkit
+  pullPolicy: IfNotPresent
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 9090
+
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistence:
+  enabled: false
+
+  # When creating persistent storage, the NiFi helm chart can either reference an already-defined
+  # storage class by name, such as "standard" or can define a custom storage class by specifying
+  # customStorageClass: true and providing the "storageClass", "storageProvisioner" and "storageType".
+  # For example, to use SSD storage on Google Compute Engine see values-gcp.yaml
+  #
+  # To use a storage class that already exists on the Kubernetes cluster, we can simply reference it by name.
+  # For example:
+  # storageClass: standard
+  #
+  # The default storage class is used if this variable is not set.
+
+  accessModes:  [ReadWriteOnce]
+
+  ## Storage Capacities for persistent volumes
+  # Storage capacity for the 'data' directory, which is used to hold things such as the flow.xml.gz, configuration, state, etc.
+  caStorage:
+    size: 1Gi
+
+resources:
+  requests:
+    memory: "250Mi"
+    cpu: "0.1"
+
+app_port: 9090
+
+admin:
+  cn: admin
+
+token: sixteenCharacters

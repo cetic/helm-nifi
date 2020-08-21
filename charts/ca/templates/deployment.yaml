@@ -1,0 +1,81 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ca.fullname" . }}
+  labels:
+    app: {{ template "ca.name" . }}-ca
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "ca.name" . }}-ca
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "ca.name" . }}-ca
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: ca
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command:
+        - sh
+        - -c
+        - |
+          if [ -f config.json ]; then
+            OPTIONS="--configJson config.json --useConfigJson"
+          fi
+          exec ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh server -c "{{ template "ca.fullname" . }}" -t {{ .Values.token }} -p {{ .Values.app_port }} ${OPTIONS}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.app_port }}
+        livenessProbe:
+          initialDelaySeconds: 90
+          periodSeconds: 60
+          tcpSocket:
+            port: {{ .Values.app_port }}
+{{- if .Values.persistence.enabled }}
+        volumeMounts:
+        - mountPath: /ca
+          name: nifi-ca
+          subPath: ca
+        workingDir: /ca
+{{- end }}
+      terminationGracePeriodSeconds: 0
+{{- if .Values.persistence.enabled }}
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - chown -R 1000:1000 /ca
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        name: volume-permissions
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {}
+          privileged: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+        volumeMounts:
+        - mountPath: /ca
+          name: nifi-ca
+          subPath: ca
+
+      volumes:
+      - name: nifi-ca
+        persistentVolumeClaim:
+          claimName: nifi-ca
+{{- end }}

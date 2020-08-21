@@ -57,7 +57,7 @@ spec:
 {{- if .Values.properties.clusterSecure }}
     - port: {{ .Values.service.httpsPort }}
       name: https
-      targetPort: {{ .Values.httpsPort }}
+      targetPort: {{ .Values.properties.httpsPort }}
 {{- else }}
     - port: {{ .Values.service.httpPort }}
       name: http

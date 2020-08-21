@@ -68,3 +68,14 @@ else use user-provided name and port
 {{- printf "http://%s:%s" .Values.registry.url $port }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Create ca.server
+*/}}
+{{- define "ca.server" }}
+{{- if .Values.ca.enabled -}}
+{{- printf "%s-ca" .Release.Name }}
+{{- else -}}
+{{- printf "%s" .Values.ca.server }}
+{{- end -}}
+{{- end -}}

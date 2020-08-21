@@ -59,7 +59,6 @@ properties:
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
-    secure: false
     port: 10000
   authorizer: managed-authorizer
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
@@ -155,6 +154,8 @@ persistence:
 
   accessModes:  [ReadWriteOnce]
   ## Storage Capacities for persistent volumes
+  configStorage:
+    size: 100Mi
   # Storage capacity for the 'data' directory, which is used to hold things such as the flow.xml.gz, configuration, state, etc.
   dataStorage:
     size: 1Gi

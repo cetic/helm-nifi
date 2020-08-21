@@ -100,32 +100,33 @@ spec:
             sleep 2
           done;
           cd /data/config-data
-          rm -rf cert
-          mkdir cert
-          cd cert
+          rm -rf certs
+          mkdir certs
+          cd certs
+          
           # Generate certificate for server with webProxyHost or service name as alternate names to access nifi web ui
           ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
             -c "{{ template "ca.server" . }}" \
             -t {{ .Values.ca.token }} \
-{{- if .Values.nifi_properties.webProxyHost }}
-            --subjectAlternativeNames {{ .Values.nifi_properties.webProxyHost }} \
+{{- if .Values.properties.webProxyHost }}
+            --subjectAlternativeNames {{ .Values.properties.webProxyHost }} \
 {{- else }}
-            --subjectAlternativeNames {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
+            --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
 {{- end }}
             -D "CN=$(hostname -f), OU=NIFI" \
             -p {{ .Values.ca.port }}
 
           # Generate client certificate for browser with webProxyHost or service name as alternate names to access nifi web ui
-          mkdir -p /data/config-data/cert/admin
-          cd /data/config-data/cert/admin
+          mkdir -p /data/config-data/certs/admin
+          cd /data/config-data/certs/admin
 
           ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
             -c "{{ template "ca.server" . }}" \
             -t {{ .Values.ca.token }} \
-{{- if .Values.nifi_properties.webProxyHost }}
-            --subjectAlternativeNames {{ .Values.nifi_properties.webProxyHost }} \
+{{- if .Values.properties.webProxyHost }}
+            --subjectAlternativeNames {{ .Values.properties.webProxyHost }} \
 {{- else }}
-            --subjectAlternativeNames {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
+            --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
 {{- end }}
             -p {{ .Values.ca.port }} \
             -D "CN={{ .Values.ca.admin.cn }}, OU=NIFI" \
@@ -136,7 +137,7 @@ spec:
           openssl pkcs12 -in "keystore.pkcs12" -out "key.pem" -nocerts -nodes -password "env:PASS"
           openssl pkcs12 -in "keystore.pkcs12" -out "crt.pem" -clcerts -nokeys -password "env:PASS"
         volumeMounts:
-          - name: "data"
+          - name: "config-data"
             mountPath: /data/config-data
 {{- end }}
 {{- range $key, $value := .Values.initContainers }}
@@ -165,6 +166,7 @@ spec:
             fi
           }
 
+          mkdir -p ${NIFI_HOME}/config-data/conf
           FQDN=$(hostname -f)
 
           cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
@@ -183,6 +185,35 @@ spec:
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.web.http.host ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
+
+{{- if .Values.properties.clusterSecure }}
+          # Update nifi.properties for security properties
+          prop_replace nifi.web.https.host ${FQDN}
+          prop_replace nifi.security.keystore   ${NIFI_HOME}/config-data/certs/keystore.jks
+          prop_replace nifi.security.keystorePasswd     $(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
+          prop_replace nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
+          prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
+          prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
+
+          #base_host=$(echo `hostname| rev  | cut -d "-" -f 2- | rev`-0)
+          #if [[ `hostname` != "$base_host" ]]; then
+          #  # Download kubectl, this can be later backed into the docker image
+          #  curl -Lo ${NIFI_HOME}/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+          #  chmod +x ${NIFI_HOME}/bin/kubectl
+          #  # Download authorizations.xml from pod-0, it helps to get authorizations.xml required for adding up new nodes
+          #  ${NIFI_HOME}/bin/kubectl cp {{ .Release.Namespace }}/${base_host}:/opt/nifi/nifi-current/config-data/conf/authorizations.xml /opt/nifi/nifi-current/config-data/conf/authorizations.xml
+          #fi
+          
+{{- if .Values.properties.webProxyHost }}
+          # Update nifi.properties for web ui proxy hostname
+          prop_replace nifi.web.proxy.host {{ .Values.properties.webProxyHost }}
+{{- else }}
+          prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc
+{{- end }}
+
+{{- else }}
+          prop_replace nifi.web.http.host ${FQDN}
+{{- end }}
 
 {{- if .Values.properties.safetyValve }}
   {{- range $prop, $val := .Values.properties.safetyValve }}
@@ -282,9 +313,9 @@ spec:
             - |
 {{- if .Values.properties.httpsPort }}
               curl -kv \
-                --cert ${NIFI_BASE_DIR}/data/cert/admin/crt.pem --cert-type PEM \
-                --key ${NIFI_BASE_DIR}/data/cert/admin/key.pem --key-type PEM \
-                https://$(hostname -f):8443/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
+                --cert ${NIFI_HOME}/config-data/certs/admin/crt.pem --cert-type PEM \
+                --key ${NIFI_HOME}/config-data/certs/admin/key.pem --key-type PEM \
+                https://$(hostname -f):{{ .Values.properties.httpsPort }}/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
 {{- else }}
               curl -kv \
                 http://$(hostname -f):{{ .Values.properties.httpPort }}/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
@@ -309,6 +340,10 @@ spec:
         volumeMounts:
           - name: "data"
             mountPath: /opt/nifi/data
+{{- if .Values.properties.clusterSecure }}
+          - name: "config-data"
+            mountPath: /opt/nifi/nifi-current/config-data
+{{- end }}
           - name: "flowfile-repository"
             mountPath: /opt/nifi/flowfile_repository
           - name: "content-repository"
@@ -478,6 +513,8 @@ spec:
           name: {{ .name }}
       {{- end }}
 {{- if not .Values.persistence.enabled }}
+      - name: config-data
+        emptyDir: {}
       - name: data
         emptyDir: {}
       - name: flowfile-repository
@@ -494,6 +531,16 @@ spec:
 {{- end }}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
+{{- if .Values.properties.clusterSecure }}
+    - metadata:
+        name: "config-data"
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.configStorage.size }}
+{{- end }}
     - metadata:
         name: data
       spec:
