@@ -74,7 +74,7 @@ spec:
       initContainers:
 {{- if .Values.properties.isNode }}
       - name: zookeeper
-        image: "{{ .Values.busybox.image }}:{{ .Values.busybox.tag }}"
+        image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         command:
         - sh
         - -c

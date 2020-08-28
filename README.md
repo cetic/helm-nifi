@@ -6,6 +6,8 @@
 
 This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://nifi.apache.org/) in a Kubernetes cluster.
 
+:warning: As explained in several issues, this helm chart does not allow TLS configurations and secure Admin access. We are currently working on this feature, but any help is welcome.
+
 ## Prerequisites
 
 - Kubernetes cluster 1.10+
@@ -139,11 +141,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **jvmMemory**                                                               |
 | `jvmMemory`                                                                 | bootstrap jvm size                                                                                                 | `2g`                            |
 | **SideCar**                                                                 |
-| `sidecar.image`                                                             | Separate image for tailing each log separately                                                                     | `ez123/alpine-tini`             |
-| `sidecar.tag`                                                               | Image tag                                                                                                          | `latest`                        |
-| **BusyBox**                                                                 |
-| `busybox.image`                                                             | Separate image for initContainer that verifies zookeeper is accessible                                             | `busybox`                       |
-| `busybox.tag`                                                               | Image tag                                                                                                          | `latest`                        |
+| `sidecar.image`                                                             | Separate image for tailing each log separately and checking zookeeper connectivity                                 | `busybox`                       |
+| `sidecar.tag`                                                               | Image tag                                                                                                          | `1.32.0`                        |
 | **Resources**                                                               |
 | `resources`                                                                 | Pod resource requests and limits for logs                                                                          | `{}`                            |
 | **logResources**                                                            |
