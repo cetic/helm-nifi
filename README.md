@@ -6,6 +6,8 @@
 
 This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://nifi.apache.org/) in a Kubernetes cluster.
 
+:warning: As explained in several issues, this helm chart does not allow TLS configurations and secure Admin access. We are currently working on this feature, but any help is welcome.
+
 ## Prerequisites
 
 - Kubernetes cluster 1.10+
