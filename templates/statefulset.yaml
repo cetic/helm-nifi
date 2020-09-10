@@ -86,7 +86,7 @@ spec:
           done
 {{- end }}
 {{- if .Values.ca.enabled }}
-      - name: cert
+      - name: cert-request
         imagePullPolicy: {{ .Values.ca.image.pullPolicy | quote }}
         image: "{{ .Values.ca.image.repository }}:{{ .Values.ca.image.tag }}"
         command:
@@ -109,7 +109,7 @@ spec:
             -c "{{ template "ca.server" . }}" \
             -t {{ .Values.ca.token }} \
 {{- if .Values.properties.webProxyHost }}
-            --subjectAlternativeNames {{ .Values.properties.webProxyHost }} \
+            --subjectAlternativeNames {{ .Values.properties.webProxyHost }}, $(hostname -f) \
 {{- else }}
             --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
 {{- end }}
@@ -177,9 +177,9 @@ spec:
             cat "${NIFI_HOME}/conf/authorizers.empty" > "${NIFI_HOME}/conf/authorizers.xml"
           fi
 
-          if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
-            gzip /opt/nifi/data/flow.xml
-          fi
+          # if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
+          #   gzip /opt/nifi/data/flow.xml
+          # fi
 
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
@@ -225,44 +225,52 @@ spec:
 
           function offloadNode() {
               FQDN=$(hostname -f)
-              echo disconnecting node '$FQDN'
+              echo "disconnecting node '$FQDN'"
               {{- if .Values.properties.clusterSecure }}
-              servicePort={{ .Values.service.httpsPort }}
+              baseUrl=https://${FQDN}:{{ .Values.properties.httpsPort }}
+
+              keystore=${NIFI_HOME}/config-data/certs/keystore.jks
+              keystorePasswd=$(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
+              keyPasswd=$(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
+              truststore=${NIFI_HOME}/config-data/certs/truststore.jks
+              truststorePasswd=$(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
+
+              secureArgs=" --truststore ${truststore} --truststoreType JKS --truststorePasswd ${truststorePasswd} --keystore ${keystore} --keystoreType JKS --keystorePasswd ${keystorePasswd} --proxiedEntity "{{ .Values.auth.admin }}""
               {{- else }}
-              servicePort={{ .Values.service.httpPort }}
+              baseUrl=http://${FQDN}:{{ .Values.properties.httpPort }}
               {{- end }}
-              baseUrl=http://{{ template "apache-nifi.fullname" . }}:${servicePort}
+
               echo baseUrl ${baseUrl}
               echo "gracefully disconnecting node '$FQDN' from cluster"
-              ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} > nodes.json
+              ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} ${secureArgs} > nodes.json
               nnid=$(jq --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .nodeId' nodes.json)
               echo "disconnecting node ${nnid}"
-              ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi disconnect-node -nnid $nnid -u ${baseUrl}
+              ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi disconnect-node -nnid $nnid -u ${baseUrl} ${secureArgs}
               echo ""
               echo "wait until node has state 'DISCONNECTED'"
-              while [[ "$node_state" != "DISCONNECTED" ]]; do
+              while [[ "${node_state}" != "DISCONNECTED" ]]; do
                   sleep 1
-                  ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} > nodes.json
+                  ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} ${secureArgs} > nodes.json
                   node_state=$(jq -r --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .status' nodes.json)
-                  echo "state is '$node_state'"
+                  echo "state is '${node_state}'"
               done
               echo ""
               echo "node '${nnid}' was disconnected"
               echo "offloading node"
-              ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi offload-node -nnid $nnid -u ${baseUrl}
+              ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi offload-node -nnid $nnid -u ${baseUrl} ${secureArgs}
               echo ""
               echo "wait until node has state 'OFFLOADED'"
-              while [[ "$node_state" != "OFFLOADED" ]]; do
+              while [[ "${node_state}" != "OFFLOADED" ]]; do
                   sleep 1
-                  ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} > nodes.json
+                  ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi get-nodes -ot json -u ${baseUrl} ${secureArgs} > nodes.json
                   node_state=$(jq -r --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .status' nodes.json)
-                  echo "state is '$node_state'"
+                  echo "state is '${node_state}'"
               done
           }
 
           deleteNode() {
               echo "deleting node"
-              ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi delete-node -nnid ${nnid} -u ${baseUrl}
+              ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi delete-node -nnid ${nnid} -u ${baseUrl} ${secureArgs}
               echo "node deleted"
           }
 
@@ -306,28 +314,34 @@ spec:
         readinessProbe:
           initialDelaySeconds: 60
           periodSeconds: 20
-          exec:
-            command:
-            - bash
-            - -c
-            - |
+          tcpSocket:
 {{- if .Values.properties.httpsPort }}
-              curl -kv \
-                --cert ${NIFI_HOME}/config-data/certs/admin/crt.pem --cert-type PEM \
-                --key ${NIFI_HOME}/config-data/certs/admin/key.pem --key-type PEM \
-                https://$(hostname -f):{{ .Values.properties.httpsPort }}/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
+            port: {{ .Values.properties.httpsPort }}
 {{- else }}
-              curl -kv \
-                http://$(hostname -f):{{ .Values.properties.httpPort }}/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
+            port: {{ .Values.properties.httpPort }}
 {{- end }}
-              STATUS=$(jq -r ".cluster.nodes[] | select((.address==\"$(hostname -f)\") or .address==\"localhost\") | .status" $NIFI_BASE_DIR/data/cluster.state)
+#           exec:
+#             command:
+#             - bash
+#             - -c
+#             - |
+# {{- if .Values.properties.httpsPort }}
+#               curl -kv \
+#                 --cert ${NIFI_HOME}/config-data/certs/admin/crt.pem --cert-type PEM \
+#                 --key ${NIFI_HOME}/config-data/certs/admin/key.pem --key-type PEM \
+#                 https://$(hostname -f):{{ .Values.properties.httpsPort }}/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
+# {{- else }}
+#               curl -kv \
+#                 http://$(hostname -f):{{ .Values.properties.httpPort }}/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
+# {{- end }}
+#               STATUS=$(jq -r ".cluster.nodes[] | select((.address==\"$(hostname -f)\") or .address==\"localhost\") | .status" $NIFI_BASE_DIR/data/cluster.state)
 
-              if [[ ! $STATUS = "CONNECTED" ]]; then
-                echo "Node not found with CONNECTED state. Full cluster state:"
-                jq . $NIFI_BASE_DIR/data/cluster.state
-                exit 1
-              fi
-{{- end }}
+#               if [[ ! $STATUS = "CONNECTED" ]]; then
+#                 echo "Node not found with CONNECTED state. Full cluster state:"
+#                 jq . $NIFI_BASE_DIR/data/cluster.state
+#                 exit 1
+#               fi
+# {{- end }}
         livenessProbe:
           initialDelaySeconds: 90
           periodSeconds: 60
@@ -340,6 +354,8 @@ spec:
         volumeMounts:
           - name: "data"
             mountPath: /opt/nifi/data
+          - name: "auth-conf"
+            mountPath: /opt/nifi/nifi-current/auth-conf/
 {{- if .Values.properties.clusterSecure }}
           - name: "config-data"
             mountPath: /opt/nifi/nifi-current/config-data
@@ -596,4 +612,15 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.logStorage.size }}
+    - metadata:
+        name: auth-conf
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.authconfStorage.size }}
 {{- end }}
