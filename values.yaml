@@ -240,16 +240,13 @@ env: []
 # Setting this true would create a nifi-toolkit based ca server
 # The ca server will be used to generate self-signed certificates required setting up secured cluster
 ca:
+  ## If true, enable the nifi-toolkit certificate authority
   enabled: false
   server: ""
   port: 9090
   token: sixteenCharacters
   admin:
     cn: admin
-  image:
-    repository: apache/nifi-toolkit
-    pullPolicy: IfNotPresent
-    tag: latest
 
 # ------------------------------------------------------------------------------
 # Zookeeper:
