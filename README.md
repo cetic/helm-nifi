@@ -192,6 +192,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 
 Initially inspired from https://github.com/YolandaMDavis/apache-nifi.
 
+TLS work/inspiration from https://github.com/sushilkm/nifi-chart.git.
+
 ## Contributing
 
 Feel free to contribute by making a [pull request](https://github.com/cetic/helm-nifi/pull/new/master).
