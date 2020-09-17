@@ -194,15 +194,6 @@ spec:
           prop_replace nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
           prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
           prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
-
-          #base_host=$(echo `hostname| rev  | cut -d "-" -f 2- | rev`-0)
-          #if [[ `hostname` != "$base_host" ]]; then
-          #  # Download kubectl, this can be later backed into the docker image
-          #  curl -Lo ${NIFI_HOME}/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-          #  chmod +x ${NIFI_HOME}/bin/kubectl
-          #  # Download authorizations.xml from pod-0, it helps to get authorizations.xml required for adding up new nodes
-          #  ${NIFI_HOME}/bin/kubectl cp {{ .Release.Namespace }}/${base_host}:/opt/nifi/nifi-current/config-data/conf/authorizations.xml /opt/nifi/nifi-current/config-data/conf/authorizations.xml
-          #fi
           
 {{- if .Values.properties.webProxyHost }}
           # Update nifi.properties for web ui proxy hostname
@@ -530,6 +521,8 @@ spec:
       {{- end }}
 {{- if not .Values.persistence.enabled }}
       - name: config-data
+        emptyDir: {}
+      - name: auth-conf
         emptyDir: {}
       - name: data
         emptyDir: {}
