@@ -39,7 +39,10 @@ The following items can be set via `--set` flag during installation or configure
 
 #### Configure authentication:
 
-- You first need a secure cluster which can be accomplished by enabling the built-in CA container (nifi-toolkit).  By default a secure nifi cluster uses certificate based authentication but you can optionally enable `ldap` or `oidc`.
+- You first need a secure cluster which can be accomplished by enabling the built-in CA nifi-toolkit container (`ca.enabled` to true). By default, a secure nifi cluster uses certificate based authentication but you can optionally enable `ldap` or `oidc`. See the configuration section for more details.
+
+:warning: This feature is quite new. Please open an issue if you encounter a problem.
+We are currently working on the `ldap` authentication. Also, any help is welcome to add other authentication methods.
 
 ### Install the chart
 
