@@ -54,6 +54,7 @@ properties:
   isNode: true
   httpPort: 8080
   httpsPort: null
+  webProxyHost: nifi.test
   clusterPort: 6007
   clusterSecure: false
   needClientAuth: false
@@ -75,7 +76,9 @@ properties:
 # Nifi User Authentication
 auth:
   admin: CN=admin, OU=NIFI
-  
+  SSL:
+    keystorePasswd: env:PASS
+    truststorePasswd: env:PASS
   ldap:
     enabled: false
     host: ldap://<hostname>:<port>
@@ -102,7 +105,7 @@ headless:
 
 # ui service
 service:
-  type: NodePort
+  type: LoadBalancer
   httpPort: 8080
   httpsPort: 443
   annotations: {}
@@ -242,6 +245,8 @@ env: []
 ca:
   ## If true, enable the nifi-toolkit certificate authority
   enabled: false
+  persistence:
+    enabled: false
   server: ""
   port: 9090
   token: sixteenCharacters
