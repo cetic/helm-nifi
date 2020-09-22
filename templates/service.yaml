@@ -49,15 +49,24 @@ spec:
   {{- end }}
   {{- if .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
-  {{ with .Values.service.loadBalancerSourceRanges }}
+{{ with .Values.service.loadBalancerSourceRanges }}
 {{ toYaml . | indent 4 }}
-{{- end }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.service.sessionAffinityConfig }}
+  sessionAffinityConfig:
+{{- with .Values.service.sessionAffinityConfig }}
+{{ toYaml . | indent 4 }}
+  {{- end }}
   {{- end }}
   ports:
 {{- if .Values.properties.clusterSecure }}
     - port: {{ .Values.service.httpsPort }}
       name: https
-      targetPort: {{ .Values.httpsPort }}
+      targetPort: {{ .Values.properties.httpsPort }}
 {{- else }}
     - port: {{ .Values.service.httpPort }}
       name: http

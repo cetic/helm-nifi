@@ -59,7 +59,6 @@ properties:
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
-    secure: false
     port: 10000
   authorizer: managed-authorizer
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
@@ -75,11 +74,20 @@ properties:
 
 # Nifi User Authentication
 auth:
+  admin: CN=admin, OU=NIFI
+  
   ldap:
     enabled: false
     host: ldap://<hostname>:<port>
     searchBase: CN=Users,DC=example,DC=com
     searchFilter: CN=john
+
+  oidc:
+    enabled: false
+    discoveryUrl:
+    clientId:
+    clientSecret:
+    claimIdentifyingUser: email
 
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
 ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
@@ -104,7 +112,12 @@ service:
   ##
   # loadBalancerSourceRanges:
   # - 10.10.10.0/24
-
+  ## OIDC authentication requires "sticky" session on the LoadBalancer for JWT to work properly...but AWS doesn't like it on creation
+  # sessionAffinity: ClientIP
+  # sessionAffinityConfig:
+  #   clientIP:
+  #     timeoutSeconds: 10800
+      
   # Enables additional port/ports to nifi service for internal processors
   processors:
     enabled: false
@@ -155,6 +168,10 @@ persistence:
 
   accessModes:  [ReadWriteOnce]
   ## Storage Capacities for persistent volumes
+  configStorage:
+    size: 100Mi
+  authconfStorage:
+    size: 100Mi
   # Storage capacity for the 'data' directory, which is used to hold things such as the flow.xml.gz, configuration, state, etc.
   dataStorage:
     size: 1Gi
@@ -218,6 +235,18 @@ terminationGracePeriodSeconds: 30
 
 ## Extra environment variables that will be pass onto deployment pods
 env: []
+
+# ca server details
+# Setting this true would create a nifi-toolkit based ca server
+# The ca server will be used to generate self-signed certificates required setting up secured cluster
+ca:
+  ## If true, enable the nifi-toolkit certificate authority
+  enabled: false
+  server: ""
+  port: 9090
+  token: sixteenCharacters
+  admin:
+    cn: admin
 
 # ------------------------------------------------------------------------------
 # Zookeeper:
