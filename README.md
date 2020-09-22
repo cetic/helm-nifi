@@ -6,8 +6,6 @@
 
 This [Helm](https://github.com/kubernetes/helm) chart installs [nifi](https://nifi.apache.org/) in a Kubernetes cluster.
 
-:warning: As explained in several issues, this helm chart does not allow TLS configurations and secure Admin access. We are currently working on this feature, but any help is welcome.
-
 ## Prerequisites
 
 - Kubernetes cluster 1.10+
@@ -38,6 +36,13 @@ The following items can be set via `--set` flag during installation or configure
 
 - **Disable**: The data does not survive the termination of a pod.
 - **Persistent Volume Claim(default)**: A default `StorageClass` is needed in the Kubernetes cluster to dynamic provision the volumes. Specify another StorageClass in the `storageClass` or set `existingClaim` if you have already existing persistent volumes to use.
+
+#### Configure authentication:
+
+- You first need a secure cluster which can be accomplished by enabling the built-in CA nifi-toolkit container (`ca.enabled` to true). By default, a secure nifi cluster uses certificate based authentication but you can optionally enable `ldap` or `oidc`. See the configuration section for more details.
+
+:warning: This feature is quite new. Please open an issue if you encounter a problem.
+We are currently working on the `ldap` authentication. Also, any help is welcome to add other authentication methods.
 
 ### Install the chart
 
@@ -104,10 +109,16 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
 | `properties.safetyValve`                                                    | Map of explicit 'property: value' pairs that overwrite other configuration                                         | `nil`                           |
 | **nifi user authentication**                                                |
+| `auth.admin`                                                                | Default admin identity                                                                                             | ` CN=admin, OU=NIFI`            |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
 | `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
 | `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
 | `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
+| `auth.oidc.enabled`                                                         | Enable User auth via oidc                                                                                          | `false`                         |
+| `auth.oidc.discoveryUrl`                                                    | oidc discover url                                                                                                  | `https://<provider>/.well-known/openid-configuration`      |
+| `auth.oidc.clientId`                                                        | oidc clientId                                                                                                      | `nil`    |
+| `auth.oidc.clientSecret`                                                    | oidc clientSecret                                                                                                  | `nil`                       |
+| `auth.oidc.claimIdentifyingUser`                                            | oidc claimIdentifyingUser                                                                                          | `email`                        |
 | **postStart**                                                               |
 | `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
 | **Headless Service**                                                        |
@@ -132,6 +143,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `persistence.enabled`                                                       | Use persistent volume to store data                                                                                | `false`                         |
 | `persistence.storageClass`                                                  | Storage class name of PVCs (use the default type if unset)                                                         | `nil`                           |
 | `persistence.accessMode`                                                    | ReadWriteOnce or ReadOnly                                                                                          | `[ReadWriteOnce]`               |
+| `persistence.configStorage.size`                                            | Size of persistent volume claim                                                                                    | `100Mi`                         |
+| `persistence.authconfStorage.size`                                          | Size of persistent volume claim                                                                                    | `100Mi`                         |
 | `persistence.dataStorage.size`                                              | Size of persistent volume claim                                                                                    | `1Gi`                           |
 | `persistence.flowfileRepoStorage.size`                                      | Size of persistent volume claim                                                                                    | `10Gi`                          |
 | `persistence.contentRepoStorage.size`                                       | Size of persistent volume claim                                                                                    | `10Gi`                          |
@@ -164,17 +177,25 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **extraContainers**                                                         |
 | `extraContainers`                                                           | Additional container-specifications that should run within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core) for details)  | `[]`                            |
 | **zookeeper**                                                               |
-|`zookeeper.enabled`                                                          | If true, deploy Zookeeper                                                                                          | `true`                          |
-|`zookeeper.url`                                                              | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
-|`zookeeper.port`                                                             | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `2181`                          |
+| `zookeeper.enabled`                                                         | If true, deploy Zookeeper                                                                                          | `true`                          |
+| `zookeeper.url`                                                             | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
+| `zookeeper.port`                                                            | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `2181`                          |
 | **registry**                                                                |
-|`registry.enabled`                                                           | If true, deploy Nifi Registry                                                                                          | `true`                          |
-|`registry.url`                                                               | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `nil`                           |
-|`registry.port`                                                              | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `80`                            |
+| `registry.enabled`                                                          | If true, deploy Nifi Registry                                                                                          | `true`                          |
+| `registry.url`                                                              | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `nil`                           |
+| `registry.port`                                                             | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `80`                            |
+| **ca**                                                                      |
+| `ca.enabled`                                                                | If true, deploy Nifi Toolkit as CA                                                                                          | `false`                          |
+| `ca.server`                                                                 | CA server dns name                                          | `nil`                           |
+| `ca.port`                                                                   | CA server port number                                          | `9090`                            |
+| `ca.token`                                                                  | The token to use to prevent MITM                                          | `80`                            |
+| `ca.admin.cn`                                                               | CN for admin certificate                                          | `admin`                            |
 
 ## Credits
 
 Initially inspired from https://github.com/YolandaMDavis/apache-nifi.
+
+TLS work/inspiration from https://github.com/sushilkm/nifi-chart.git.
 
 ## Contributing
 

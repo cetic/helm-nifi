@@ -1,7 +1,7 @@
 *.tgz
 
 # Helm Charts dependencies
-/charts
+/charts/*.tgz
 *.lock
 
 .idea
