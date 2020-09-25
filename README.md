@@ -49,7 +49,7 @@ We are currently working on the `ldap` authentication. Also, any help is welcome
 Install the nifi helm chart with a release name `my-release`:
 
 ```bash
-helm install --name my-release cetic/nifi
+helm install my-release cetic/nifi
 ```
 
 ### Install from local clone
@@ -68,7 +68,7 @@ helm install --name nifi .
 To uninstall/delete the `my-release` deployment:
 
 ```bash
-helm delete --purge my-release
+helm uninstall my-release
 ```
 
 ## Configuration

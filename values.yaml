@@ -243,7 +243,8 @@ ca:
   ## If true, enable the nifi-toolkit certificate authority
   enabled: false
   server: ""
-  port: 9090
+  service:
+    port: 9090
   token: sixteenCharacters
   admin:
     cn: admin
