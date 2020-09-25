@@ -45,3 +45,7 @@ resources:
 app_port: 9090
 
 token: sixteenCharacters
+
+securityContext:
+  fsGroup: 1000
+  runAsUser: 1000

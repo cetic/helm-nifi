@@ -49,6 +49,8 @@ spec:
         workingDir: /ca
 {{- end }}
       terminationGracePeriodSeconds: 0
+      securityContext:
+{{ toYaml .Values.securityContext | indent 8 }}
 {{- if .Values.persistence.enabled }}
       initContainers:
       - command:
@@ -73,7 +75,6 @@ spec:
         - mountPath: /ca
           name: nifi-ca
           subPath: ca
-
       volumes:
       - name: nifi-ca
         persistentVolumeClaim:
