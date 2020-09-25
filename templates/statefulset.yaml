@@ -93,7 +93,7 @@ spec:
         - bash
         - -c
         - |
-          CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.port }}"
+          CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.service.port }}"
           until echo "" | timeout -t 2 openssl s_client -connect "${CA_ADDRESS}"; do
             # Checking if ca server using nifi-toolkit is up
             echo "Waiting for CA to be avaiable at ${CA_ADDRESS}"
@@ -114,7 +114,7 @@ spec:
             --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
 {{- end }}
             -D "CN=$(hostname -f), OU=NIFI" \
-            -p {{ .Values.ca.port }}
+            -p {{ .Values.ca.service.port }}
 
           # Generate client certificate for browser with webProxyHost or service name as alternate names to access nifi web ui
           mkdir -p /data/config-data/certs/admin
@@ -128,7 +128,7 @@ spec:
 {{- else }}
             --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
 {{- end }}
-            -p {{ .Values.ca.port }} \
+            -p {{ .Values.ca.service.port }} \
             -D "CN={{ .Values.ca.admin.cn }}, OU=NIFI" \
             -T PKCS12
 
