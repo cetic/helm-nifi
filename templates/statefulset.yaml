@@ -96,14 +96,14 @@ spec:
           CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.port }}"
           until echo "" | timeout -t 2 openssl s_client -connect "${CA_ADDRESS}"; do
             # Checking if ca server using nifi-toolkit is up
-            echo "Waiting for CA to be avaiable at ${CA_ADDRESS}"
+            echo "Waiting for CA to be available at ${CA_ADDRESS}"
             sleep 2
           done;
           cd /data/config-data
           rm -rf certs
           mkdir certs
           cd certs
-          
+
           # Generate certificate for server with webProxyHost or service name as alternate names to access nifi web ui
           ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
             -c "{{ template "ca.server" . }}" \
@@ -183,7 +183,6 @@ spec:
 
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
-          prop_replace nifi.web.http.host ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
 
 {{- if .Values.properties.clusterSecure }}
@@ -194,7 +193,7 @@ spec:
           prop_replace nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
           prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
           prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
-          
+
 {{- if .Values.properties.webProxyHost }}
           # Update nifi.properties for web ui proxy hostname
           prop_replace nifi.web.proxy.host {{ .Values.properties.webProxyHost }}
