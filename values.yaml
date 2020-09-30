@@ -7,7 +7,7 @@ replicaCount: 1
 ##
 image:
   repository: apache/nifi
-  tag: "1.11.4"
+  tag: "1.12.1"
   pullPolicy: IfNotPresent
 
   ## Optionally specify an imagePullSecret.
@@ -67,6 +67,9 @@ properties:
     nifi.web.http.network.interface.default: eth0
     # listen to loopback interface so "kubectl port-forward ..." works
     nifi.web.http.network.interface.lo: lo
+
+  ## Include aditional processors
+  # customLibPath: "/opt/configuration_resources/custom_lib"
 
 ## Include additional libraries in the Nifi containers by using the postStart handler
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/

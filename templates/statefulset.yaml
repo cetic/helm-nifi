@@ -279,8 +279,7 @@ spec:
 {{- end }}
           name: https
           protocol: TCP
-{{- end }}
-{{- if .Values.properties.httpPort }}
+{{- else }}
         - containerPort: {{ .Values.properties.httpPort }}
           name: http
           protocol: TCP
