@@ -108,6 +108,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.siteToSite.port`                                                | Site to Site properties Secure port                                                                                | `10000`                         |
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
 | `properties.safetyValve`                                                    | Map of explicit 'property: value' pairs that overwrite other configuration                                         | `nil`                           |
+| `properties.customLibPath`                                                  | Path of the custom libraries folder                                                                                | `nil`                           |
 | **nifi user authentication**                                                |
 | `auth.admin`                                                                | Default admin identity                                                                                             | ` CN=admin, OU=NIFI`            |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
