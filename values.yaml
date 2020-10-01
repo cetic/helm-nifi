@@ -29,6 +29,9 @@ sts:
     annotations:
       security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
       #prometheus.io/scrape: "true"      
+  serviceAccount:
+    enabled: false
+    #name: nifi
 
 ## Useful if using any custom secrets
 ## Pass in some secrets to use (if required)
@@ -238,6 +241,16 @@ terminationGracePeriodSeconds: 30
 
 ## Extra environment variables that will be pass onto deployment pods
 env: []
+
+## Openshift support
+## Use the following varables in order to enable Route and Security Context Constraint creation
+openshift:
+  scc:
+    enabled: false
+  route:
+    enabled: false
+    #host: www.test.com
+    #path: /nifi
 
 # ca server details
 # Setting this true would create a nifi-toolkit based ca server
