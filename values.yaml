@@ -30,7 +30,7 @@ sts:
       security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
       #prometheus.io/scrape: "true"      
   serviceAccount:
-    enabled: false
+    create: false
     #name: nifi
 
 ## Useful if using any custom secrets
@@ -265,7 +265,7 @@ ca:
   admin:
     cn: admin
   serviceAccount:
-    enabled: false
+    create: false
     #name: nifi-ca
   openshift:
     scc:

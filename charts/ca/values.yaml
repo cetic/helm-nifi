@@ -51,7 +51,7 @@ securityContext:
   runAsUser: 1000
 
 serviceAccount:
-  enabled: false
+  create: false
   #name: nifi-ca
 
 ## Openshift support

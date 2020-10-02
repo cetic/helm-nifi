@@ -31,13 +31,7 @@ spec:
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
     spec:
-      {{- if .Values.sts.serviceAccount.enabled -}}
-        {{- if .Values.sts.serviceAccount.name }}
-      serviceAccountName: {{ .Values.sts.serviceAccount.name }}
-        {{- else }}
-      serviceAccountName: {{ template "apache-nifi.fullname" . }}-sa
-        {{- end }}
-      {{- end }}
+      serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
       {{- if eq .Values.sts.AntiAffinity "hard"}}
       affinity:
         podAntiAffinity:

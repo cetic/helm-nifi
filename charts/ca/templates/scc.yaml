@@ -29,11 +29,7 @@ seLinuxContext:
 supplementalGroups:
   type: RunAsAny
 users:
-  {{- if .Values.serviceAccount.name }}
-- system:serviceaccount:{{ .Release.Namespace }}:{{ .Values.serviceAccount.name }}
-  {{- else }}
-- system:serviceaccount:{{ .Release.Namespace }}:{{ template "ca.fullname" . }}-sa
-  {{- end }}
+- system:serviceaccount:{{ .Release.Namespace }}:{{ include "ca.serviceAccountName" . }}
 volumes:
 - configMap
 - downwardAPI

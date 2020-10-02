@@ -4,6 +4,11 @@
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
+  labels:
+    app: {{ include "apache-nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
   name: {{ template "apache-nifi.fullname" . }}-route
 spec:
   {{- if .Values.openshift.route.host }}

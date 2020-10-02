@@ -88,7 +88,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `securityContext.runAsUser`                                                 | nifi Docker User                                                                                                   | `1000`                          |
 | `securityContext.fsGroup`                                                   | nifi Docker Group                                                                                                  | `1000`                          |
 | **sts**                                                                     |
-| `sts.serviceAccount.enabled`    | If true, a service account will be created and used by the statefulset | `false` |
+| `sts.serviceAccount.create`    | If true, a service account will be created and used by the statefulset | `false` |
 | `sts.serviceAccount.name`       | When set, the set name will be used as the service account name. If a value is not provided a name will be generated based on Chart options | `nil` |
 | `sts.podManagementPolicy`                                                   | Parallel podManagementPolicy                                                                                       | `Parallel`                      |
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
@@ -198,7 +198,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `ca.port`                                                                   | CA server port number                                          | `9090`                            |
 | `ca.token`                                                                  | The token to use to prevent MITM                                          | `80`                            |
 | `ca.admin.cn`                                                               | CN for admin certificate                                          | `admin`                            |
-| `ca.serviceAccount.enabled`                                                 | If true, a service account will be created and used by the deployment                                         | `false`                            |
+| `ca.serviceAccount.create`                                                 | If true, a service account will be created and used by the deployment                                         | `false`                            |
 | `ca.serviceAccount.name`                                                 |When set, the set name will be used as the service account name. If a value is not provided a name will be generated based on Chart options | `nil` |
 | `ca.openshift.scc.enabled`                                                     | If true, an openshift security context will be created permitting to run the deployment as AnyUID | `false` |
 

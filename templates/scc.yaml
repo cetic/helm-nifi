@@ -2,8 +2,13 @@
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
+  labels:
+    app: {{ include "apache-nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
   annotations:
-    kubernetes.io/description: nifi provides all features of the restricted SCC but
+    kubernetes.io/description: {{ template "apache-nifi.fullname" . }}-scc provides all features of the restricted SCC but
       allows users to run with any UID and any GID.
   name: {{ template "apache-nifi.fullname" . }}-scc
 allowHostDirVolumePlugin: false
@@ -29,11 +34,7 @@ seLinuxContext:
 supplementalGroups:
   type: RunAsAny
 users:
-  {{- if .Values.sts.serviceAccount.name }}
-- system:serviceaccount:{{ .Release.Namespace }}:{{ .Values.sts.serviceAccount.name }}
-  {{- else }}
-- system:serviceaccount:{{ .Release.Namespace }}:{{ template "apache-nifi.fullname" . }}-sa
-  {{- end }}
+- system:serviceaccount:{{ .Release.Namespace }}:{{ include "apache-nifi.serviceAccountName" . }}
 volumes:
 - configMap
 - downwardAPI
