@@ -264,6 +264,12 @@ ca:
   token: sixteenCharacters
   admin:
     cn: admin
+  serviceAccount:
+    enabled: false
+    #name: nifi-ca
+  openshift:
+    scc:
+      enabled: false
 
 # ------------------------------------------------------------------------------
 # Zookeeper:

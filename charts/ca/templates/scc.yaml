@@ -1,0 +1,44 @@
+{{- if .Values.openshift.scc.enabled -}}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  annotations:
+    kubernetes.io/description: nifi provides all features of the restricted SCC but
+      allows users to run with any UID and any GID.
+  name: {{ template "ca.fullname" . }}-scc
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: true
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups: []
+priority: 10
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+- MKNOD
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users:
+  {{- if .Values.serviceAccount.name }}
+- system:serviceaccount:{{ .Release.Namespace }}:{{ .Values.serviceAccount.name }}
+  {{- else }}
+- system:serviceaccount:{{ .Release.Namespace }}:{{ template "ca.fullname" . }}-sa
+  {{- end }}
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret
+{{- end }}
