@@ -2,6 +2,11 @@
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
+  labels:
+    app: {{ template "ca.name" . }}-ca
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
   annotations:
     kubernetes.io/description: nifi provides all features of the restricted SCC but
       allows users to run with any UID and any GID.
