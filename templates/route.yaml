@@ -18,7 +18,7 @@ spec:
     weight: 100
   port:
 {{- if .Values.properties.clusterSecure }}
-    targetPort: {{ .Values.service.httpsPort }}
+    targetPort: https
   tls:
     {{- if .Values.properties.externalSecure }}
     termination: edge
@@ -27,6 +27,6 @@ spec:
     {{- end }}
     insecureEdgeTerminationPolicy: Redirect
 {{- else }}
-    targetPort: {{ .Values.service.httpPort }}
+    targetPort: http
 {{- end }}
 {{- end }}
