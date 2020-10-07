@@ -9,7 +9,7 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     release: {{ .Release.Name | quote }}
     heritage: {{ .Release.Service | quote }}
-  name: {{ template "apache-nifi.fullname" . }}-route
+  name: {{ template "apache-nifi.fullname" . }}
 spec:
   {{- if .Values.openshift.route.host }}
   host: {{ .Values.openshift.route.host }}
