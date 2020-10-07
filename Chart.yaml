@@ -27,5 +27,5 @@ dependencies:
     repository: https://dysnix.github.io/charts/
     condition: registry.enabled
   - name: ca
-    version: 1.0.0
+    version: 1.0.1
     condition: ca.enabled
