@@ -50,7 +50,7 @@ spec:
                podAffinityTerm:
                  labelSelector:
                     matchExpressions:
-                      - key: "component"
+                      - key: "app"
                         operator: In
                         values:
                          - {{ include "apache-nifi.name" . | quote }}
