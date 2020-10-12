@@ -51,7 +51,7 @@ spec:
                podAffinityTerm:
                  labelSelector:
                     matchExpressions:
-                      - key: "component"
+                      - key: "app"
                         operator: In
                         values:
                          - {{ include "apache-nifi.name" . | quote }}
@@ -189,9 +189,11 @@ spec:
 {{- if .Values.properties.clusterSecure }}
           # Update nifi.properties for security properties
           prop_replace nifi.web.https.host ${FQDN}
+          prop_replace nifi.security.keystoreType jks
           prop_replace nifi.security.keystore   ${NIFI_HOME}/config-data/certs/keystore.jks
           prop_replace nifi.security.keystorePasswd     $(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
           prop_replace nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
+          prop_replace nifi.security.truststoreType jks
           prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
           prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
 
