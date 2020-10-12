@@ -49,3 +49,13 @@ token: sixteenCharacters
 securityContext:
   fsGroup: 1000
   runAsUser: 1000
+
+serviceAccount:
+  create: false
+  #name: nifi-ca
+
+## Openshift support
+## Use the following varables in order to enable Route and Security Context Constraint creation
+openshift:
+  scc:
+    enabled: false

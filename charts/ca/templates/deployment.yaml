@@ -20,6 +20,7 @@ spec:
         app: {{ template "ca.name" . }}-ca
         release: {{ .Release.Name }}
     spec:
+      serviceAccountName: {{ include "ca.serviceAccountName" . }}
       containers:
       - name: ca
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
@@ -62,6 +63,7 @@ spec:
         name: volume-permissions
         resources: {}
         securityContext:
+          runAsUser: 0
           allowPrivilegeEscalation: false
           capabilities: {}
           privileged: false
