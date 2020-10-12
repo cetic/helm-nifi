@@ -79,3 +79,14 @@ Create ca.server
 {{- printf "%s" .Values.ca.server }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Set the service account name
+*/}}
+{{- define "apache-nifi.serviceAccountName" -}}
+{{- if .Values.sts.serviceAccount.create }}
+{{- default (include "apache-nifi.fullname" .) .Values.sts.serviceAccount.name }}-sa
+{{- else }}
+{{- default "default" .Values.sts.serviceAccount.name }}
+{{- end }}
+{{- end }}

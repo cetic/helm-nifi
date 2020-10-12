@@ -31,6 +31,7 @@ spec:
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
     spec:
+      serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
       {{- if eq .Values.sts.AntiAffinity "hard"}}
       affinity:
         podAntiAffinity:
@@ -50,7 +51,7 @@ spec:
                podAffinityTerm:
                  labelSelector:
                     matchExpressions:
-                      - key: "component"
+                      - key: "app"
                         operator: In
                         values:
                          - {{ include "apache-nifi.name" . | quote }}
@@ -177,9 +178,9 @@ spec:
             cat "${NIFI_HOME}/conf/authorizers.empty" > "${NIFI_HOME}/conf/authorizers.xml"
           fi
 
-          # if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
-          #   gzip /opt/nifi/data/flow.xml
-          # fi
+          if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
+            gzip /opt/nifi/data/flow.xml
+          fi
 
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
@@ -188,9 +189,11 @@ spec:
 {{- if .Values.properties.clusterSecure }}
           # Update nifi.properties for security properties
           prop_replace nifi.web.https.host ${FQDN}
+          prop_replace nifi.security.keystoreType jks
           prop_replace nifi.security.keystore   ${NIFI_HOME}/config-data/certs/keystore.jks
           prop_replace nifi.security.keystorePasswd     $(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
           prop_replace nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
+          prop_replace nifi.security.truststoreType jks
           prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
           prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
 

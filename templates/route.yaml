@@ -1,0 +1,37 @@
+{{- if .Values.openshift.route.enabled -}}
+{{- $fullName := include "apache-nifi.fullname" . -}}
+{{- $ingressPath := .Values.openshift.route.path -}}
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  labels:
+    app: {{ include "apache-nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+  name: {{ template "apache-nifi.fullname" . }}
+spec:
+  {{- if .Values.openshift.route.host }}
+  host: {{ .Values.openshift.route.host }}
+  {{- end }}
+  {{- if .Values.openshift.route.host }}
+  path: {{ $ingressPath }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ $fullName }}
+    weight: 100
+  port:
+{{- if .Values.properties.clusterSecure }}
+    targetPort: https
+  tls:
+    {{- if .Values.properties.externalSecure }}
+    termination: edge
+    {{- else }}
+    termination: passthrough
+    {{- end }}
+    insecureEdgeTerminationPolicy: Redirect
+{{- else }}
+    targetPort: http
+{{- end }}
+{{- end }}
