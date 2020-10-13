@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   repository: apache/nifi-toolkit
   pullPolicy: IfNotPresent
-  tag: "1.11.4"
+  tag: "1.12.1"
 
 service:
   type: ClusterIP
