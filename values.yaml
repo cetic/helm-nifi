@@ -276,11 +276,12 @@ ca:
 # ------------------------------------------------------------------------------
 zookeeper:
   ## If true, install the Zookeeper chart
-  ## ref: https://github.com/kubernetes/charts/tree/master/incubator/zookeeper
+  ## ref: https://github.com/bitnami/charts/blob/master/bitnami/zookeeper/values.yaml
   enabled: true
   ## If the Zookeeper Chart is disabled a URL and port are required to connect
   url: ""
   port: 2181
+  replicaCount: 3
 
 # ------------------------------------------------------------------------------
 # Nifi registry:
