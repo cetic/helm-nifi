@@ -378,9 +378,6 @@ spec:
           - name: "bootstrap-notification-services-xml"
             mountPath: /opt/nifi/nifi-current/conf/bootstrap-notification-services.xml
             subPath: "bootstrap-notification-services.xml"
-          - name: "logback-xml"
-            mountPath: /opt/nifi/nifi-current/conf/logback.xml
-            subPath: "logback.xml"
           - name: "login-identity-providers-xml"
             mountPath: /opt/nifi/nifi-current/conf/login-identity-providers.xml
             subPath: "login-identity-providers.xml"
@@ -483,12 +480,6 @@ spec:
           items:
             - key: "bootstrap-notification-services.xml"
               path: "bootstrap-notification-services.xml"
-      - name: "logback-xml"
-        configMap:
-          name: {{ template "apache-nifi.fullname" . }}-config
-          items:
-            - key: "logback.xml"
-              path: "logback.xml"
       - name: "login-identity-providers-xml"
         configMap:
           name: {{ template "apache-nifi.fullname" . }}-config
