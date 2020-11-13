@@ -80,12 +80,12 @@ auth:
     keystorePasswd: env:PASS
     truststorePasswd: env:PASS
   ldap:
-    enabled: true
-    host: ldap://fadi-openldap:389
-    searchBase: cn=admin,dc=ldap,dc=cetic,dc=be
-    admin: cn=admin,dc=ldap,dc=cetic,dc=be
+    enabled: false
+    host: ldap://<hostname>:<port>
+    searchBase: CN=Users,DC=example,DC=com
+    searchFilter: CN=john
     pass: password1
-    searchFilter: (objectClass=*)
+    admin: cn=admin,dc=ldap,dc=cetic,dc=be
     userIdentityAttribute: cn
     authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
     identityStrategy: USE_DN
@@ -111,7 +111,7 @@ headless:
 
 # ui service
 service:
-  type: NodePort
+  type: LoadBalencer
   httpPort: 8080
   httpsPort: 9443
   nodePort: 30236
@@ -144,10 +144,10 @@ service:
 ## Configure Ingress based on the documentation here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
 ingress:
-  enabled: true
+  enabled: false
   annotations: {}
   tls: []
-  hosts: [test.newtech4steel.cetic.be]
+  hosts: []
   path: /
   # If you want to change the default path, see this issue https://github.com/cetic/helm-nifi/issues/22
 
@@ -281,3 +281,4 @@ registry:
   port: 80
   ## Add values for the nifi-registry here
   ## ref: https://github.com/dysnix/charts/blob/master/nifi-registry/values.yaml
+
