@@ -58,6 +58,7 @@ spec:
     - port: {{ .Values.service.httpsPort }}
       name: https
       targetPort: {{ .Values.service.httpsPort }}
+      nodePort: {{ .Values.service.nodePort }}
 {{- else }}
     - port: {{ .Values.service.httpPort }}
       name: http
