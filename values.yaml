@@ -54,11 +54,12 @@ sts:
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
-  isNode: true
-  httpPort: 8080
-  httpsPort: null
+  isNode: true # set to false if ldap is enabled
+  httpPort: 8080 # set to null if ldap is enabled
+  httpsPort: null # set to 9443 if ldap is enabled
+  webProxyHost:
   clusterPort: 6007
-  clusterSecure: false
+  clusterSecure: false # set to true if ldap is enabled
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
@@ -81,12 +82,20 @@ properties:
 # Nifi User Authentication
 auth:
   admin: CN=admin, OU=NIFI
-  
+  SSL:
+    keystorePasswd: env:PASS
+    truststorePasswd: env:PASS
   ldap:
     enabled: false
     host: ldap://<hostname>:<port>
     searchBase: CN=Users,DC=example,DC=com
-    searchFilter: CN=john
+    admin: cn=admin,dc=example,dc=be
+    pass: password
+    searchFilter: (objectClass=*)
+    userIdentityAttribute: cn
+    authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
+    identityStrategy: USE_DN
+    authExpiration: 12 hours
 
   oidc:
     enabled: false
@@ -94,6 +103,8 @@ auth:
     clientId:
     clientSecret:
     claimIdentifyingUser: email
+    ## Request additional scopes, for example profile
+    additionalScopes:
 
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
 ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
@@ -108,22 +119,23 @@ headless:
 
 # ui service
 service:
-  type: NodePort
+  type: LoadBalancer
   httpPort: 8080
-  httpsPort: 443
+  httpsPort: 9443
+  nodePort: 30236
   annotations: {}
-  # loadBalancerIP:
-  ## Load Balancer sources
-  ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
-  ##
-  # loadBalancerSourceRanges:
-  # - 10.10.10.0/24
-  ## OIDC authentication requires "sticky" session on the LoadBalancer for JWT to work properly...but AWS doesn't like it on creation
-  # sessionAffinity: ClientIP
-  # sessionAffinityConfig:
-  #   clientIP:
+    # loadBalancerIP:
+    ## Load Balancer sources
+    ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+    ##
+    # loadBalancerSourceRanges:
+    # - 10.10.10.0/24
+    ## OIDC authentication requires "sticky" session on the LoadBalancer for JWT to work properly...but AWS doesn't like it on creation
+    # sessionAffinity: ClientIP
+    # sessionAffinityConfig:
+    #   clientIP:
   #     timeoutSeconds: 10800
-      
+
   # Enables additional port/ports to nifi service for internal processors
   processors:
     enabled: false
@@ -227,8 +239,8 @@ initContainers: {}
   #   imagePullPolicy: "IfNotPresent"
   #   command: ['sh', '-c', 'echo this is an initContainer']
   #   volumeMounts:
-#     - mountPath: /tmp/foo
-#       name: foo
+  #     - mountPath: /tmp/foo
+  #       name: foo
 
 extraVolumeMounts: []
 
@@ -258,6 +270,8 @@ openshift:
 ca:
   ## If true, enable the nifi-toolkit certificate authority
   enabled: false
+  persistence:
+    enabled: true
   server: ""
   service:
     port: 9090
@@ -293,3 +307,4 @@ registry:
   port: 80
   ## Add values for the nifi-registry here
   ## ref: https://github.com/dysnix/charts/blob/master/nifi-registry/values.yaml
+

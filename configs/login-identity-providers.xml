@@ -66,26 +66,26 @@
     <provider>
         <identifier>ldap-provider</identifier>
         <class>org.apache.nifi.ldap.LdapProvider</class>
-        <property name="Authentication Strategy">START_TLS</property>
-        <property name="Manager DN"></property>
-        <property name="Manager Password"></property>
-        <property name="TLS - Keystore"></property>
-        <property name="TLS - Keystore Password"></property>
-        <property name="TLS - Keystore Type"></property>
-        <property name="TLS - Truststore"></property>
-        <property name="TLS - Truststore Password"></property>
-        <property name="TLS - Truststore Type"></property>
-        <property name="TLS - Client Auth"></property>
-        <property name="TLS - Protocol"></property>
-        <property name="TLS - Shutdown Gracefully"></property>
-        
+        <property name="Authentication Strategy">SIMPLE</property>
+        <property name="Manager DN">{{.Values.auth.ldap.admin}}</property>
+        <property name="Manager Password">{{.Values.auth.ldap.pass}}</property>
+        <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local/keystore.jks</property>
+        <property name="TLS - Keystore Password">{{.Values.auth.keystorePasswd}}</property>
+        <property name="TLS - Keystore Type">JKS</property>
+        <property name="TLS - Truststore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local/truststore.jks</property>
+        <property name="TLS - Truststore Password">{{.Values.auth.truststorePasswd}}</property>
+        <property name="TLS - Truststore Type">JKS</property>
+        <property name="TLS - Client Auth">NONE</property>
+        <property name="TLS - Protocol">TLS</property>
+        <property name="TLS - Shutdown Gracefully">false</property>
+
         <property name="Referral Strategy">FOLLOW</property>
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
         <property name="Url">{{.Values.auth.ldap.host}}</property>
         <property name="User Search Base">{{.Values.auth.ldap.searchBase}}</property>
-        <property name="User Search Filter">{{.Values.auth.ldap.searchFilter}}</property>
-        <property name="Identity Strategy">USE_DN</property>
+        <property name="User Search Filter">(cn={0})</property>
+        <property name="Identity Strategy">{{.Values.auth.ldap.IdentityStrategy}}</property>
         <property name="Authentication Expiration">12 hours</property>
     </provider>
     {{end}}
