@@ -31,6 +31,7 @@ spec:
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
     spec:
+      serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
       {{- if eq .Values.sts.AntiAffinity "hard"}}
       affinity:
         podAntiAffinity:
@@ -50,7 +51,7 @@ spec:
                podAffinityTerm:
                  labelSelector:
                     matchExpressions:
-                      - key: "component"
+                      - key: "app"
                         operator: In
                         values:
                          - {{ include "apache-nifi.name" . | quote }}
@@ -93,17 +94,17 @@ spec:
         - bash
         - -c
         - |
-          CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.port }}"
+          CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.service.port }}"
           until echo "" | timeout -t 2 openssl s_client -connect "${CA_ADDRESS}"; do
             # Checking if ca server using nifi-toolkit is up
-            echo "Waiting for CA to be avaiable at ${CA_ADDRESS}"
+            echo "Waiting for CA to be available at ${CA_ADDRESS}"
             sleep 2
           done;
           cd /data/config-data
           rm -rf certs
           mkdir certs
           cd certs
-          
+
           # Generate certificate for server with webProxyHost or service name as alternate names to access nifi web ui
           ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
             -c "{{ template "ca.server" . }}" \
@@ -114,7 +115,7 @@ spec:
             --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
 {{- end }}
             -D "CN=$(hostname -f), OU=NIFI" \
-            -p {{ .Values.ca.port }}
+            -p {{ .Values.ca.service.port }}
 
           # Generate client certificate for browser with webProxyHost or service name as alternate names to access nifi web ui
           mkdir -p /data/config-data/certs/admin
@@ -128,7 +129,7 @@ spec:
 {{- else }}
             --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
 {{- end }}
-            -p {{ .Values.ca.port }} \
+            -p {{ .Values.ca.service.port }} \
             -D "CN={{ .Values.ca.admin.cn }}, OU=NIFI" \
             -T PKCS12
 
@@ -150,6 +151,9 @@ spec:
         - name: {{ .Values.image.pullSecret }}
       {{- end }}
       containers:
+{{- if .Values.extraContainers }}
+{{- toYaml .Values.extraContainers | nindent 6 }}
+{{- end }}
       - name: server
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -178,22 +182,23 @@ spec:
             cat "${NIFI_HOME}/conf/authorizers.empty" > "${NIFI_HOME}/conf/authorizers.xml"
           fi
 
-          # if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
-          #   gzip /opt/nifi/data/flow.xml
-          # fi
+          if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
+            gzip /opt/nifi/data/flow.xml
+          fi
 
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
-          prop_replace nifi.web.http.host ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
 
 {{- if .Values.auth.oidc.enabled }}
 {{- if .Values.properties.clusterSecure }}
           # Update nifi.properties for security properties
           prop_replace nifi.web.https.host ${FQDN}
+          prop_replace nifi.security.keystoreType jks
           prop_replace nifi.security.keystore   ${NIFI_HOME}/config-data/certs/keystore.jks
           prop_replace nifi.security.keystorePasswd     $(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
           prop_replace nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
+          prop_replace nifi.security.truststoreType jks
           prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
           prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
 
@@ -288,8 +293,7 @@ spec:
 {{- end }}
           name: https
           protocol: TCP
-{{- end }}
-{{- if .Values.properties.httpPort }}
+{{- else }}
         - containerPort: {{ .Values.properties.httpPort }}
           name: http
           protocol: TCP
@@ -382,9 +386,6 @@ spec:
           - name: "bootstrap-notification-services-xml"
             mountPath: /opt/nifi/nifi-current/conf/bootstrap-notification-services.xml
             subPath: "bootstrap-notification-services.xml"
-          - name: "logback-xml"
-            mountPath: /opt/nifi/nifi-current/conf/logback.xml
-            subPath: "logback.xml"
           - name: "login-identity-providers-xml"
             mountPath: /opt/nifi/nifi-current/conf/login-identity-providers.xml
             subPath: "login-identity-providers.xml"
@@ -487,12 +488,6 @@ spec:
           items:
             - key: "bootstrap-notification-services.xml"
               path: "bootstrap-notification-services.xml"
-      - name: "logback-xml"
-        configMap:
-          name: {{ template "apache-nifi.fullname" . }}-config
-          items:
-            - key: "logback.xml"
-              path: "logback.xml"
       - name: "login-identity-providers-xml"
         configMap:
           name: {{ template "apache-nifi.fullname" . }}-config

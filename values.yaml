@@ -29,6 +29,9 @@ sts:
     annotations:
       security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
       #prometheus.io/scrape: "true"      
+  serviceAccount:
+    create: false
+    #name: nifi
 
 ## Useful if using any custom secrets
 ## Pass in some secrets to use (if required)
@@ -68,6 +71,9 @@ properties:
     nifi.web.http.network.interface.default: eth0
     # listen to loopback interface so "kubectl port-forward ..." works
     nifi.web.http.network.interface.lo: lo
+
+  ## Include aditional processors
+  # customLibPath: "/opt/configuration_resources/custom_lib"
 
 ## Include additional libraries in the Nifi containers by using the postStart handler
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/
@@ -246,6 +252,16 @@ terminationGracePeriodSeconds: 30
 ## Extra environment variables that will be pass onto deployment pods
 env: []
 
+## Openshift support
+## Use the following varables in order to enable Route and Security Context Constraint creation
+openshift:
+  scc:
+    enabled: false
+  route:
+    enabled: false
+    #host: www.test.com
+    #path: /nifi
+
 # ca server details
 # Setting this true would create a nifi-toolkit based ca server
 # The ca server will be used to generate self-signed certificates required setting up secured cluster
@@ -255,21 +271,29 @@ ca:
   persistence:
     enabled: true
   server: ""
-  port: 9090
+  service:
+    port: 9090
   token: sixteenCharacters
   admin:
     cn: admin
+  serviceAccount:
+    create: false
+    #name: nifi-ca
+  openshift:
+    scc:
+      enabled: false
 
 # ------------------------------------------------------------------------------
 # Zookeeper:
 # ------------------------------------------------------------------------------
 zookeeper:
   ## If true, install the Zookeeper chart
-  ## ref: https://github.com/kubernetes/charts/tree/master/incubator/zookeeper
+  ## ref: https://github.com/bitnami/charts/blob/master/bitnami/zookeeper/values.yaml
   enabled: true
   ## If the Zookeeper Chart is disabled a URL and port are required to connect
   url: ""
   port: 2181
+  replicaCount: 3
 
 # ------------------------------------------------------------------------------
 # Nifi registry:

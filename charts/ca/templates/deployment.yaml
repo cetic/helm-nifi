@@ -20,6 +20,7 @@ spec:
         app: {{ template "ca.name" . }}-ca
         release: {{ .Release.Name }}
     spec:
+      serviceAccountName: {{ include "ca.serviceAccountName" . }}
       containers:
       - name: ca
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
@@ -49,6 +50,8 @@ spec:
         workingDir: /ca
 {{- end }}
       terminationGracePeriodSeconds: 0
+      securityContext:
+{{ toYaml .Values.securityContext | indent 8 }}
 {{- if .Values.persistence.enabled }}
       initContainers:
       - command:
@@ -60,6 +63,7 @@ spec:
         name: volume-permissions
         resources: {}
         securityContext:
+          runAsUser: 0
           allowPrivilegeEscalation: false
           capabilities: {}
           privileged: false
@@ -73,7 +77,6 @@ spec:
         - mountPath: /ca
           name: nifi-ca
           subPath: ca
-
       volumes:
       - name: nifi-ca
         persistentVolumeClaim:

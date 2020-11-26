@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   repository: apache/nifi-toolkit
   pullPolicy: IfNotPresent
-  tag: "1.11.4"
+  tag: "1.12.1"
 
 service:
   type: ClusterIP
@@ -45,3 +45,17 @@ resources:
 app_port: 9090
 
 token: sixteenCharacters
+
+securityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+
+serviceAccount:
+  create: false
+  #name: nifi-ca
+
+## Openshift support
+## Use the following varables in order to enable Route and Security Context Constraint creation
+openshift:
+  scc:
+    enabled: false

@@ -49,7 +49,7 @@ We are currently working on the `ldap` authentication. Also, any help is welcome
 Install the nifi helm chart with a release name `my-release`:
 
 ```bash
-helm install --name my-release cetic/nifi
+helm install my-release cetic/nifi
 ```
 
 ### Install from local clone
@@ -68,7 +68,7 @@ helm install --name nifi .
 To uninstall/delete the `my-release` deployment:
 
 ```bash
-helm delete --purge my-release
+helm uninstall my-release
 ```
 
 ## Configuration
@@ -81,13 +81,15 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `replicaCount`                                                              | Number of nifi nodes                                                                                               | `1`                             |
 | **Image**                                                                   |
 | `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
-| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.11.4`                        |
+| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.12.1`                        |
 | `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
 | `image.pullSecret`                                                          | nifi Image pull secret                                                                                             | `nil`                           |
 | **SecurityContext**                                                         |
 | `securityContext.runAsUser`                                                 | nifi Docker User                                                                                                   | `1000`                          |
 | `securityContext.fsGroup`                                                   | nifi Docker Group                                                                                                  | `1000`                          |
 | **sts**                                                                     |
+| `sts.serviceAccount.create`    | If true, a service account will be created and used by the statefulset | `false` |
+| `sts.serviceAccount.name`       | When set, the set name will be used as the service account name. If a value is not provided a name will be generated based on Chart options | `nil` |
 | `sts.podManagementPolicy`                                                   | Parallel podManagementPolicy                                                                                       | `Parallel`                      |
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
 | `sts.pod.annotations`                                                       | Pod template annotations                                                                                           | `security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000`                          |
@@ -108,6 +110,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.siteToSite.port`                                                | Site to Site properties Secure port                                                                                | `10000`                         |
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
 | `properties.safetyValve`                                                    | Map of explicit 'property: value' pairs that overwrite other configuration                                         | `nil`                           |
+| `properties.customLibPath`                                                  | Path of the custom libraries folder                                                                                | `nil`                           |
 | **nifi user authentication**                                                |
 | `auth.admin`                                                                | Default admin identity                                                                                             | ` CN=admin, OU=NIFI`            |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
@@ -176,6 +179,11 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `env`                                                                       | Additional environment variables for the nifi-container (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core) for details)  | `[]`                            |
 | **extraContainers**                                                         |
 | `extraContainers`                                                           | Additional container-specifications that should run within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core) for details)  | `[]`                            |
+| **openshift**                                                                     |
+| `openshift.scc.enabled`                                                     | If true, a openshift security context will be created permitting to run the statefulset as AnyUID | `false` |
+| `openshift.route.enabled`                                                   | If true, a openshift route will be created. This option cannot be used together with Ingress as a route object replaces the Ingress. The property `properties.externalSecure` will configure the route in edge termination mode, the default is passthrough. The property `properties.httpsPort` has to be set if the cluster is intended to work with SSL termination | `false` |
+| `openshift.route.host`                                                      | The hostname intended to be used in order to access NiFi web interface | `nil` |
+| `openshift.route.path`                                                      | Path to access frontend, works the same way as the ingress path option | `nil` |
 | **zookeeper**                                                               |
 | `zookeeper.enabled`                                                         | If true, deploy Zookeeper                                                                                          | `true`                          |
 | `zookeeper.url`                                                             | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
@@ -190,6 +198,9 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `ca.port`                                                                   | CA server port number                                          | `9090`                            |
 | `ca.token`                                                                  | The token to use to prevent MITM                                          | `80`                            |
 | `ca.admin.cn`                                                               | CN for admin certificate                                          | `admin`                            |
+| `ca.serviceAccount.create`                                                 | If true, a service account will be created and used by the deployment                                         | `false`                            |
+| `ca.serviceAccount.name`                                                 |When set, the set name will be used as the service account name. If a value is not provided a name will be generated based on Chart options | `nil` |
+| `ca.openshift.scc.enabled`                                                     | If true, an openshift security context will be created permitting to run the deployment as AnyUID | `false` |
 
 ## Credits
 

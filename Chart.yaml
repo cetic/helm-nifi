@@ -23,9 +23,9 @@ dependencies:
     condition: zookeeper.enabled
   - name: nifi-registry
     alias: registry
-    version: 0.1.0
+    version: 0.1.1
     repository: https://dysnix.github.io/charts/
     condition: registry.enabled
   - name: ca
-    version: 1.0.0
+    version: 1.0.1
     condition: ca.enabled
