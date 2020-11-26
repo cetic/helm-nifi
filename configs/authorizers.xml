@@ -50,7 +50,6 @@
         {{- range $i := until $replicas }}
         <property name="Initial User Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
         {{- end }}
-        <property name="Initial User Identity ca admin">CN={{ .Values.ca.admin.cn }}, OU=NIFI</property>
         {{- if .Values.auth.ldap.enabled}}
         <property name="Initial User Identity admin">{{.Values.auth.ldap.admin}}</property>
         {{- else }}
@@ -125,10 +124,10 @@
         <property name="Authentication Strategy">SIMPLE</property>
         <property name="Manager DN">{{.Values.auth.ldap.admin}}</property>
         <property name="Manager Password">{{.Values.auth.ldap.pass}}</property>
-        <property name="TLS - Keystore">/opt/nifi/nifi-current/config-data/certs/admin/Keystore.jks</property>
+        <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Values.properties.namespace}}.svc.cluster.local/keystore.jks</property>
         <property name="TLS - Keystore Password">{{.Values.auth.SSL.keystorePasswd}}</property>
         <property name="TLS - Keystore Type">jks</property>
-        <property name="TLS - Truststore">/opt/nifi/nifi-current/config-data/certs/admin/truststore.jks</property>
+        <property name="TLS - Truststore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Values.properties.namespace}}.svc.cluster.local/truststore.jks</property>
         <property name="TLS - Truststore Password">{{.Values.auth.SSL.truststorePasswd}}</property>
         <property name="TLS - Truststore Type">JKS</property>
         <property name="TLS - Client Auth">NONE</property>
@@ -229,9 +228,10 @@
         <property name="Initial Admin Identity">{{ .Values.auth.admin }}</property>
         {{- end}}
         <property name="Legacy Authorized Users File"></property>
-{{- range $i := until $replicas }}
+        {{- range $i := until $replicas }}
         <property name="Node Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
-{{- end }}
+        {{- end }}
+        <property name="Node Identity"></property>
     </accessPolicyProvider>
      <!--
         The StandardManagedAuthorizer. This authorizer implementation must be configured with the

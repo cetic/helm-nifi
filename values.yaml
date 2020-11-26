@@ -51,12 +51,12 @@ sts:
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
-  isNode: true
-  httpPort: null
-  httpsPort: 9443
-  webProxyHost: nifi.test, 192.168.64.46:30236, nifi.test:30236
+  isNode: true # set to false if ldap is enabled
+  httpPort: 8080 # set to null if ldap is enabled
+  httpsPort: null # set to 9443 if ldap is enabled
+  webProxyHost:
   clusterPort: 6007
-  clusterSecure: true
+  clusterSecure: false # set to true if ldap is enabled
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
@@ -83,9 +83,9 @@ auth:
     enabled: false
     host: ldap://<hostname>:<port>
     searchBase: CN=Users,DC=example,DC=com
-    searchFilter: CN=john
-    pass: password1
-    admin: cn=admin,dc=ldap,dc=cetic,dc=be
+    admin: cn=admin,dc=example,dc=be
+    pass: password
+    searchFilter: (objectClass=*)
     userIdentityAttribute: cn
     authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
     identityStrategy: USE_DN
@@ -111,7 +111,7 @@ headless:
 
 # ui service
 service:
-  type: LoadBalencer
+  type: LoadBalancer
   httpPort: 8080
   httpsPort: 9443
   nodePort: 30236
