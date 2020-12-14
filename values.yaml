@@ -254,6 +254,15 @@ terminationGracePeriodSeconds: 30
 ## Extra environment variables that will be pass onto deployment pods
 env: []
 
+## Extra environment variables from secrets and config maps
+envFrom: []
+
+# envFrom:
+#   - configMapRef:
+#       name: config-name
+#   - secretRef:
+#       name: mysecret
+
 ## Openshift support
 ## Use the following varables in order to enable Route and Security Context Constraint creation
 openshift:
