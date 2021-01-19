@@ -11,4 +11,4 @@ jobs:
             - GITHUB_PAGES_REPO: cetic/helm-charts
             - HELM_CHART: nifi
             - HELM_VERSION: 3.1.2
-          command: wget -O - https://gist.githubusercontent.com/alexnuttinck/2e9b8595e9a94ba3b3d00eea690e37ac/raw/9989a66c1de2eb4a8bce7c44ec5fbe1f43459762/publish.sh | sh
+          command: wget -O - https://raw.githubusercontent.com/cetic/helm-chart-publisher/master/publish.sh | sh
