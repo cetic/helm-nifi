@@ -18,7 +18,7 @@ spec:
       release: {{ .Release.Name }}
   template:
     metadata:
-{{- if .Values.sts.pod.annotations }}":
+{{- if .Values.sts.pod.annotations }}
       annotations:
 {{ toYaml .Values.sts.pod.annotations | indent 8 }}
 {{- else }}
@@ -33,7 +33,7 @@ spec:
     spec:
 {{- if .Values.useHostNetwork }}
       hostNetwork: {{ .Values.useHostNetwork }}
-      dnsPolicy: ClusterFirstWithHostNet
+       dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
       serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
       {{- if eq .Values.sts.AntiAffinity "hard"}}
