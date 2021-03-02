@@ -12,13 +12,17 @@ spec:
   podManagementPolicy: {{ .Values.sts.podManagementPolicy }}
   serviceName: {{ template "apache-nifi.fullname" . }}-headless
   replicas: {{ .Values.replicaCount }}
+{{- if .Values.useHostNetwork }}
+  hostNetwork: {{ .Values.useHostNetwork }}
+  dnsPolicy: ClusterFirstWithHostNet
+{{- end }}
   selector:
     matchLabels:
       app: {{ template "apache-nifi.name" . }}
       release: {{ .Release.Name }}
   template:
     metadata:
-{{- if .Values.sts.pod.annotations }}
+{{- if .Values.sts.pod.annotations }}q":
       annotations:
 {{ toYaml .Values.sts.pod.annotations | indent 8 }}
 {{- else }}
