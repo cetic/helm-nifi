@@ -33,7 +33,7 @@ spec:
     spec:
 {{- if .Values.useHostNetwork }}
       hostNetwork: {{ .Values.useHostNetwork }}
-       dnsPolicy: ClusterFirstWithHostNet
+      dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
       serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
       {{- if eq .Values.sts.AntiAffinity "hard"}}
