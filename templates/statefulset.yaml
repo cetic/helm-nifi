@@ -22,7 +22,7 @@ spec:
       release: {{ .Release.Name }}
   template:
     metadata:
-{{- if .Values.sts.pod.annotations }}q":
+{{- if .Values.sts.pod.annotations }}":
       annotations:
 {{ toYaml .Values.sts.pod.annotations | indent 8 }}
 {{- else }}
