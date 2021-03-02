@@ -1,4 +1,4 @@
-*.tgz
+#*.tgz
 
 # Helm Charts dependencies
 #/charts/*.tgz
