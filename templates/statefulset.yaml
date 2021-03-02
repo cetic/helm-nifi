@@ -12,10 +12,6 @@ spec:
   podManagementPolicy: {{ .Values.sts.podManagementPolicy }}
   serviceName: {{ template "apache-nifi.fullname" . }}-headless
   replicas: {{ .Values.replicaCount }}
-{{- if .Values.useHostNetwork }}
-  hostNetwork: {{ .Values.useHostNetwork }}
-  dnsPolicy: ClusterFirstWithHostNet
-{{- end }}
   selector:
     matchLabels:
       app: {{ template "apache-nifi.name" . }}
@@ -35,6 +31,10 @@ spec:
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
     spec:
+{{- if .Values.useHostNetwork }}
+      hostNetwork: {{ .Values.useHostNetwork }}
+      dnsPolicy: ClusterFirstWithHostNet
+{{- end }}
       serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
       {{- if eq .Values.sts.AntiAffinity "hard"}}
       affinity:
