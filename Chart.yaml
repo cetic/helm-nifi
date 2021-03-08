@@ -11,7 +11,7 @@ keywords:
 home: https://nifi.apache.org/
 icon: https://svn.apache.org/repos/asf/nifi/site/trunk/images/niFi-logo-horizontal-scaled.png
 source:
-  - https://github.com/tunaman/helm-nifi
+  - https://github.com/cetic/helm-nifi
 maintainers:
   - name: alexnuttinck
     email: alexandre.nuttinck@cetic.be
