@@ -286,7 +286,7 @@ spec:
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
-{{- if .Values.metrics.prometheus.serviceMonitor.enabled }}
+{{- if .Values.metrics.prometheus.enabled }}
         - containerPort: {{ .Values.metrics.prometheus.port }}
           name: metrics
           protocol: TCP                  

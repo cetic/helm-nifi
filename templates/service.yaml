@@ -88,7 +88,7 @@ spec:
   selector:
     app: {{ template "apache-nifi.name" . }}
     release: {{ .Release.Name }}
-{{- if .Values.metrics.prometheus.serviceMonitor.enabled }}
+{{- if .Values.metrics.prometheus.enabled }}
 ---
 apiVersion: v1
 kind: Service
