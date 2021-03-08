@@ -321,11 +321,11 @@ registry:
 metrics:
   prometheus:
     # Enable Prometheus metrics
-    enabled: true
+    enabled: false
     # Port used to expose Prometheus metrics
     port: 9092
     serviceMonitor:
       # Enable deployment of Prometheus Operator ServiceMonitor resource
-      enabled: true
+      enabled: false
       # Additional labels for the ServiceMonitor
       labels: {}
