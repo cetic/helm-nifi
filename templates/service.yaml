@@ -88,3 +88,25 @@ spec:
   selector:
     app: {{ template "apache-nifi.name" . }}
     release: {{ .Release.Name }}
+{{- if .Values.metrics.prometheus.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "apache-nifi.fullname" . }}-metrics
+  labels:
+    app: {{ include "apache-nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  ports:
+  - name: metrics
+    port: {{ .Values.metrics.prometheus.port }}
+    protocol: TCP
+    targetPort: metrics
+  selector:
+    app: {{ template "apache-nifi.name" . }}
+    release: {{ .Release.Name }}
+  type: ClusterIP
+  {{- end }}    
