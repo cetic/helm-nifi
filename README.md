@@ -60,6 +60,13 @@ To add [custom processors](https://cwiki.apache.org/confluence/display/NIFI/Mave
     customLibPath: "/opt/configuration_resources/custom_lib"
 ```
 
+#### Configure prometheus monitoring
+
+- You first need monitoring to be enabled which can be accomplished by enabling the appropriate metrics flag (`metrics.prometheus.enabled` to true). 
+To enable the creation of prometheus metrics within Nifi we need to create a *Reporting Task*. Login to the Nifi UI and go to the Hamburger menu on the top right corner, click *Controller Settings* --> *Reporting Tasks* After that use the + icon to add a task. Click on the *Reporting* in the wordcloud on the left and select *PrometheusReportingTask* --> change *Send JVM metrics* to `true` and click on the play button to enable this task.
+
+If you plan to use Grafana for the visualization of the metrics data [the following dashboard](https://grafana.com/grafana/dashboards/12314) is compatible with the exposed metrics. 
+
 ### Install the chart
 
 Install the nifi helm chart with a release name `my-release`:

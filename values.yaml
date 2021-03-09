@@ -327,3 +327,15 @@ registry:
   ## Add values for the nifi-registry here
   ## ref: https://github.com/dysnix/charts/blob/master/nifi-registry/values.yaml
 
+# Configure metrics
+metrics:
+  prometheus:
+    # Enable Prometheus metrics
+    enabled: false
+    # Port used to expose Prometheus metrics
+    port: 9092
+    serviceMonitor:
+      # Enable deployment of Prometheus Operator ServiceMonitor resource
+      enabled: false
+      # Additional labels for the ServiceMonitor
+      labels: {}

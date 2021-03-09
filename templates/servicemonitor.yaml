@@ -1,0 +1,37 @@
+{{- if .Values.metrics.prometheus.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "apache-nifi.fullname" . }}
+  labels:
+    app: {{ include "apache-nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+{{- if .Values.metrics.prometheus.serviceMonitor.labels }}
+{{ .Values.metrics.prometheus.serviceMonitor.labels | toYaml | indent 4 }}
+{{- end }}
+spec:
+  endpoints:
+  - port: metrics
+    honorLabels: true
+{{- if .Values.metrics.prometheus.serviceMonitor.interval }}
+    interval: {{ .Values.metrics.prometheus.serviceMonitor.interval }}
+{{- end }}
+{{- if .Values.metrics.prometheus.serviceMonitor.metricRelabelings }}
+    metricRelabelings:
+{{ tpl (toYaml .Values.metrics.prometheus.serviceMonitor.metricRelabelings | indent 6) . }}
+{{- end }}
+{{- if .Values.metrics.prometheus.serviceMonitor.relabelings }}
+    relabelings:
+{{ toYaml .Values.metrics.prometheus.serviceMonitor.relabelings | indent 6 }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: {{ template "apache-nifi.name" . }}
+      release: {{ .Release.Name }}
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace | quote }}
+{{- end }}
