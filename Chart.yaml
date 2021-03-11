@@ -13,6 +13,12 @@ icon: https://svn.apache.org/repos/asf/nifi/site/trunk/images/niFi-logo-horizont
 source:
   - https://github.com/cetic/helm-nifi
 maintainers:
+  - name: banzo
+    email: sebastien.dupont@cetic.be
+    url: https://github.com/banzo
+  - name: AyadiAmen
+    email: amen.ayadi@cetic.be
+    url: https://github.com/AyadiAmen
   - name: alexnuttinck
     email: alexandre.nuttinck@cetic.be
     url: https://github.com/alexnuttinck
