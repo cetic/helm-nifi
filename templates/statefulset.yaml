@@ -193,7 +193,7 @@ spec:
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
-
+          prop_replace nifi.web.http.host ${FQDN}
 {{- if .Values.auth.oidc.enabled }}
 {{- if .Values.properties.clusterSecure }}
           # Update nifi.properties for security properties
@@ -213,8 +213,7 @@ spec:
           prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc
 {{- end }}
 
-{{- else }}
-          prop_replace nifi.web.http.host ${FQDN}
+
 {{- end }}
 
 {{- if .Values.properties.safetyValve }}
