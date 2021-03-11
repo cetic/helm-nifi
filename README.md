@@ -80,6 +80,8 @@ helm install my-release cetic/nifi
 ```bash
 git clone https://github.com/cetic/helm-nifi.git nifi
 cd nifi
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add dysnix https://dysnix.github.io/charts/
 helm repo update
 helm dep up
 helm install --name nifi .
