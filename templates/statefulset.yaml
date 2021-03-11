@@ -31,6 +31,10 @@ spec:
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
     spec:
+{{- if .Values.sts.useHostNetwork }}
+      hostNetwork: {{ .Values.sts.useHostNetwork }}
+      dnsPolicy: ClusterFirstWithHostNet
+{{- end }}
       serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
       {{- if eq .Values.sts.AntiAffinity "hard"}}
       affinity:

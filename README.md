@@ -110,6 +110,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `securityContext.runAsUser`                                                 | nifi Docker User                                                                                                   | `1000`                          |
 | `securityContext.fsGroup`                                                   | nifi Docker Group                                                                                                  | `1000`                          |
 | **sts**                                                                     |
+| `sts.useHostNetwork`                                                            | If true, use the host's network                                                                                    | `nil`                         |
 | `sts.serviceAccount.create`    | If true, a service account will be created and used by the statefulset | `false` |
 | `sts.serviceAccount.name`       | When set, the set name will be used as the service account name. If a value is not provided a name will be generated based on Chart options | `nil` |
 | `sts.podManagementPolicy`                                                   | Parallel podManagementPolicy                                                                                       | `Parallel`                      |
