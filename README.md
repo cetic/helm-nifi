@@ -123,12 +123,13 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **configmaps**
 | `configmaps`                                                                | Pass any configmaps to the nifi pods. The configmap can also be mounted to a specific path if required.            | `nil`                           |
 | **nifi properties**                                                         |
-| `properties.externalSecure`                                                 | externalSecure for when inbound SSL                                                                                | `false`                         |
+| `properties.externalSecure`                                                 | externalSecure for when inbound SSL. when both externalSecure and clusterSecure enabled in OpenShift/OKD and route section is configured, enforce ReEncrypt SSL termination mode for route | `false`                         |
 | `properties.isNode`                                                         | cluster node properties (only configure for cluster nodes)                                                         | `true`                          |
 | `properties.httpPort`                                                       | web properties HTTP port                                                                                           | `8080`                          |
 | `properties.httpsPort`                                                      | web properties HTTPS port                                                                                          | `null`                          |
+| `properties.webProxyHost` | add hostname to list of restricted hosts | `""`
 | `properties.clusterPort`                                                    | cluster node port                                                                                                  | `6007`                          |
-| `properties.clusterSecure`                                                  | cluster nodes secure mode                                                                                          | `false`                         |
+| `properties.clusterSecure`                                                  | cluster nodes secure mode. Enforce HTTPS on pods. need CA service                                                  | `false`                         |
 | `properties.needClientAuth`                                                 | nifi security client auth                                                                                          | `false`                         |
 | `properties.provenanceStorage`                                              | nifi provenance repository max storage size                                                                        | `8 GB`                          |
 | `properties.siteToSite.secure`                                              | Site to Site properties Secure mode                                                                                | `false`                         |
@@ -136,6 +137,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
 | `properties.safetyValve`                                                    | Map of explicit 'property: value' pairs that overwrite other configuration                                         | `nil`                           |
 | `properties.customLibPath`                                                  | Path of the custom libraries folder                                                                                | `nil`                           |
+| `properties.sensitivePropsKey`                                              | key for system keystore (use it with OIDC auth)                                                                    | `""` 
 | **nifi user authentication**                                                |
 | `auth.admin`                                                                | Default admin identity                                                                                             | ` CN=admin, OU=NIFI`            |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
@@ -144,9 +146,10 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
 | `auth.oidc.enabled`                                                         | Enable User auth via oidc                                                                                          | `false`                         |
 | `auth.oidc.discoveryUrl`                                                    | oidc discover url                                                                                                  | `https://<provider>/.well-known/openid-configuration`      |
-| `auth.oidc.clientId`                                                        | oidc clientId                                                                                                      | `nil`    |
-| `auth.oidc.clientSecret`                                                    | oidc clientSecret                                                                                                  | `nil`                       |
+| `auth.oidc.clientId`                                                        | oidc clientId                                                                                                      | `""`    |
+| `auth.oidc.clientSecret`                                                    | oidc clientSecret                                                                                                  | `""`                       |
 | `auth.oidc.claimIdentifyingUser`                                            | oidc claimIdentifyingUser                                                                                          | `email`                        |
+| `auth.oidc.selfSigned`                                                      | add InitContainer which will download and add OIDC instance CA certificate to system TrustStore                    | `false`
 | **postStart**                                                               |
 | `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
 | **Headless Service**                                                        |
@@ -210,6 +213,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `openshift.route.enabled`                                                   | If true, a openshift route will be created. This option cannot be used together with Ingress as a route object replaces the Ingress. The property `properties.externalSecure` will configure the route in edge termination mode, the default is passthrough. The property `properties.httpsPort` has to be set if the cluster is intended to work with SSL termination | `false` |
 | `openshift.route.host`                                                      | The hostname intended to be used in order to access NiFi web interface | `nil` |
 | `openshift.route.path`                                                      | Path to access frontend, works the same way as the ingress path option | `nil` |
+| `openshift.route.destinationCACertificate`                                  | add destinationCACertificate if route SSL termination is reencrypt | `""`
 | **zookeeper**                                                               |
 | `zookeeper.enabled`                                                         | If true, deploy Zookeeper                                                                                          | `true`                          |
 | `zookeeper.url`                                                             | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
