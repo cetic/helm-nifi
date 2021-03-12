@@ -146,6 +146,31 @@ spec:
           - name: "config-data"
             mountPath: /data/config-data
 {{- end }}
+{{- if and .Values.auth.oidc.enabled .Values.auth.oidc.selfSigned .Values.auth.oidc.discoveryUrl }}
+      - name: oidc-cert-request
+        command:
+          - bash
+          - -ce
+          - |
+            echo "remove all from security dir" && rm -rf /security/*
+            echo "copy files" && cp -rv /usr/local/openjdk-8/lib/security/* /security
+            chmod +w /security/cacerts
+            mkdir /security/temp
+
+            echo "download CA certificate from discoveryUrl {{ regexReplaceAll "(?:(http[s]?://)|(/.*))" .Values.auth.oidc.discoveryUrl "" }}"
+            openssl s_client -connect {{ regexReplaceAll "(?:(http[s]?://)|(/.*))" .Values.auth.oidc.discoveryUrl "" }}:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > /security/temp/oidc.pem
+            keytool -importcert -noprompt -alias oidc -keystore /security/cacerts -storepass changeit -file /security/temp/oidc.pem
+
+            echo "check certificate in truststore" && keytool -keystore /security/cacerts -storepass changeit -list | grep oidc
+            rm -rf /security/temp
+            chmod -w /security/cacerts
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        volumeMounts:
+          - name: security
+            mountPath: /security
+        terminationMessagePolicy: File
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+{{- end }}
 {{- range $key, $value := .Values.initContainers }}
       - name: {{ $key }}
 {{ toYaml $value | indent 8 }}
@@ -442,6 +467,10 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+{{- if and .Values.auth.oidc.enabled .Values.auth.oidc.selfSigned .Values.auth.oidc.discoveryUrl }}
+          - name: "security"
+            mountPath: /usr/local/openjdk-8/lib/security
+{{- end }}
           {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
@@ -548,6 +577,10 @@ spec:
       - name: provenance-repository
         emptyDir: {}
       - name: logs
+        emptyDir: {}
+{{- end }}
+{{- if and .Values.auth.oidc.enabled .Values.auth.oidc.selfSigned .Values.auth.oidc.discoveryUrl }}
+      - name: security
         emptyDir: {}
 {{- end }}
 {{- if .Values.extraVolumes }}

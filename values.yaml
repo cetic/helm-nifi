@@ -67,8 +67,9 @@ properties:
   isNode: true # set to false if ldap is enabled
   httpPort: 8080 # set to null if ldap is enabled
   httpsPort: null # set to 9443 if ldap is enabled
-  webProxyHost:
+  webProxyHost: ""
   clusterPort: 6007
+  sensitivePropsKey: "" # set for truststore
   clusterSecure: false # set to true if ldap is enabled
   needClientAuth: false
   provenanceStorage: "8 GB"
@@ -109,12 +110,13 @@ auth:
 
   oidc:
     enabled: false
-    discoveryUrl:
-    clientId:
-    clientSecret:
+    discoveryUrl: ""
+    clientId: ""
+    clientSecret: ""
     claimIdentifyingUser: email
     ## Request additional scopes, for example profile
     additionalScopes:
+    selfSigned: false # if true, will be created initContainer which will download CA certificate
 
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
 ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
@@ -280,8 +282,10 @@ openshift:
     enabled: false
   route:
     enabled: false
+    destinationCACertificate: ""
+
     #host: www.test.com
-    #path: /nifi
+    #path: /nifi     # path dont work with passthrough SSL termination, only Edge or ReEncrypt
 
 # ca server details
 # Setting this true would create a nifi-toolkit based ca server

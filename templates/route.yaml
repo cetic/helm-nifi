@@ -22,16 +22,30 @@ spec:
     name: {{ $fullName }}
     weight: 100
   port:
-{{- if .Values.properties.clusterSecure }}
+{{- if and .Values.properties.clusterSecure }}
     targetPort: https
-  tls:
-    {{- if .Values.properties.externalSecure }}
-    termination: edge
-    {{- else }}
-    termination: passthrough
-    {{- end }}
-    insecureEdgeTerminationPolicy: Redirect
 {{- else }}
     targetPort: http
+{{- end }}
+{{- if and .Values.properties.clusterSecure .Values.properties.externalSecure }}
+  tls:
+    termination: reencrypt
+{{- if .Values.openshift.route.destinationCACertificate  }}
+    destinationCACertificate: |
+{{ .Values.openshift.route.destinationCACertificate | indent 6 }}
+{{- end }}
+{{- else }}
+{{- if and .Values.properties.clusterSecure }}
+  tls:
+    termination: passthrough
+{{- else }}
+{{- if .Values.properties.externalSecure }}
+  tls:
+    termination: edge
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if or .Values.properties.clusterSecure .Values.properties.externalSecure }}
+    insecureEdgeTerminationPolicy: Redirect
 {{- end }}
 {{- end }}

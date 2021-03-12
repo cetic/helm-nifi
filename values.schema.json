@@ -1,0 +1,422 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "properties": {
+        "replicaCount": {
+            "$id": "#/properties/replicaCount",
+            "type": "integer",
+            "title": "The replicaCount schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": 1
+        },
+        "image": {
+            "$id": "#/properties/image",
+            "type": "object",
+            "title": "The image schema",
+            "description": "An explanation about the purpose of this instance.",
+            "required": [
+                "repository",
+                "pullPolicy"
+            ],
+            "properties": {
+                "repository": {
+                    "$id": "#/properties/image/properties/repository",
+                    "type": "string",
+                    "title": "The repository schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "apache/nifi"
+                },
+                "tag": {
+                    "$id": "#/properties/image/properties/tag",
+                    "type": "string",
+                    "title": "The tag schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "1.12.1"
+                },
+                "pullPolicy": {
+                    "$id": "#/properties/image/properties/pullPolicy",
+                    "type": "string",
+                    "title": "The pullPolicy schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "IfNotPresent"
+                }
+            },
+            "additionalProperties": true
+        },
+        "properties": {
+            "$id": "#/properties/properties",
+            "type": "object",
+            "title": "The properties schema",
+            "description": "An explanation about the purpose of this instance.",
+            "properties": {
+                "externalSecure": {
+                    "$id": "#/properties/properties/properties/externalSecure",
+                    "type": "boolean",
+                    "title": "The externalSecure schema",
+                    "description": "use this if external (default Kubernetes) SSL termination required. if use it with clusterSecure, SSL termination will be ReEncrypt so you need rootCA cert from CA service (tested with OpenShift Routes only).",
+                    "default": false
+                },
+                "isNode": {
+                    "$id": "#/properties/properties/properties/isNode",
+                    "type": "boolean",
+                    "title": "The isNode schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": false
+                },
+                "webProxyHost": {
+                    "$id": "#/properties/properties/properties/webProxyHost",
+                    "type": "string",
+                    "title": "The webProxyHost schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": ""
+                },
+                "clusterPort": {
+                    "$id": "#/properties/properties/properties/clusterPort",
+                    "type": "integer",
+                    "title": "The clusterPort schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": 6007
+                },
+                "sensitivePropsKey": {
+                    "$id": "#/properties/properties/properties/sensitivePropsKey",
+                    "type": "string",
+                    "title": "The sensitivePropsKey schema",
+                    "description": "Key for Java KeyStore. need when you use HTTPS (clusterSecure is True).",
+                    "default": ""
+                },
+                "clusterSecure": {
+                    "$id": "#/properties/properties/properties/clusterSecure",
+                    "type": "boolean",
+                    "title": "The clusterSecure schema",
+                    "description": "enforce HTTPS on every pod of cluster. need CA service, HTTPS and cluster ports in settings.",
+                    "default": false
+                },
+                "needClientAuth": {
+                    "$id": "#/properties/properties/properties/needClientAuth",
+                    "type": "boolean",
+                    "title": "The needClientAuth schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": false
+                },
+                "provenanceStorage": {
+                    "$id": "#/properties/properties/properties/provenanceStorage",
+                    "type": "string",
+                    "title": "The provenanceStorage schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "8 GB"
+                }
+            },
+            "additionalProperties": true
+        },
+        "auth": {
+            "$id": "#/properties/auth",
+            "type": "object",
+            "title": "The auth schema",
+            "description": "An explanation about the purpose of this instance.",
+            "properties": {
+                "admin": {
+                    "$id": "#/properties/auth/properties/admin",
+                    "type": "string",
+                    "title": "The admin schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "CN=admin, OU=NIFI"
+                },
+                "SSL": {
+                    "$id": "#/properties/auth/properties/SSL",
+                    "type": "object",
+                    "title": "The SSL schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "additionalProperties": true
+                },
+                "ldap": {
+                    "$id": "#/properties/auth/properties/ldap",
+                    "type": "object",
+                    "title": "The ldap schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "additionalProperties": true
+                },
+                "oidc": {
+                    "$id": "#/properties/auth/properties/oidc",
+                    "type": "object",
+                    "title": "The oidc schema",
+                    "description": "OIDC settings. You can use it only when clusterSecure is True.",
+                    "default": {
+                        "enabled": false,
+                        "discoveryUrl": "",
+                        "clientId": "",
+                        "clientSecret": "",
+                        "claimIdentifyingUser": "email",
+                        "additionalScopes": null,
+                        "selfSigned": false
+                    },
+                    "required": [
+                        "enabled",
+                        "discoveryUrl",
+                        "clientId",
+                        "clientSecret",
+                        "claimIdentifyingUser"
+                    ],
+                    "properties": {
+                        "enabled": {
+                            "$id": "#/properties/auth/properties/oidc/properties/enabled",
+                            "type": "boolean",
+                            "title": "The enabled schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        },
+                        "discoveryUrl": {
+                            "$id": "#/properties/auth/properties/oidc/properties/discoveryUrl",
+                            "type": "string",
+                            "title": "The discoveryUrl schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": ""
+                        },
+                        "clientId": {
+                            "$id": "#/properties/auth/properties/oidc/properties/clientId",
+                            "type": "string",
+                            "title": "The clientId schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": ""
+                        },
+                        "clientSecret": {
+                            "$id": "#/properties/auth/properties/oidc/properties/clientSecret",
+                            "type": "string",
+                            "title": "The clientSecret schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": ""
+                        },
+                        "claimIdentifyingUser": {
+                            "$id": "#/properties/auth/properties/oidc/properties/claimIdentifyingUser",
+                            "type": "string",
+                            "title": "The claimIdentifyingUser schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "email"
+                        },
+                        "selfSigned": {
+                            "$id": "#/properties/auth/properties/oidc/properties/selfSigned",
+                            "type": "boolean",
+                            "title": "The selfSigned schema",
+                            "description": "use true if your OIDC provider use self-signed certificates. will add additional InitContainer which will add OIDC CA certificate to system truststore.",
+                            "default": false
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true
+        },
+        "headless": {
+            "$id": "#/properties/headless",
+            "type": "object",
+            "title": "The headless schema",
+            "description": "An explanation about the purpose of this instance.",
+            "properties": {
+                "type": {
+                    "$id": "#/properties/headless/properties/type",
+                    "type": "string",
+                    "title": "The type schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "ClusterIP"
+                },
+                "annotations": {
+                    "$id": "#/properties/headless/properties/annotations",
+                    "type": "object",
+                    "title": "The annotations schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true
+        },
+        "jvmMemory": {
+            "$id": "#/properties/jvmMemory",
+            "type": "string",
+            "title": "The jvmMemory schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "2g"
+        },
+        "sidecar": {
+            "$id": "#/properties/sidecar",
+            "type": "object",
+            "title": "The sidecar schema",
+            "description": "An explanation about the purpose of this instance.",
+            "properties": {
+                "image": {
+                    "$id": "#/properties/sidecar/properties/image",
+                    "type": "string",
+                    "title": "The image schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "busybox"
+                },
+                "tag": {
+                    "$id": "#/properties/sidecar/properties/tag",
+                    "type": "string",
+                    "title": "The tag schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "1.32.0"
+                }
+            },
+            "additionalProperties": true
+        },
+        "initContainers": {
+            "$id": "#/properties/initContainers",
+            "type": "object",
+            "title": "The initContainers schema",
+            "description": "An explanation about the purpose of this instance.",
+            "additionalProperties": true
+        },
+        "extraVolumeMounts": {
+            "$id": "#/properties/extraVolumeMounts",
+            "type": "array",
+            "title": "The extraVolumeMounts schema",
+            "description": "mount your extraVolumes to main NiFi container.",
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/extraVolumeMounts/items"
+            }
+        },
+        "extraVolumes": {
+            "$id": "#/properties/extraVolumes",
+            "type": "array",
+            "title": "The extraVolumes schema",
+            "description": "create extra Volumes (emptyDir)",
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/extraVolumes/items"
+            }
+        },
+        "extraContainers": {
+            "$id": "#/properties/extraContainers",
+            "type": "array",
+            "title": "The extraContainers schema",
+            "description": "An explanation about the purpose of this instance.",
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/extraContainers/items"
+            }
+        },
+        "terminationGracePeriodSeconds": {
+            "$id": "#/properties/terminationGracePeriodSeconds",
+            "type": "integer",
+            "title": "The terminationGracePeriodSeconds schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": 30
+        },
+        "env": {
+            "$id": "#/properties/env",
+            "type": "array",
+            "title": "The env schema",
+            "description": "Additional env variables.",
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/env/items"
+            }
+        },
+        "envFrom": {
+            "$id": "#/properties/envFrom",
+            "type": "array",
+            "title": "The envFrom schema",
+            "description": "additional env variables from ConfigMap or Secret.",
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/envFrom/items"
+            }
+        },
+        "openshift": {
+            "$id": "#/properties/openshift",
+            "type": "object",
+            "title": "The openshift schema",
+            "description": "settings for OpenShift/OKD.",
+            "default": {
+                "scc": {
+                    "enabled": false
+                },
+                "route": {
+                    "enabled": false,
+                    "destinationCACertificate": "",
+                    "host": "www.test.com",
+                    "path": "/nifi"
+                }
+            },
+            "required": [
+                "scc",
+                "route"
+            ],
+            "properties": {
+                "scc": {
+                    "$id": "#/properties/openshift/properties/scc",
+                    "type": "object",
+                    "title": "The scc schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": {
+                        "enabled": false
+                    },
+                    "required": [
+                        "enabled"
+                    ],
+                    "properties": {
+                        "enabled": {
+                            "$id": "#/properties/openshift/properties/scc/properties/enabled",
+                            "type": "boolean",
+                            "title": "The enabled schema",
+                            "description": "enable SecurityContextConstraints.",
+                            "default": false
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "route": {
+                    "$id": "#/properties/openshift/properties/route",
+                    "type": "object",
+                    "title": "The route schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": {
+                        "enabled": false
+                    },
+                    "required": [
+                        "enabled"
+                    ],
+                    "properties": {
+                        "enabled": {
+                            "$id": "#/properties/openshift/properties/route/properties/enabled",
+                            "type": "boolean",
+                            "title": "The enabled schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        },
+                        "destinationCACertificate": {
+                            "$id": "#/properties/openshift/properties/route/properties/destinationCACertificate",
+                            "type": "string",
+                            "title": "The destinationCACertificate schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": ""
+                        },
+                        "host": {
+                            "$id": "#/properties/openshift/properties/route/properties/host",
+                            "type": "string",
+                            "title": "The host schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "examples": [
+                                "www.test.com"
+                            ]
+                        },
+                        "path": {
+                            "$id": "#/properties/openshift/properties/route/properties/path",
+                            "type": "string",
+                            "title": "The path schema",
+                            "description": "dont work when SSL termination is passthrough",
+                            "default": "/nifi"
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true
+        }
+    },
+    "additionalProperties": true
+}
