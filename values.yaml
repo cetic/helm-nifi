@@ -129,7 +129,7 @@ headless:
 
 # ui service
 service:
-  type: LoadBalancer
+  type: ClusterIP
   httpPort: 8080
   httpsPort: 9443
   nodePort: 30236
