@@ -132,7 +132,6 @@ service:
   type: ClusterIP
   httpPort: 8080
   httpsPort: 9443
-  nodePort: 30236
   annotations: {}
     # loadBalancerIP:
     ## Load Balancer sources
