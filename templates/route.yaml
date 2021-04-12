@@ -1,3 +1,4 @@
+---
 {{- if .Values.openshift.route.enabled -}}
 {{- $fullName := include "apache-nifi.fullname" . -}}
 {{- $ingressPath := .Values.openshift.route.path -}}
@@ -16,6 +17,59 @@ spec:
   {{- end }}
   {{- if .Values.openshift.route.host }}
   path: {{ $ingressPath }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ $fullName }}
+    weight: 100
+  port:
+{{- if and .Values.properties.clusterSecure }}
+    targetPort: https
+{{- else }}
+    targetPort: http
+{{- end }}
+{{- if and .Values.properties.clusterSecure .Values.properties.externalSecure }}
+  tls:
+    termination: reencrypt
+{{- if .Values.openshift.route.destinationCACertificate  }}
+    destinationCACertificate: |
+{{ .Values.openshift.route.destinationCACertificate | indent 6 }}
+{{- end }}
+{{- else }}
+{{- if and .Values.properties.clusterSecure }}
+  tls:
+    termination: passthrough
+{{- else }}
+{{- if .Values.properties.externalSecure }}
+  tls:
+    termination: edge
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if or .Values.properties.clusterSecure .Values.properties.externalSecure }}
+    insecureEdgeTerminationPolicy: Redirect
+{{- end }}
+{{- end }}
+
+---
+{{- if .Values.openshift.route.enabled -}}
+{{- $fullName := include "apache-nifi.fullname" . -}}
+{{- $ingressPath := .Values.openshift.route.path -}}
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  labels:
+    app: {{ include "apache-nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+  name: {{ template "apache-nifi.fullname" . }}-api
+spec:
+  {{- if .Values.openshift.route.host }}
+  host: {{ .Values.openshift.route.host }}
+  {{- end }}
+  {{- if .Values.openshift.route.host }}
+  path: {{ $ingressPath }}-api
   {{- end }}
   to:
     kind: Service
