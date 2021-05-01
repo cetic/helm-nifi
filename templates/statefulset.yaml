@@ -79,6 +79,7 @@ spec:
       initContainers:
 {{- if .Values.properties.isNode }}
       - name: zookeeper
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         command:
         - sh
@@ -446,6 +447,7 @@ spec:
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
       - name: app-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-app.log]
         resources:
@@ -454,6 +456,7 @@ spec:
         - name: logs
           mountPath: /var/log
       - name: bootstrap-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
         resources:
@@ -462,6 +465,7 @@ spec:
         - name: logs
           mountPath: /var/log
       - name: user-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-user.log]
         resources:
