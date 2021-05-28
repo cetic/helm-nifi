@@ -115,9 +115,11 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `sts.useHostNetwork`                                                            | If true, use the host's network                                                                                    | `nil`                         |
 | `sts.serviceAccount.create`    | If true, a service account will be created and used by the statefulset | `false` |
 | `sts.serviceAccount.name`       | When set, the set name will be used as the service account name. If a value is not provided a name will be generated based on Chart options | `nil` |
+| `sts.serviceAccount.annotations`                                                       | Service account annotations                                                                                                | `{}`                            |
 | `sts.podManagementPolicy`                                                   | Parallel podManagementPolicy                                                                                       | `Parallel`                      |
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
 | `sts.pod.annotations`                                                       | Pod template annotations                                                                                           | `security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000`                          |
+| `sts.hostAliases    `                                                       | Add entries to Pod /etc/hosts                                                                                      | `[]`                            |
 | **secrets**
 | `secrets`                                                                   | Pass any secrets to the nifi pods. The secret can also be mounted to a specific path if required.                  | `nil`                           |
 | **configmaps**
@@ -189,6 +191,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `resources`                                                                 | Pod resource requests and limits for logs                                                                          | `{}`                            |
 | **logResources**                                                            |
 | `logresources.`                                                             | Pod resource requests and limits                                                                                   | `{}`                            |
+| **affinity**                                                                |
+| `affinity`                                                                  | Pod affinity scheduling rules                                                                                      | `{}`                            |
 | **nodeSelector**                                                            |
 | `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
 | **terminationGracePeriodSeconds**                                           |
