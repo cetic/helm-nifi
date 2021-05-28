@@ -43,6 +43,11 @@ sts:
     create: false
     #name: nifi
     annotations: {}
+  hostAliases: []
+#    - ip: "1.2.3.4"
+#      hostnames:
+#        - example.com
+#        - example
 
 ## Useful if using any custom secrets
 ## Pass in some secrets to use (if required)
