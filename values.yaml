@@ -240,6 +240,10 @@ logresources:
     cpu: 50m
     memory: 50Mi
 
+## Enables setting your own affinity. Mutually exclusive with sts.AntiAffinity
+## You need to set the value of sts.AntiAffinity other than "soft" and "hard"
+affinity: {}
+
 nodeSelector: {}
 
 tolerations: []
