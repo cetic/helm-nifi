@@ -36,7 +36,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
       serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
-      {{- if eq .Values.sts.AntiAffinity "hard"}}
+      {{- if eq .Values.sts.AntiAffinity "hard" }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -47,7 +47,7 @@ spec:
                     values:
                     - {{ include "apache-nifi.name" . | quote }}
               topologyKey: "kubernetes.io/hostname"
-      {{- else if eq .Values.sts.AntiAffinity "soft"}}
+      {{- else if eq .Values.sts.AntiAffinity "soft" }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -60,7 +60,11 @@ spec:
                         values:
                          - {{ include "apache-nifi.name" . | quote }}
                  topologyKey: "kubernetes.io/hostname"
-      {{- end}}
+      {{- end }}
+{{- if and .Values.affinity (and (ne .Values.sts.AntiAffinity "hard") (ne .Values.sts.AntiAffinity "soft")) }}
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+{{- end }}
 {{- if .Values.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
 {{- end }}

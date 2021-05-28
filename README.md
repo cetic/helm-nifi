@@ -188,6 +188,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `resources`                                                                 | Pod resource requests and limits for logs                                                                          | `{}`                            |
 | **logResources**                                                            |
 | `logresources.`                                                             | Pod resource requests and limits                                                                                   | `{}`                            |
+| **affinity**                                                                |
+| `affinity`                                                                  | Pod affinity scheduling rules                                                                                      | `{}`                            |
 | **nodeSelector**                                                            |
 | `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
 | **terminationGracePeriodSeconds**                                           |
