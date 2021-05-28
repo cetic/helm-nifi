@@ -186,6 +186,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **SideCar**                                                                 |
 | `sidecar.image`                                                             | Separate image for tailing each log separately and checking zookeeper connectivity                                 | `busybox`                       |
 | `sidecar.tag`                                                               | Image tag                                                                                                          | `1.32.0`                        |
+| `sidecar.imagePullPolicy`                                                   | Image imagePullPolicy                                                                                              | `IfNotPresent`                  |
 | **Resources**                                                               |
 | `resources`                                                                 | Pod resource requests and limits for logs                                                                          | `{}`                            |
 | **logResources**                                                            |
