@@ -176,7 +176,11 @@ spec:
           }
 
           mkdir -p ${NIFI_HOME}/config-data/conf
+{{- if .Values.sts.useHostNetwork }}
+          FQDN="0.0.0.0"
+{{- else }}
           FQDN=$(hostname -f)
+{{- end }}
 
           cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
 
