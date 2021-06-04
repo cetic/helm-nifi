@@ -84,7 +84,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add dysnix https://dysnix.github.io/charts/
 helm repo update
 helm dep up
-helm install --name nifi .
+helm install nifi .
 ```
 
 ## Uninstallation
