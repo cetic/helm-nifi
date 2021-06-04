@@ -1,0 +1,20 @@
+name: Example workflow
+
+on: [push]
+
+jobs:
+  example:
+    name: Example Minikube-Kubernetes Cluster interaction
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'v1.20.2'
+          #github token: ${{ secrets.GITHUB_TOKEN }}          
+      - run: minikube addons list
+      - name: Interact with the cluster
+        run: kubectl get nodes
