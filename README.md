@@ -238,6 +238,35 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `metrics.prometheus.serviceMonitor.enabled`       | If `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.prometheus.enabled` to be `true`)                       | `false`                                        |
 | `metrics.prometheus.serviceMonitor.labels`       | Additional labels for the ServiceMonitor                       | `nil`                                        |
 
+## Troubleshooting
+
+Before [filing a bug report](https://github.com/cetic/helm-nifi/issues/new/choose), you may want to:
+
+* check that [persistent storage](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) is configured on your cluster
+* keep in mind that a first installation may take a significant amount of time on a home internet connection
+* check if a pod is in error: 
+```bash
+kubectl get pod
+NAME                  READY   STATUS    RESTARTS   AGE
+myrelease-nifi-0             3/4     Failed   1          56m
+myrelease-nifi-registry-0    1/1     Running   0          56m
+myrelease-nifi-zookeeper-0   1/1     Running   0          56m
+myrelease-nifi-zookeeper-1   1/1     Running   0          56m
+myrelease-nifi-zookeeper-2   1/1     Running   0          56m
+```
+
+Inspect the pod, check the "Events" section at the end for anything suspicious.
+
+```bash
+kubectl describe pod myrelease-nifi-0
+```
+
+Get logs on a failed container inside the pod (here the `server` one):
+
+```bash
+kubectl logs myrelease-nifi-0 server
+```
+
 ## Credits
 
 Initially inspired from https://github.com/YolandaMDavis/apache-nifi.
