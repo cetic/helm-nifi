@@ -15,6 +15,20 @@ jobs:
           minikube version: 'v1.20.0'
           kubernetes version: 'v1.20.2'
           #github token: ${{ secrets.GITHUB_TOKEN }}          
-      - run: minikube addons list
-      - name: Interact with the cluster
-        run: kubectl get nodes
+      #- run: minikube addons list
+      #- name: Interact with the cluster
+      #  run: kubectl get nodes
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add dysnix https://dysnix.github.io/charts/
+          helm repo update
+          helm dep up          
+      - name: Install Nifi
+        run: helm install --name nifi .
+      - name: Check deployment status
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=10m
+
+
