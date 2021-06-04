@@ -1,10 +1,10 @@
-name: Example workflow
+name: Test
 
 on: [push]
 
 jobs:
   example:
-    name: Example Minikube-Kubernetes Cluster interaction
+    name: Minikube installation - Basic test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,8 +27,6 @@ jobs:
           helm repo update
           helm dep up          
       - name: Install Nifi
-        run: helm install --name nifi .
+        run: helm install nifi .
       - name: Check deployment status
         run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=10m
-
-
