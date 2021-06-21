@@ -18,4 +18,4 @@ jobs:
         stale-issue-label: 'stale'
         #stale-pr-label: 'no-pr-activity'
         exempt-issue-labels: 'enhancement,bug,help wanted,'
-        debug-only: true
+        debug-only: false
