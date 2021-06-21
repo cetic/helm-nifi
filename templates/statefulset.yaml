@@ -263,6 +263,15 @@ spec:
               echo "disconnecting node ${nnid}"
               ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi disconnect-node -nnid $nnid -u ${baseUrl} ${secureArgs}
               echo ""
+              echo "get a connected node"
+              connectedNode=$(jq -r 'first(.cluster.nodes|=sort_by(.address)| .cluster.nodes[] | select(.status=="CONNECTED")) | .address' nodes.json)
+              {{- if .Values.properties.clusterSecure }}
+              baseUrl=https://${connectedNode}:{{ .Values.properties.httpsPort }}
+              {{- else }}
+              baseUrl=http://${connectedNode}:{{ .Values.properties.httpPort }}
+              {{- end }}
+              echo baseUrl ${baseUrl}
+              echo ""
               echo "wait until node has state 'DISCONNECTED'"
               while [[ "${node_state}" != "DISCONNECTED" ]]; do
                   sleep 1
