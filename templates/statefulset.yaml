@@ -35,8 +35,12 @@ spec:
       hostNetwork: {{ .Values.sts.useHostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
+{{- if .Values.sts.hostAliases }}
+      hostAliases:
+{{ toYaml .Values.sts.hostAliases | indent 8 }}
+{{- end }}
       serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
-      {{- if eq .Values.sts.AntiAffinity "hard"}}
+      {{- if eq .Values.sts.AntiAffinity "hard" }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -47,7 +51,7 @@ spec:
                     values:
                     - {{ include "apache-nifi.name" . | quote }}
               topologyKey: "kubernetes.io/hostname"
-      {{- else if eq .Values.sts.AntiAffinity "soft"}}
+      {{- else if eq .Values.sts.AntiAffinity "soft" }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -60,7 +64,11 @@ spec:
                         values:
                          - {{ include "apache-nifi.name" . | quote }}
                  topologyKey: "kubernetes.io/hostname"
-      {{- end}}
+      {{- end }}
+{{- if and .Values.affinity (and (ne .Values.sts.AntiAffinity "hard") (ne .Values.sts.AntiAffinity "soft")) }}
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+{{- end }}
 {{- if .Values.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
 {{- end }}
@@ -79,6 +87,7 @@ spec:
       initContainers:
 {{- if .Values.properties.isNode }}
       - name: zookeeper
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         command:
         - sh
@@ -176,7 +185,11 @@ spec:
           }
 
           mkdir -p ${NIFI_HOME}/config-data/conf
+{{- if .Values.sts.useHostNetwork }}
+          FQDN="0.0.0.0"
+{{- else }}
           FQDN=$(hostname -f)
+{{- end }}
 
           cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
 
@@ -455,6 +468,7 @@ spec:
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
       - name: app-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-app.log]
         resources:
@@ -463,6 +477,7 @@ spec:
         - name: logs
           mountPath: /var/log
       - name: bootstrap-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
         resources:
@@ -471,6 +486,7 @@ spec:
         - name: logs
           mountPath: /var/log
       - name: user-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-user.log]
         resources:

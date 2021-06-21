@@ -42,6 +42,12 @@ sts:
   serviceAccount:
     create: false
     #name: nifi
+    annotations: {}
+  hostAliases: []
+#    - ip: "1.2.3.4"
+#      hostnames:
+#        - example.com
+#        - example
 
 ## Useful if using any custom secrets
 ## Pass in some secrets to use (if required)
@@ -176,6 +182,7 @@ jvmMemory: 2g
 sidecar:
   image: busybox
   tag: "1.32.0"
+  imagePullPolicy: "IfNotPresent"
 
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
@@ -238,6 +245,10 @@ logresources:
   limits:
     cpu: 50m
     memory: 50Mi
+
+## Enables setting your own affinity. Mutually exclusive with sts.AntiAffinity
+## You need to set the value of sts.AntiAffinity other than "soft" and "hard"
+affinity: {}
 
 nodeSelector: {}
 

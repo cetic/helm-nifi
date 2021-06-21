@@ -31,4 +31,30 @@ A clear and concise description of what the bug is.
 
 **Anything else we need to know**:
 
+Here are some information that help troubleshooting:
 
+* if relevant, provide your `values.yaml` (after removing sensitive information)
+* the output of the folowing commands:
+
+Check if a pod is in error: 
+```bash
+kubectl get pod
+NAME                  READY   STATUS    RESTARTS   AGE
+myrelease-nifi-0             3/4     Failed   1          56m
+myrelease-nifi-registry-0    1/1     Running   0          56m
+myrelease-nifi-zookeeper-0   1/1     Running   0          56m
+myrelease-nifi-zookeeper-1   1/1     Running   0          56m
+myrelease-nifi-zookeeper-2   1/1     Running   0          56m
+```
+
+Inspect the pod, check the "Events" section at the end for anything suspicious.
+
+```bash
+kubectl describe pod myrelease-nifi-0
+```
+
+Get logs on a failed container inside the pod (here the `server` one):
+
+```bash
+kubectl logs myrelease-nifi-0 server
+```
