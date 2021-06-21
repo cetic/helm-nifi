@@ -35,6 +35,6 @@ jobs:
       - name: Install Nifi
         run: helm install nifi .
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=10m
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
       - name: Check web application is available
         run: curl $(minikube service nifi --url)
