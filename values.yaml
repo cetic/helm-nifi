@@ -71,11 +71,11 @@ properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
   isNode: true # set to false if ldap is enabled
-  httpPort: 8080 # set to null if ldap is enabled
-  httpsPort: null # set to 9443 if ldap is enabled
+  httpPort: null # set to null if ldap is enabled
+  httpsPort: 9443 # set to 9443 if ldap is enabled
   webProxyHost:
   clusterPort: 6007
-  clusterSecure: false # set to true if ldap is enabled
+  clusterSecure: true # set to true if ldap is enabled
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
@@ -97,6 +97,8 @@ properties:
 
 # Nifi User Authentication
 auth:
+  secure:
+    enabled: true
   admin: CN=admin, OU=NIFI
   SSL:
     keystorePasswd: env:PASS

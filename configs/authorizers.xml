@@ -48,7 +48,7 @@
         <property name="Users File">./auth-conf/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
         {{- range $i := until $replicas }}
-        <property name="Initial User Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
+        <property name="Initial User Identity {{ $i }}"></property>
         {{- end }}
         {{- if .Values.auth.ldap.enabled}}
         <property name="Initial User Identity admin">{{.Values.auth.ldap.admin}}</property>
@@ -229,7 +229,7 @@
         {{- end}}
         <property name="Legacy Authorized Users File"></property>
         {{- range $i := until $replicas }}
-        <property name="Node Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
+        <property name="Node Identity {{ $i }}"></property>
         {{- end }}
         <property name="Node Identity"></property>
     </accessPolicyProvider>
@@ -268,7 +268,7 @@
             NOTE: Any identity mapping rules specified in nifi.properties will also be applied to the node identities,
             so the values should be the unmapped identities (i.e. full DN from a certificate).
     -->
-    {{- if .Values.auth.ldap.enabled}}
+    {{- if .Values.auth.secure.enabled}}
     <authorizer>
         <identifier>file-provider</identifier>
         <class>org.apache.nifi.authorization.FileAuthorizer</class>
