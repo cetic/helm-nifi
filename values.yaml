@@ -70,7 +70,7 @@ sts:
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
-  isNode: true # set to false if ldap is enabled
+  isNode: false # set to false if ldap is enabled
   httpPort: null # set to null if ldap is enabled
   httpsPort: 9443 # set to 9443 if ldap is enabled
   webProxyHost:

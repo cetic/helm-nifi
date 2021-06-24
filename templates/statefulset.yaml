@@ -295,7 +295,7 @@ spec:
 
           echo NiFi running with PID ${nifi_pid}.
           wait ${nifi_pid}
-          {{ if .Values.auth.ldap }}
+          {{ if .Values.auth.secure }}
           /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local' -C '{{.Values.auth.ldap.admin}}' -o '/opt/nifi/nifi-current/conf/' -P {{.Values.auth.SSL.truststorePasswd}}  -S {{.Values.auth.SSL.keystorePasswd}}  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           exec bin/nifi.sh run
           {{ end }}
