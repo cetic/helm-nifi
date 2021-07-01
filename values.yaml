@@ -103,6 +103,11 @@ auth:
   SSL:
     keystorePasswd: env:PASS
     truststorePasswd: env:PASS
+  keycloak:
+    address: 192.168.64.57
+    port: 32766
+    realm: devops
+    clientid: org:apache:nifi:saml:sp
   ldap:
     enabled: false
     host: ldap://<hostname>:<port>
