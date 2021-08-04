@@ -212,7 +212,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **extraContainers**                                                         |
 | `extraContainers`                                                           | Additional container-specifications that should run within the pod (see [spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core) for details)  | `[]`                            |
 | **extraLabels**                                                         |
-| `extraLabels`                                                           | Additional labels for the nifi pod | `foo: baz`                            |
+| `extraLabels`                                                           | Additional labels for the nifi pod | `nil`                                 |
 | **openshift**                                                                     |
 | `openshift.scc.enabled`                                                     | If true, a openshift security context will be created permitting to run the statefulset as AnyUID | `false` |
 | `openshift.route.enabled`                                                   | If true, a openshift route will be created. This option cannot be used together with Ingress as a route object replaces the Ingress. The property `properties.externalSecure` will configure the route in edge termination mode, the default is passthrough. The property `properties.httpsPort` has to be set if the cluster is intended to work with SSL termination | `false` |
