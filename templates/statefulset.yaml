@@ -30,6 +30,9 @@ spec:
         chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 8 }}
+{{- end }}
     spec:
 {{- if .Values.sts.useHostNetwork }}
       hostNetwork: {{ .Values.sts.useHostNetwork }}
