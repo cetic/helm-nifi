@@ -99,62 +99,7 @@ spec:
             sleep 2
           done
 {{- end }}
-{{- if .Values.ca.enabled }}
-      - name: cert-request
-        imagePullPolicy: {{ .Values.ca.image.pullPolicy | quote }}
-        image: "{{ .Values.ca.image.repository }}:{{ .Values.ca.image.tag }}"
-        command:
-        - bash
-        - -c
-        - |
-          CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.service.port }}"
-          until echo "" | timeout -t 2 openssl s_client -connect "${CA_ADDRESS}"; do
-            # Checking if ca server using nifi-toolkit is up
-            echo "Waiting for CA to be available at ${CA_ADDRESS}"
-            sleep 2
-          done;
-          cd /data/config-data
-          rm -rf certs
-          mkdir certs
-          cd certs
 
-          # Generate certificate for server with webProxyHost or service name as alternate names to access nifi web ui
-          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
-            -c "{{ template "ca.server" . }}" \
-            -t {{ .Values.ca.token }} \
-{{- if .Values.properties.webProxyHost }}
-            --subjectAlternativeNames {{ .Values.properties.webProxyHost }}, $(hostname -f) \
-{{- else }}
-            --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
-{{- end }}
-            -D "CN=$(hostname -f), OU=NIFI" \
-            -p {{ .Values.ca.service.port }}
-
-          # Generate client certificate for browser with webProxyHost or service name as alternate names to access nifi web ui
-          mkdir -p /data/config-data/certs/admin
-          cd /data/config-data/certs/admin
-
-          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
-            -c "{{ template "ca.server" . }}" \
-            -t {{ .Values.ca.token }} \
-{{- if .Values.properties.webProxyHost }}
-            --subjectAlternativeNames {{ .Values.properties.webProxyHost }} \
-{{- else }}
-            --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
-{{- end }}
-            -p {{ .Values.ca.service.port }} \
-            -D "CN={{ .Values.ca.admin.cn }}, OU=NIFI" \
-            -T PKCS12
-
-          export PASS=$(jq -r .keyStorePassword config.json)
-
-          openssl pkcs12 -in "keystore.pkcs12" -out "key.pem" -nocerts -nodes -password "env:PASS"
-          openssl pkcs12 -in "keystore.pkcs12" -out "crt.pem" -clcerts -nokeys -password "env:PASS"
-          openssl pkcs12 -in "keystore.pkcs12" -out "keystore.jks" -clcerts -nokeys -password "env:PASS"
-        volumeMounts:
-          - name: "config-data"
-            mountPath: /data/config-data
-{{- end }}
 {{- range $key, $value := .Values.initContainers }}
       - name: {{ $key }}
 {{ toYaml $value | indent 8 }}
@@ -183,7 +128,6 @@ spec:
               echo ${1}=${2} >> ${target_file}
             fi
           }
-
           mkdir -p ${NIFI_HOME}/config-data/conf
 {{- if .Values.sts.useHostNetwork }}
           FQDN="0.0.0.0"
@@ -207,17 +151,6 @@ spec:
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
           prop_replace nifi.web.http.host ${FQDN}
-{{- if .Values.auth.oidc.enabled }}
-{{- if .Values.properties.clusterSecure }}
-          # Update nifi.properties for security properties
-          prop_replace nifi.web.https.host ${FQDN}
-          prop_replace nifi.security.keystoreType jks
-          prop_replace nifi.security.keystore   ${NIFI_HOME}/config-data/certs/keystore.jks
-          prop_replace nifi.security.keystorePasswd     $(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
-          prop_replace nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
-          prop_replace nifi.security.truststoreType jks
-          prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
-          prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
 
 {{- if .Values.properties.webProxyHost }}
           # Update nifi.properties for web ui proxy hostname
@@ -226,14 +159,10 @@ spec:
           prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc
 {{- end }}
 
-
-{{- end }}
-
 {{- if .Values.properties.safetyValve }}
   {{- range $prop, $val := .Values.properties.safetyValve }}
           prop_replace {{ $prop }} "{{ $val }}" nifi.properties
   {{- end }}
-{{- end }}
 {{- end }}
 
 
@@ -262,6 +191,15 @@ spec:
               nnid=$(jq --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .nodeId' nodes.json)
               echo "disconnecting node ${nnid}"
               ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi disconnect-node -nnid $nnid -u ${baseUrl} ${secureArgs}
+              echo ""
+              echo "get a connected node"
+              connectedNode=$(jq -r 'first(.cluster.nodes|=sort_by(.address)| .cluster.nodes[] | select(.status=="CONNECTED")) | .address' nodes.json)
+              {{- if .Values.properties.clusterSecure }}
+              baseUrl=https://${connectedNode}:{{ .Values.properties.httpsPort }}
+              {{- else }}
+              baseUrl=http://${connectedNode}:{{ .Values.properties.httpPort }}
+              {{- end }}
+              echo baseUrl ${baseUrl}
               echo ""
               echo "wait until node has state 'DISCONNECTED'"
               while [[ "${node_state}" != "DISCONNECTED" ]]; do
@@ -295,7 +233,7 @@ spec:
 
           echo NiFi running with PID ${nifi_pid}.
           wait ${nifi_pid}
-          {{ if .Values.auth.secure }}
+          {{ if .Values.auth.ldap }}
           /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local' -C '{{.Values.auth.ldap.admin}}' -o '/opt/nifi/nifi-current/conf/' -P {{.Values.auth.SSL.truststorePasswd}}  -S {{.Values.auth.SSL.keystorePasswd}}  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           exec bin/nifi.sh run
           {{ end }}

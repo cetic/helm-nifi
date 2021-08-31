@@ -73,7 +73,7 @@ properties:
   isNode: false # set to false if ldap is enabled
   httpPort: null # set to null if ldap is enabled
   httpsPort: 9443 # set to 9443 if ldap is enabled
-  webProxyHost:
+  webProxyHost: <minikube_IP>:30236
   clusterPort: 6007
   clusterSecure: true # set to true if ldap is enabled
   needClientAuth: false
@@ -103,11 +103,6 @@ auth:
   SSL:
     keystorePasswd: env:PASS
     truststorePasswd: env:PASS
-  keycloak:
-    address: 192.168.64.57
-    port: 32766
-    realm: devops
-    clientid: org:apache:nifi:saml:sp
   ldap:
     enabled: false
     host: ldap://<hostname>:<port>
@@ -121,11 +116,11 @@ auth:
     authExpiration: 12 hours
 
   oidc:
-    enabled: false
-    discoveryUrl:
-    clientId:
-    clientSecret:
-    claimIdentifyingUser: email
+    enabled: true
+    discoveryUrl: http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
+    clientId: Nifi
+    clientSecret: changeme
+    claimIdentifyingUser: preferred_username
     ## Request additional scopes, for example profile
     additionalScopes:
 
