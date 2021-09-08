@@ -70,12 +70,12 @@ sts:
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
-  isNode: false # set to false if ldap is enabled
-  httpPort: null # set to null if ldap is enabled
-  httpsPort: 9443 # set to 9443 if ldap is enabled
-  webProxyHost: <minikube_IP>:30236
+  isNode: false 
+  httpPort: null # set to null if nifi is secured
+  httpsPort: 9443 # set to 9443 if nifi is secured
+  webProxyHost: <cluster_IP>:30236 # In minikube, we can get the ip with the command "minikube ip"
   clusterPort: 6007
-  clusterSecure: true # set to true if ldap is enabled
+  clusterSecure: true # set to true if nifi is secured
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
@@ -116,10 +116,10 @@ auth:
     authExpiration: 12 hours
 
   oidc:
-    enabled: true
+    enabled: false
     discoveryUrl: http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
-    clientId: Nifi
-    clientSecret: changeme
+    clientId: <client_id_in_oidc_provider>
+    clientSecret: <client_password_in_oidc_provider>
     claimIdentifyingUser: preferred_username
     ## Request additional scopes, for example profile
     additionalScopes:
