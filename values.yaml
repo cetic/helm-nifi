@@ -7,7 +7,7 @@ replicaCount: 1
 ##
 image:
   repository: apache/nifi
-  tag: "1.12.1"
+  tag: "1.14.0"
   pullPolicy: IfNotPresent
 
   ## Optionally specify an imagePullSecret.
@@ -69,13 +69,13 @@ sts:
 
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
+  sensitiveKey: 012345678910
   externalSecure: false
-  isNode: true # set to false if ldap is enabled
-  httpPort: 8080 # set to null if ldap is enabled
-  httpsPort: null # set to 9443 if ldap is enabled
-  webProxyHost:
+  isNode: flase
+  httpsPort: 9443 
+  webProxyHost: 
   clusterPort: 6007
-  clusterSecure: false # set to true if ldap is enabled
+  clusterSecure: true
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
@@ -115,10 +115,10 @@ auth:
 
   oidc:
     enabled: false
-    discoveryUrl:
-    clientId:
-    clientSecret:
-    claimIdentifyingUser: email
+    discoveryUrl: http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
+    clientId: <client_name_in_oidc_provider>
+    clientSecret: <client_secret_in_oidc_provider>
+    claimIdentifyingUser: preferred_username
     ## Request additional scopes, for example profile
     additionalScopes:
 
