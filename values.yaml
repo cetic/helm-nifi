@@ -114,7 +114,7 @@ auth:
     authExpiration: 12 hours
 
   oidc:
-    enabled: true
+    enabled: false
     discoveryUrl: http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
     clientId: <client_name_in_oidc_provider>
     clientSecret: <client_secret_in_oidc_provider>
