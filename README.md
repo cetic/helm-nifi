@@ -40,10 +40,7 @@ The following items can be set via `--set` flag during installation or configure
 
 #### Configure authentication
 
-- You first need a secure cluster which can be accomplished by enabling the built-in CA nifi-toolkit container (`ca.enabled` to true). By default, a secure nifi cluster uses certificate based authentication but you can optionally enable `ldap` or `oidc`. See the configuration section for more details.
-
-:warning: This feature is quite new. Please open an issue if you encounter a problem.
-It seems that versions from 0.6.1 include some bugs for authentications. Please use version 0.6.0 of the chart until it is fixed. 
+- You first need a secure cluster which can be accomplished by enabling the built-in nifi-toolkit container (`auth.secure.enabled` to true). By default, a secure nifi cluster uses certificate based authentication but you can optionally enable `ldap` or `oidc`. See the configuration section for more details.
 
 #### Use custom processors
 
@@ -139,6 +136,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
 | `properties.safetyValve`                                                    | Map of explicit 'property: value' pairs that overwrite other configuration                                         | `nil`                           |
 | `properties.customLibPath`                                                  | Path of the custom libraries folder                                                                                | `nil`                           |
+| `properties.webProxyHost`                               | Proxy to access to Nifi through the cluster ip address    | `Port:30236`
 | **nifi ldap authentication**                                                |
 | `auth.admin`                                                                | Default admin identity                                                                                             | ` CN=admin, OU=NIFI`            |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |

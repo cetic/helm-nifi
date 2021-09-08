@@ -69,11 +69,11 @@ sts:
 
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
-  sensitiveKey: 012345678910
+  sensitiveKey: changeMe # Must to have minnimal 12 length key
   externalSecure: false
   isNode: flase
   httpsPort: 9443 
-  webProxyHost: 
+  webProxyHost: <cluster_IP>:30236 # In minikube, we can get the ip with the command "minikube ip"
   clusterPort: 6007
   clusterSecure: true
   needClientAuth: false
@@ -99,14 +99,14 @@ properties:
 auth:
   admin: CN=admin, OU=NIFI
   SSL:
-    keystorePasswd: env:PASS
-    truststorePasswd: env:PASS
+    keystorePasswd: changeMe
+    truststorePasswd: changeMe
   ldap:
     enabled: false
     host: ldap://<hostname>:<port>
     searchBase: CN=Users,DC=example,DC=com
     admin: cn=admin,dc=example,dc=be
-    pass: password
+    pass: changeMe
     searchFilter: (objectClass=*)
     userIdentityAttribute: cn
     authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
@@ -114,7 +114,7 @@ auth:
     authExpiration: 12 hours
 
   oidc:
-    enabled: false
+    enabled: true
     discoveryUrl: http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
     clientId: <client_name_in_oidc_provider>
     clientSecret: <client_secret_in_oidc_provider>
