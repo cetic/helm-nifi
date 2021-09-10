@@ -36,5 +36,7 @@ jobs:
         run: helm install nifi .
       - name: Check deployment status
         run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Port forward nifi service
+        run: kubectl port-forward service/nifi 8080:8080 &
       - name: Check web application is available
-        run: curl $(minikube service nifi --url)
+        run: curl http://127.0.0.1:8080
