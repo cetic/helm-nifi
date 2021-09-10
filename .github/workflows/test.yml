@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+    
+jobs:
+  example:
+    name: Minikube installation - Basic test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'v1.20.2'
+          #github token: ${{ secrets.GITHUB_TOKEN }}          
+      #- run: minikube addons list
+      #- name: Interact with the cluster
+      #  run: kubectl get nodes
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add dysnix https://dysnix.github.io/charts/
+          helm repo update
+          helm dep up          
+      - name: Install Nifi
+        run: helm install nifi .
+      - name: Check deployment status
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Check web application is available
+        run: curl $(minikube service nifi --url)

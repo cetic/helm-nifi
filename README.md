@@ -1,6 +1,7 @@
 # Helm Chart for Apache NiFi
 
-[![CircleCI](https://circleci.com/gh/cetic/helm-nifi.svg?style=svg)](https://circleci.com/gh/cetic/helm-nifi/tree/master) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) ![version](https://img.shields.io/github/tag/cetic/helm-nifi.svg?label=release)
+[![CircleCI](https://circleci.com/gh/cetic/helm-nifi.svg?style=svg)](https://circleci.com/gh/cetic/helm-nifi/tree/master) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) ![version](https://img.shields.io/github/tag/cetic/helm-nifi.svg?label=release) ![test](https://github.com/cetic/helm-nifi/actions/workflows/test.yml/badge.svg)
+
 
 ## Introduction
 
@@ -84,7 +85,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add dysnix https://dysnix.github.io/charts/
 helm repo update
 helm dep up
-helm install --name nifi .
+helm install nifi .
 ```
 
 ## Uninstallation
@@ -115,9 +116,11 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `sts.useHostNetwork`                                                            | If true, use the host's network                                                                                    | `nil`                         |
 | `sts.serviceAccount.create`    | If true, a service account will be created and used by the statefulset | `false` |
 | `sts.serviceAccount.name`       | When set, the set name will be used as the service account name. If a value is not provided a name will be generated based on Chart options | `nil` |
+| `sts.serviceAccount.annotations`                                                       | Service account annotations                                                                                                | `{}`                            |
 | `sts.podManagementPolicy`                                                   | Parallel podManagementPolicy                                                                                       | `Parallel`                      |
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
 | `sts.pod.annotations`                                                       | Pod template annotations                                                                                           | `security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000`                          |
+| `sts.hostAliases    `                                                       | Add entries to Pod /etc/hosts                                                                                      | `[]`                            |
 | **secrets**
 | `secrets`                                                                   | Pass any secrets to the nifi pods. The secret can also be mounted to a specific path if required.                  | `nil`                           |
 | **configmaps**
@@ -184,10 +187,13 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **SideCar**                                                                 |
 | `sidecar.image`                                                             | Separate image for tailing each log separately and checking zookeeper connectivity                                 | `busybox`                       |
 | `sidecar.tag`                                                               | Image tag                                                                                                          | `1.32.0`                        |
+| `sidecar.imagePullPolicy`                                                   | Image imagePullPolicy                                                                                              | `IfNotPresent`                  |
 | **Resources**                                                               |
 | `resources`                                                                 | Pod resource requests and limits for logs                                                                          | `{}`                            |
 | **logResources**                                                            |
 | `logresources.`                                                             | Pod resource requests and limits                                                                                   | `{}`                            |
+| **affinity**                                                                |
+| `affinity`                                                                  | Pod affinity scheduling rules                                                                                      | `{}`                            |
 | **nodeSelector**                                                            |
 | `nodeSelector`                                                              | Node labels for pod assignment                                                                                     | `{}`                            |
 | **terminationGracePeriodSeconds**                                           |
@@ -232,6 +238,35 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `metrics.prometheus.port`              | Port where Nifi server will expose Prometheus metrics                                                                                  | `9092`                                                      |
 | `metrics.prometheus.serviceMonitor.enabled`       | If `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.prometheus.enabled` to be `true`)                       | `false`                                        |
 | `metrics.prometheus.serviceMonitor.labels`       | Additional labels for the ServiceMonitor                       | `nil`                                        |
+
+## Troubleshooting
+
+Before [filing a bug report](https://github.com/cetic/helm-nifi/issues/new/choose), you may want to:
+
+* check that [persistent storage](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) is configured on your cluster
+* keep in mind that a first installation may take a significant amount of time on a home internet connection
+* check if a pod is in error: 
+```bash
+kubectl get pod
+NAME                  READY   STATUS    RESTARTS   AGE
+myrelease-nifi-0             3/4     Failed   1          56m
+myrelease-nifi-registry-0    1/1     Running   0          56m
+myrelease-nifi-zookeeper-0   1/1     Running   0          56m
+myrelease-nifi-zookeeper-1   1/1     Running   0          56m
+myrelease-nifi-zookeeper-2   1/1     Running   0          56m
+```
+
+Inspect the pod, check the "Events" section at the end for anything suspicious.
+
+```bash
+kubectl describe pod myrelease-nifi-0
+```
+
+Get logs on a failed container inside the pod (here the `server` one):
+
+```bash
+kubectl logs myrelease-nifi-0 server
+```
 
 ## Credits
 

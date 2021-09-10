@@ -35,8 +35,12 @@ spec:
       hostNetwork: {{ .Values.sts.useHostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
+{{- if .Values.sts.hostAliases }}
+      hostAliases:
+{{ toYaml .Values.sts.hostAliases | indent 8 }}
+{{- end }}
       serviceAccountName: {{ include "apache-nifi.serviceAccountName" . }}
-      {{- if eq .Values.sts.AntiAffinity "hard"}}
+      {{- if eq .Values.sts.AntiAffinity "hard" }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -47,7 +51,7 @@ spec:
                     values:
                     - {{ include "apache-nifi.name" . | quote }}
               topologyKey: "kubernetes.io/hostname"
-      {{- else if eq .Values.sts.AntiAffinity "soft"}}
+      {{- else if eq .Values.sts.AntiAffinity "soft" }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -60,7 +64,11 @@ spec:
                         values:
                          - {{ include "apache-nifi.name" . | quote }}
                  topologyKey: "kubernetes.io/hostname"
-      {{- end}}
+      {{- end }}
+{{- if and .Values.affinity (and (ne .Values.sts.AntiAffinity "hard") (ne .Values.sts.AntiAffinity "soft")) }}
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+{{- end }}
 {{- if .Values.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
 {{- end }}
@@ -79,6 +87,7 @@ spec:
       initContainers:
 {{- if .Values.properties.isNode }}
       - name: zookeeper
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         command:
         - sh
@@ -176,7 +185,11 @@ spec:
           }
 
           mkdir -p ${NIFI_HOME}/config-data/conf
+{{- if .Values.sts.useHostNetwork }}
+          FQDN="0.0.0.0"
+{{- else }}
           FQDN=$(hostname -f)
+{{- end }}
 
           cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
 
@@ -205,6 +218,8 @@ spec:
           prop_replace nifi.security.truststoreType jks
           prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
           prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
+{{- end }}
+{{- end }}
 
 {{- if .Values.properties.webProxyHost }}
           # Update nifi.properties for web ui proxy hostname
@@ -213,14 +228,10 @@ spec:
           prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc
 {{- end }}
 
-
-{{- end }}
-
 {{- if .Values.properties.safetyValve }}
   {{- range $prop, $val := .Values.properties.safetyValve }}
           prop_replace {{ $prop }} "{{ $val }}" nifi.properties
   {{- end }}
-{{- end }}
 {{- end }}
 
 
@@ -249,6 +260,15 @@ spec:
               nnid=$(jq --arg FQDN "$FQDN" '.cluster.nodes[] | select(.address==$FQDN) | .nodeId' nodes.json)
               echo "disconnecting node ${nnid}"
               ${NIFI_TOOLKIT_HOME}/bin/cli.sh nifi disconnect-node -nnid $nnid -u ${baseUrl} ${secureArgs}
+              echo ""
+              echo "get a connected node"
+              connectedNode=$(jq -r 'first(.cluster.nodes|=sort_by(.address)| .cluster.nodes[] | select(.status=="CONNECTED")) | .address' nodes.json)
+              {{- if .Values.properties.clusterSecure }}
+              baseUrl=https://${connectedNode}:{{ .Values.properties.httpsPort }}
+              {{- else }}
+              baseUrl=http://${connectedNode}:{{ .Values.properties.httpPort }}
+              {{- end }}
+              echo baseUrl ${baseUrl}
               echo ""
               echo "wait until node has state 'DISCONNECTED'"
               while [[ "${node_state}" != "DISCONNECTED" ]]; do
@@ -446,6 +466,7 @@ spec:
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
       - name: app-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-app.log]
         resources:
@@ -454,6 +475,7 @@ spec:
         - name: logs
           mountPath: /var/log
       - name: bootstrap-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
         resources:
@@ -462,6 +484,7 @@ spec:
         - name: logs
           mountPath: /var/log
       - name: user-log
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
         args: [tail, -n+1, -F, /var/log/nifi-user.log]
         resources:
