@@ -39,4 +39,5 @@ jobs:
       - name: Check web application is available
         run: | 
           kubectl port-forward service/nifi 8080:8080 &
+          sleep 2
           curl http://127.0.0.1:8080
