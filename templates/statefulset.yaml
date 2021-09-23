@@ -238,6 +238,7 @@ spec:
           /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local' -C '{{.Values.auth.ldap.admin}}' -o '/opt/nifi/nifi-current/conf/' -P {{.Values.auth.SSL.truststorePasswd}}  -S {{.Values.auth.SSL.keystorePasswd}}  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           exec bin/nifi.sh run
           {{ end }}
+{{- end }}
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -264,6 +265,16 @@ spec:
         env:
         - name: NIFI_ZOOKEEPER_CONNECT_STRING
           value: {{ template "zookeeper.url" . }}
+{{- if not (or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled)) }}
+        - name: NIFI_WEB_PROXY_HOST
+          value: {{ .Values.properties.webProxyHost }}
+        - name: SINGLE_USER_CREDENTIALS_USERNAME
+          value: {{ .Values.auth.singleUser.username }}
+        - name: SINGLE_USER_CREDENTIALS_PASSWORD
+          value: {{ .Values.auth.singleUser.password }}
+        - name: NIFI_WEB_HTTPS_HOST
+          value: 0.0.0.0
+{{- end }}
 {{- if .Values.env }}
 {{ toYaml .Values.env | indent 8 }}
 {{- end }}
@@ -308,7 +319,7 @@ spec:
 #                 jq . $NIFI_BASE_DIR/data/cluster.state
 #                 exit 1
 #               fi
-# {{- end }}
+{{- end }}
         livenessProbe:
           initialDelaySeconds: 90
           periodSeconds: 60
@@ -319,6 +330,9 @@ spec:
             port: {{ .Values.properties.httpPort }}
 {{- end }}
         volumeMounts:
+          - name: "logs"
+            mountPath: /opt/nifi/nifi-current/logs
+{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}
           - name: "data"
             mountPath: /opt/nifi/data
           - name: "auth-conf"
@@ -333,8 +347,6 @@ spec:
             mountPath: /opt/nifi/content_repository
           - name: "provenance-repository"
             mountPath: /opt/nifi/provenance_repository
-          - name: "logs"
-            mountPath: /opt/nifi/nifi-current/logs
           - name: "bootstrap-conf"
             mountPath: /opt/nifi/nifi-current/conf/bootstrap.conf
             subPath: "bootstrap.conf"
@@ -397,6 +409,7 @@ spec:
           {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
+{{- end }}
       - name: app-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
@@ -425,6 +438,7 @@ spec:
         - name: logs
           mountPath: /var/log
       volumes:
+{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}
       - name: "bootstrap-conf"
         configMap:
           name: {{ template "apache-nifi.fullname" . }}-config
@@ -489,6 +503,7 @@ spec:
         configMap:
           name: {{ .name }}
       {{- end }}
+{{- end }}
 {{- if not .Values.persistence.enabled }}
       - name: config-data
         emptyDir: {}
@@ -504,12 +519,24 @@ spec:
         emptyDir: {}
       - name: logs
         emptyDir: {}
-{{- end }}
 {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 6 }}
 {{- end }}
 {{- if .Values.persistence.enabled }}
+{{- end }}
   volumeClaimTemplates:
+    - metadata:
+        name: logs
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logStorage.size }}
+{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}
 {{- if .Values.properties.clusterSecure }}
     - metadata:
         name: "config-data"
@@ -564,17 +591,6 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.provenanceRepoStorage.size }}
-    - metadata:
-        name: logs
-      spec:
-        accessModes:
-        {{- range .Values.persistence.accessModes }}
-          - {{ . | quote }}
-        {{- end }}
-        storageClassName: {{ .Values.persistence.storageClass | quote }}
-        resources:
-          requests:
-            storage: {{ .Values.persistence.logStorage.size }}
     - metadata:
         name: auth-conf
       spec:

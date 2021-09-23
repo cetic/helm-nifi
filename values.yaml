@@ -6,9 +6,9 @@ replicaCount: 1
 ## ref: https://hub.docker.com/r/apache/nifi/
 ##
 image:
-  repository: apache/nifi
+  repository: zakariah/nifi
   tag: "1.14.0"
-  pullPolicy: IfNotPresent
+  pullPolicy: "IfNotPresent"
 
   ## Optionally specify an imagePullSecret.
   ## Secret must be manually created in the namespace.
@@ -69,18 +69,17 @@ sts:
 
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
-  sensitiveKey: changeMe # Must to have minnimal 12 length key
+  sensitiveKey: changeMechangeMe # Must to have minnimal 12 length key
   externalSecure: false
   isNode: flase
-  httpsPort: 9443 
-  webProxyHost: <cluster_IP>:30236 # In minikube, we can get the ip with the command "minikube ip"
+  httpsPort: 8443 
+  webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
   clusterSecure: true
   needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
     port: 10000
-  authorizer: managed-authorizer
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
   safetyValve:
     #nifi.variable.registry.properties: "${NIFI_HOME}/example1.properties, ${NIFI_HOME}/example2.properties"
@@ -101,6 +100,11 @@ auth:
   SSL:
     keystorePasswd: changeMe
     truststorePasswd: changeMe
+  
+  singleUser:
+    username: username
+    password: changemechangeme # Must to have minnimal 12 characters
+
   ldap:
     enabled: false
     host: ldap://<hostname>:<port>
@@ -115,9 +119,9 @@ auth:
 
   oidc:
     enabled: false
-    discoveryUrl: http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
-    clientId: <client_name_in_oidc_provider>
-    clientSecret: <client_secret_in_oidc_provider>
+    discoveryUrl: #http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
+    clientId: #<client_name_in_oidc_provider>
+    clientSecret:  #<client_secret_in_oidc_provider>
     claimIdentifyingUser: preferred_username
     ## Request additional scopes, for example profile
     additionalScopes:
@@ -137,7 +141,8 @@ headless:
 service:
   type: ClusterIP
   httpPort: 8080
-  httpsPort: 9443
+  httpsPort: 8443
+  # nodePort: 30236
   annotations: {}
     # loadBalancerIP:
     ## Load Balancer sources
