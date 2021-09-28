@@ -39,6 +39,6 @@ jobs:
       - name: Check web application is available
         run: |
           sudo apt install socat 
-          kubectl port-forward service/nifi 8080:8080 &
+          kubectl port-forward service/nifi 8443:8443 &
           sleep 2
-          curl http://127.0.0.1:8080
+          curl https://127.0.0.1:8443
