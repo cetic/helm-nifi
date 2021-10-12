@@ -22,6 +22,9 @@ maintainers:
   - name: alexnuttinck
     email: alexandre.nuttinck@cetic.be
     url: https://github.com/alexnuttinck
+  - name: zakaria2905
+    email: zakaria.hajja@cetic.be
+    url: https://github.com/zakaria2905
 dependencies:
   - name: zookeeper
     version: 5.23.0

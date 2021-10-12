@@ -63,7 +63,7 @@ else use user-provided name and port
 {{- define "registry.url" }}
 {{- $port := .Values.registry.port | toString }}
 {{- if .Values.registry.enabled -}}
-{{- printf "http://nifi-registry:%s" $port }}
+{{- printf "http://%s-registry:%s" .Release.Name $port }}
 {{- else -}}
 {{- printf "http://%s:%s" .Values.registry.url $port }}
 {{- end -}}
