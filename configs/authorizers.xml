@@ -48,10 +48,12 @@
         <property name="Users File">./conf/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
         {{- range $i := until $replicas }}
-        <property name="Initial User Identity {{ $i }}">john</property>
+        <property name="Initial User Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
         {{- end }}
         {{- if .Values.auth.ldap.enabled}}
         <property name="Initial User Identity admin">{{.Values.auth.ldap.admin}}</property>
+        {{- else }}
+        <property name="Initial User Identity admin">{{ .Values.auth.admin }}</property>
         {{- end}}
     </userGroupProvider>
     <!--
@@ -223,13 +225,11 @@
         {{- if .Values.auth.ldap.enabled}}
         <property name="Initial Admin Identity">{{.Values.auth.ldap.admin}}</property>
         {{- else }}
-        <property name="Initial Admin Identity">{{ .Values.auth.oidc.initialUser }}</property>
+        <property name="Initial Admin Identity">{{ .Values.auth.admin }}</property>
         {{- end}}
         <property name="Legacy Authorized Users File"></property>
-        {{- if .Values.auth.ldap.enabled}}
         {{- range $i := until $replicas }}
         <property name="Node Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
-        {{- end }}
         {{- end }}
         <property name="Node Identity"></property>
     </accessPolicyProvider>

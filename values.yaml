@@ -6,7 +6,7 @@ replicaCount: 1
 ## ref: https://hub.docker.com/r/apache/nifi/
 ##
 image:
-  repository: zakariah/nifi
+  repository: apache/nifi
   tag: "1.14.0"
   pullPolicy: "IfNotPresent"
 
@@ -107,10 +107,10 @@ auth:
 
   ldap:
     enabled: false
-    host: ldap://<hostname>:<port>
-    searchBase: CN=Users,DC=example,DC=com
-    admin: cn=admin,dc=example,dc=be
-    pass: changeMe
+    host: #ldap://<hostname>:<port>
+    searchBase: #CN=Users,DC=example,DC=com
+    admin: #cn=admin,dc=example,dc=be
+    pass: #changeMe
     searchFilter: (objectClass=*)
     userIdentityAttribute: cn
     authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
@@ -121,11 +121,27 @@ auth:
     enabled: false
     discoveryUrl: #http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
     clientId: #<client_name_in_oidc_provider>
-    clientSecret:  #<client_secret_in_oidc_provider>
+    clientSecret: #<client_secret_in_oidc_provider>
     claimIdentifyingUser: preferred_username
     ## Request additional scopes, for example profile
     additionalScopes:
 
+openldap:
+  enabled: false
+  persistence:
+    enabled: true
+  env:
+    LDAP_ORGANISATION: # name of your organization e.g. "Company"
+    LDAP_DOMAIN: # your domain e.g. "ldap.company.com"
+    LDAP_BACKEND: "hdb"
+    LDAP_TLS: "true"
+    LDAP_TLS_ENFORCE: "false"
+    LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
+  adminPassword: ChangeMe
+  configPassword: ChangeMe
+  customLdifFiles:
+    1-default-users.ldif: |-
+      # You can find an example ldif file.
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
 ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
 ## ref: http://kubernetes.io/docs/user-guide/services/

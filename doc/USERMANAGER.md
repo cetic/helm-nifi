@@ -67,3 +67,19 @@ Then, you have to set a initial user to access Nifi for the first time. This use
 ````
 
 There are a lot of ID providers that can be used to perform an OIDC authentication. In our case, we have tested that with Keycloak. You will find an example of Keycloak config on this [page](https://github.com/cetic/helm-nifi/tree/feature/nifi_1.14.0/doc/KEYCLOAK.md).
+
+
+## 3. LDAP
+
+Like OIDC, LDAP (Lightweight Directory Access Protocol) provide an external authentication. If you have your own LDAP, you can use it. If not, set `openldap.enabled` to `true` in `values.yaml` file to deploy a local instance of OpenLDAP.
+
+To enable authentication through LDAP, set the values below in `values.yaml` file:
+
+````
+ldap:
+    enabled: true
+    host: ldap://<hostname>:<port>
+    searchBase: CN=Users,DC=example,DC=com
+    admin: cn=admin,dc=example,dc=be
+    pass: changeMe
+````

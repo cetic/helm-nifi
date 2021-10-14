@@ -7,8 +7,12 @@ Installation
 1. **Clone the repo**
 
 ```bash
-git clone -b feature/nifi_1.14.0 https://github.com/cetic/helm-nifi.git
+git clone https://github.com/cetic/helm-nifi.git
 cd helm-nifi
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add dysnix https://dysnix.github.io/charts/
+helm repo update
+helm dep up
 ```
 2. **Set a sensitiveKey**
 

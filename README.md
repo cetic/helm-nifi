@@ -75,15 +75,7 @@ helm install my-release cetic/nifi
 
 ### Install from local clone
 
-```bash
-git clone https://github.com/cetic/helm-nifi.git nifi
-cd nifi
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo add dysnix https://dysnix.github.io/charts/
-helm repo update
-helm dep up
-helm install nifi .
-```
+You will find how to perform an installation from a local clone on this [page](https://github.com/cetic/helm-nifi/tree/feature/nifi_1.14.0/doc/INSTALLATION.md)
 
 ## Uninstallation
 
