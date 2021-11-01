@@ -68,6 +68,30 @@ To enable the creation of prometheus metrics within Nifi we need to create a *Re
 
 If you plan to use Grafana for the visualization of the metrics data [the following dashboard](https://grafana.com/grafana/dashboards/12314) is compatible with the exposed metrics. 
 
+#### Configure nifi.sensitive.props.key
+
+As of [NiFi 1.14.0](https://issues.apache.org/jira/browse/NIFI-8230) the `nifi.sensitive.props.key` property must be defined.  The server container startup script will detect a `NIFI_SENSITIVE_PROPS_KEY` environment variable and update the `nifi.properties` file with the contents as a key.  Recommend setting that script by creating a secret along these lines:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nifi-sensitive-props-key
+type: Opaque
+data:
+  # $ echo "MinimumTwelveCharacterPassword" | base64
+  # TWluaW11bVR3ZWx2ZUNoYXJhY3RlclBhc3N3b3JkCg==
+  NIFI_SENSITIVE_PROPS_KEY: TWluaW11bVR3ZWx2ZUNoYXJhY3RlclBhc3N3b3JkCg==
+```
+
+...and including lines like this in your values yaml file:
+
+```yaml
+envFrom:
+  - secretRef:
+      name: nifi-sensitive-props-key
+```
+
 ### Install the chart
 
 Install the nifi helm chart with a release name `my-release`:
