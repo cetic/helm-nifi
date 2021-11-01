@@ -338,11 +338,11 @@ spec:
 {{- if .Values.env }}
 {{ toYaml .Values.env | indent 8 }}
 {{- end }}
-{{- if .Values.postStart }}
 {{- if .Values.envFrom }}
         envFrom:
 {{ toYaml .Values.envFrom | indent 8 }}
 {{- end }}
+{{- if .Values.postStart }}
         lifecycle:
           postStart:
             exec:
