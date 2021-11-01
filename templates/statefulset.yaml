@@ -206,6 +206,10 @@ spec:
             gzip /opt/nifi/data/flow.xml
           fi
 
+          if [ -n "${NIFI_SENSITIVE_PROPS_KEY}" ]; then
+            prop_replace nifi.sensitive.props.key ${NIFI_SENSITIVE_PROPS_KEY}
+          fi
+
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
