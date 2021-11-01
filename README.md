@@ -70,7 +70,9 @@ If you plan to use Grafana for the visualization of the metrics data [the follow
 
 #### Configure nifi.sensitive.props.key
 
-As of [NiFi 1.14.0](https://issues.apache.org/jira/browse/NIFI-8230) the `nifi.sensitive.props.key` property must be defined.  The server container startup script will detect a `NIFI_SENSITIVE_PROPS_KEY` environment variable and update the `nifi.properties` file with the contents as a key.  Recommend setting that script by creating a secret along these lines:
+As of [NiFi 1.14.0](https://issues.apache.org/jira/browse/NIFI-8230) the `nifi.sensitive.props.key` property must be defined.  The server container startup script will detect a `NIFI_SENSITIVE_PROPS_KEY` environment variable and update the `nifi.properties` file with the contents as a key.
+
+Recommend setting that environment variable by creating a secret:
 
 ```yaml
 apiVersion: v1
@@ -84,7 +86,7 @@ data:
   NIFI_SENSITIVE_PROPS_KEY: TWluaW11bVR3ZWx2ZUNoYXJhY3RlclBhc3N3b3JkCg==
 ```
 
-...and including lines like this in your values yaml file:
+...and including a stanza like this in your values yaml file:
 
 ```yaml
 envFrom:
