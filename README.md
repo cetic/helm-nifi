@@ -40,7 +40,7 @@ The following items can be set via `--set` flag during installation or configure
 
 #### Configure authentication
 
-- By default, the authentication is a `Single-User` authentication. You can optionally enable `ldap` or `oidc` to provide an external authentication. See the configuration section or `doc` folder for more details. 
+- By default, the authentication is a `Single-User` authentication. You can optionally enable `ldap` or `oidc` to provide an external authentication. See the [configuration section](README.md#configuration) or `doc` folder for more details. 
 
 #### Use custom processors
 
