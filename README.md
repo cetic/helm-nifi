@@ -40,7 +40,7 @@ The following items can be set via `--set` flag during installation or configure
 
 #### Configure authentication
 
-- By default, the authentication is a `Single-User` authentication. You can optionally enable `ldap` or `oidc` to provide an external authentication. See the [configuration section](README.md#configuration) or `doc` folder for more details. 
+- By default, the authentication is a `Single-User` authentication. You can optionally enable `ldap` or `oidc` to provide an external authentication. See the [configuration section](README.md#configuration) or [doc](doc/) folder for more details. 
 
 #### Use custom processors
 
@@ -75,7 +75,7 @@ helm install my-release cetic/nifi
 
 ### Install from local clone
 
-You will find how to perform an installation from a local clone on this [page](https://github.com/cetic/helm-nifi/tree/feature/nifi_1.14.0/doc/INSTALLATION.md).
+You will find how to perform an installation from a local clone on this [page](doc/INSTALLATION.md).
 
 ## Uninstallation
 
