@@ -5,7 +5,7 @@
 
 ## Introduction
 
-This [Helm](https://helm.sh/) chart installs [Apache NiFi](https://nifi.apache.org/) in a [Kubernetes](https://kubernetes.io/) cluster.
+This [Helm](https://helm.sh/) chart installs [Apache NiFi](https://nifi.apache.org/) 1.14.0 in a [Kubernetes](https://kubernetes.io/) cluster.
 
 ## Prerequisites
 
