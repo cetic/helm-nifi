@@ -1,22 +1,16 @@
 KeyCloak
 =============
 
+Example OIDC configuration with Keycloak provider
+
+## 0. Pull, extract and install the Keycloak helm chart
 ```
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 helm pull bitnami/keycloak
-tar -xzvf keycloak-5.0.7.tgz
+tar -xzvf keycloak-*.tgz
 cd keycloak/
-helm dep up
-* helm install my-release bitnami/keycloak
 ```
-\* configure an adminUser and adminPassword in `values.yaml` file before lanch the installation
-## 1. Configure keycloak
-
-<a href="https://www.keycloak.org/" alt="Keycloak"> <img src="images/logos/keycloak-logo.png" width="100px" alt="Keycloak logo"/></a>
-
-> "Keycloak is an open source Identity and Access Management solution aimed at modern applications and services. It makes it easy to secure applications and services with little to no code."
-
 Keycloak is first deployed with one admin user that we need to configure before deployment, to do so we need to pass the username/password in the `values.yaml` file like follows:
 
 ```
@@ -24,6 +18,18 @@ auth:
   adminUser: admin
   adminPassword: password
 ```
+Launching installation
+
+
+```
+helm dep up
+helm install my-release bitnami/keycloak
+```
+## 1. Configure keycloak
+
+<a href="https://www.keycloak.org/" alt="Keycloak"> <img src="images/logos/keycloak-logo.png" width="100px" alt="Keycloak logo"/></a>
+
+> "Keycloak is an open source Identity and Access Management solution aimed at modern applications and services. It makes it easy to secure applications and services with little to no code."
 
 Once deployed we can access the user interface and log in: 
 
