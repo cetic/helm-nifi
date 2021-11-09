@@ -75,8 +75,6 @@ properties:
   httpsPort: 8443 
   webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
-  clusterSecure: true
-  needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
     port: 10000
@@ -101,9 +99,10 @@ auth:
     keystorePasswd: changeMe
     truststorePasswd: changeMe
   
+  # Automaticaly disabled if OIDC or LDAP enabled 
   singleUser:
     username: username
-    password: changemechangeme # Must to have minnimal 12 characters
+    password: changemechangeme # Must to have at least 12 characters
 
   ldap:
     enabled: false
