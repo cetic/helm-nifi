@@ -140,7 +140,7 @@ openldap:
   configPassword: ChangeMe
   customLdifFiles:
     1-default-users.ldif: |-
-      # You can find an example ldif file.
+      # You can find an example ldif file at https://github.com/cetic/fadi/blob/master/examples/basic/example.ldif
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
 ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
 ## ref: http://kubernetes.io/docs/user-guide/services/
