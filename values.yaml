@@ -71,7 +71,7 @@ properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   sensitiveKey: changeMechangeMe # Must to have minnimal 12 length key
   externalSecure: false
-  isNode: flase
+  isNode: false
   httpsPort: 8443 
   webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
