@@ -107,9 +107,9 @@ auth:
   ldap:
     enabled: false
     host: #ldap://<hostname>:<port>
-    searchBase: #CN=Users,DC=example,DC=com
-    admin: #cn=admin,dc=example,dc=be
-    pass: #changeMe
+    searchBase: #CN=Users,DC=ldap,DC=example,DC=be
+    admin: #cn=admin,dc=ldap,dc=example,dc=be
+    pass: #ChangeMe
     searchFilter: (objectClass=*)
     userIdentityAttribute: cn
     authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
@@ -130,14 +130,14 @@ openldap:
   persistence:
     enabled: true
   env:
-    LDAP_ORGANISATION: # name of your organization e.g. "Company"
-    LDAP_DOMAIN: # your domain e.g. "ldap.company.com"
+    LDAP_ORGANISATION: # name of your organization e.g. "Example"
+    LDAP_DOMAIN: # your domain e.g. "ldap.example.be"
     LDAP_BACKEND: "hdb"
     LDAP_TLS: "true"
     LDAP_TLS_ENFORCE: "false"
     LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
-  adminPassword: ChangeMe
-  configPassword: ChangeMe
+  adminPassword: #ChengeMe
+  configPassword: #ChangeMe
   customLdifFiles:
     1-default-users.ldif: |-
       # You can find an example ldif file at https://github.com/cetic/fadi/blob/master/examples/basic/example.ldif
@@ -155,7 +155,6 @@ headless:
 # ui service
 service:
   type: ClusterIP
-  httpPort: 8080
   httpsPort: 8443
   # nodePort: 30236
   annotations: {}

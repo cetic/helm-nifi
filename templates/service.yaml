@@ -16,13 +16,8 @@ spec:
   type: {{ .Values.headless.type }}
   clusterIP: None
   ports:
-{{- if .Values.properties.clusterSecure }}
   - port: {{ .Values.properties.httpsPort }}
     name: https
-{{- else}}
-  - port: {{ .Values.properties.httpPort }}
-    name: http
-{{- end }}
   - port: {{ .Values.properties.clusterPort }}
     name: cluster
   selector:
@@ -63,16 +58,10 @@ spec:
   {{- end }}
   {{- end }}
   ports:
-{{- if .Values.properties.clusterSecure }}
     - port: {{ .Values.service.httpsPort }}
       name: https
       targetPort: {{ .Values.properties.httpsPort }}
       nodePort: {{ .Values.service.nodePort }}
-{{- else }}
-    - port: {{ .Values.service.httpPort }}
-      name: http
-      targetPort: {{ .Values.properties.httpPort }}
-{{- end }}
 {{- if .Values.service.processors.enabled }}
 {{- with .Values.service.processors.ports  }}
 {{- range . }}

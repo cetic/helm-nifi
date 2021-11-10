@@ -175,7 +175,6 @@ spec:
           function offloadNode() {
               FQDN=$(hostname -f)
               echo "disconnecting node '$FQDN'"
-              {{- if .Values.properties.clusterSecure }}
               baseUrl=https://${FQDN}:{{ .Values.properties.httpsPort }}
 
               keystore=${NIFI_HOME}/config-data/certs/keystore.jks
@@ -185,9 +184,6 @@ spec:
               truststorePasswd=$(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
 
               secureArgs=" --truststore ${truststore} --truststoreType JKS --truststorePasswd ${truststorePasswd} --keystore ${keystore} --keystoreType JKS --keystorePasswd ${keystorePasswd} --proxiedEntity "{{ .Values.auth.admin }}""
-              {{- else }}
-              baseUrl=http://${FQDN}:{{ .Values.properties.httpPort }}
-              {{- end }}
 
               echo baseUrl ${baseUrl}
               echo "gracefully disconnecting node '$FQDN' from cluster"
@@ -198,11 +194,7 @@ spec:
               echo ""
               echo "get a connected node"
               connectedNode=$(jq -r 'first(.cluster.nodes|=sort_by(.address)| .cluster.nodes[] | select(.status=="CONNECTED")) | .address' nodes.json)
-              {{- if .Values.properties.clusterSecure }}
               baseUrl=https://${connectedNode}:{{ .Values.properties.httpsPort }}
-              {{- else }}
-              baseUrl=http://${connectedNode}:{{ .Values.properties.httpPort }}
-              {{- end }}
               echo baseUrl ${baseUrl}
               echo ""
               echo "wait until node has state 'DISCONNECTED'"
@@ -250,18 +242,12 @@ spec:
           name: metrics
           protocol: TCP                  
 {{- end }}
-{{- if .Values.properties.httpsPort }}
         - containerPort: {{ .Values.properties.httpsPort }}
 {{- if .Values.sts.hostPort }}
           hostPort: {{ .Values.sts.hostPort }}
 {{- end }}
           name: https
           protocol: TCP
-{{- else }}
-        - containerPort: {{ .Values.properties.httpPort }}
-          name: http
-          protocol: TCP
-{{- end }}
         - containerPort: {{ .Values.properties.clusterPort }}
           name: cluster
           protocol: TCP
@@ -279,11 +265,11 @@ spec:
 {{- if .Values.env }}
 {{ toYaml .Values.env | indent 8 }}
 {{- end }}
-{{- if .Values.postStart }}
 {{- if .Values.envFrom }}
         envFrom:
 {{ toYaml .Values.envFrom | indent 8 }}
 {{- end }}
+{{- if .Values.postStart }}
         lifecycle:
           postStart:
             exec:
@@ -294,11 +280,7 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 20
           tcpSocket:
-{{- if .Values.properties.httpsPort }}
             port: {{ .Values.properties.httpsPort }}
-{{- else }}
-            port: {{ .Values.properties.httpPort }}
-{{- end }}
 #           exec:
 #             command:
 #             - bash
@@ -325,11 +307,7 @@ spec:
           initialDelaySeconds: 90
           periodSeconds: 60
           tcpSocket:
-{{- if .Values.properties.httpsPort }}
             port: {{ .Values.properties.httpsPort }}
-{{- else }}
-            port: {{ .Values.properties.httpPort }}
-{{- end }}
         volumeMounts:
           - name: "logs"
             mountPath: /opt/nifi/nifi-current/logs
@@ -338,10 +316,8 @@ spec:
             mountPath: /opt/nifi/data
           - name: "auth-conf"
             mountPath: /opt/nifi/nifi-current/auth-conf/
-{{- if .Values.properties.clusterSecure }}
           - name: "config-data"
             mountPath: /opt/nifi/nifi-current/config-data
-{{- end }}
           - name: "flowfile-repository"
             mountPath: /opt/nifi/flowfile_repository
           - name: "content-repository"
@@ -520,11 +496,11 @@ spec:
         emptyDir: {}
       - name: logs
         emptyDir: {}
+{{- end }}
 {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 6 }}
 {{- end }}
 {{- if .Values.persistence.enabled }}
-{{- end }}
   volumeClaimTemplates:
     - metadata:
         name: logs
@@ -537,8 +513,6 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.logStorage.size }}
-{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}
-{{- if .Values.properties.clusterSecure }}
     - metadata:
         name: "config-data"
       spec:
@@ -547,7 +521,6 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.configStorage.size }}
-{{- end }}
     - metadata:
         name: data
       spec:
@@ -603,5 +576,4 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.authconfStorage.size }}
-{{- end }}
 {{- end }}
