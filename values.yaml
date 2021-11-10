@@ -69,7 +69,7 @@ sts:
 
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
-  sensitiveKey: changeMechangeMe # Must to have minnimal 12 length key
+  sensitiveKey: changeMechangeMe # Must to have minimal 12 length key
   alogorithm: NIFI_PBKDF2_AES_GCM_256
   externalSecure: false
   isNode: false
