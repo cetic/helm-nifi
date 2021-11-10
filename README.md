@@ -5,7 +5,7 @@
 
 ## Introduction
 
-This [Helm](https://helm.sh/) chart installs [Apache NiFi](https://nifi.apache.org/) in a [Kubernetes](https://kubernetes.io/) cluster.
+This [Helm](https://helm.sh/) chart installs [Apache NiFi](https://nifi.apache.org/) 1.14.0 in a [Kubernetes](https://kubernetes.io/) cluster.
 
 ## Prerequisites
 
@@ -40,10 +40,7 @@ The following items can be set via `--set` flag during installation or configure
 
 #### Configure authentication
 
-- You first need a secure cluster which can be accomplished by enabling the built-in CA nifi-toolkit container (`ca.enabled` to true). By default, a secure nifi cluster uses certificate based authentication but you can optionally enable `ldap` or `oidc`. See the configuration section for more details.
-
-:warning: This feature is quite new. Please open an issue if you encounter a problem.
-It seems that versions from 0.6.1 include some bugs for authentications. Please use version 0.6.0 of the chart until it is fixed. 
+- By default, the authentication is a `Single-User` authentication. You can optionally enable `ldap` or `oidc` to provide an external authentication. See the [configuration section](README.md#configuration) or [doc](doc/) folder for more details. 
 
 #### Use custom processors
 
@@ -78,15 +75,7 @@ helm install my-release cetic/nifi
 
 ### Install from local clone
 
-```bash
-git clone https://github.com/cetic/helm-nifi.git nifi
-cd nifi
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo add dysnix https://dysnix.github.io/charts/
-helm repo update
-helm dep up
-helm install nifi .
-```
+You will find how to perform an installation from a local clone on this [page](doc/INSTALLATION.md).
 
 ## Uninstallation
 
@@ -106,7 +95,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `replicaCount`                                                              | Number of nifi nodes                                                                                               | `1`                             |
 | **Image**                                                                   |
 | `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
-| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.12.1`                        |
+| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.14.0`                        |
 | `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
 | `image.pullSecret`                                                          | nifi Image pull secret                                                                                             | `nil`                           |
 | **SecurityContext**                                                         |
@@ -131,20 +120,23 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.httpPort`                                                       | web properties HTTP port                                                                                           | `8080`                          |
 | `properties.httpsPort`                                                      | web properties HTTPS port                                                                                          | `null`                          |
 | `properties.clusterPort`                                                    | cluster node port                                                                                                  | `6007`                          |
-| `properties.clusterSecure`                                                  | cluster nodes secure mode                                                                                          | `false`                         |
-| `properties.needClientAuth`                                                 | nifi security client auth                                                                                          | `false`                         |
 | `properties.provenanceStorage`                                              | nifi provenance repository max storage size                                                                        | `8 GB`                          |
 | `properties.siteToSite.secure`                                              | Site to Site properties Secure mode                                                                                | `false`                         |
 | `properties.siteToSite.port`                                                | Site to Site properties Secure port                                                                                | `10000`                         |
-| `properties.siteToSite.authorizer`                                          |                                                                                                                    | `managed-authorizer`            |
 | `properties.safetyValve`                                                    | Map of explicit 'property: value' pairs that overwrite other configuration                                         | `nil`                           |
 | `properties.customLibPath`                                                  | Path of the custom libraries folder                                                                                | `nil`                           |
-| **nifi user authentication**                                                |
+| `properties.webProxyHost`                               | Proxy to access to Nifi through the cluster ip address    | `Port:30236`
+| **[Authentication](/doc/USERMANAGEMENT.md)**                                                |
+| **Single-user authentication**                                                | Automatically disabled if OIDC or LDAP enabled
+| `auth.singleUser.username`                                                                | Single user identity                                                                                             | `username`            |
+| `auth.singleUser.password`                                                         | Single user password                                                                                          | `changemechangeme`                         |
+| **Ldap authentication**                                                |
 | `auth.admin`                                                                | Default admin identity                                                                                             | ` CN=admin, OU=NIFI`            |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
 | `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
 | `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
 | `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
+| **Oidc authentication**
 | `auth.oidc.enabled`                                                         | Enable User auth via oidc                                                                                          | `false`                         |
 | `auth.oidc.discoveryUrl`                                                    | oidc discover url                                                                                                  | `https://<provider>/.well-known/openid-configuration`      |
 | `auth.oidc.clientId`                                                        | oidc clientId                                                                                                      | `nil`    |

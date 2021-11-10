@@ -102,62 +102,7 @@ spec:
             sleep 2
           done
 {{- end }}
-{{- if .Values.ca.enabled }}
-      - name: cert-request
-        imagePullPolicy: {{ .Values.ca.image.pullPolicy | quote }}
-        image: "{{ .Values.ca.image.repository }}:{{ .Values.ca.image.tag }}"
-        command:
-        - bash
-        - -c
-        - |
-          CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.service.port }}"
-          until echo "" | timeout -t 2 openssl s_client -connect "${CA_ADDRESS}"; do
-            # Checking if ca server using nifi-toolkit is up
-            echo "Waiting for CA to be available at ${CA_ADDRESS}"
-            sleep 2
-          done;
-          cd /data/config-data
-          rm -rf certs
-          mkdir certs
-          cd certs
 
-          # Generate certificate for server with webProxyHost or service name as alternate names to access nifi web ui
-          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
-            -c "{{ template "ca.server" . }}" \
-            -t {{ .Values.ca.token }} \
-{{- if .Values.properties.webProxyHost }}
-            --subjectAlternativeNames {{ .Values.properties.webProxyHost }}, $(hostname -f) \
-{{- else }}
-            --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
-{{- end }}
-            -D "CN=$(hostname -f), OU=NIFI" \
-            -p {{ .Values.ca.service.port }}
-
-          # Generate client certificate for browser with webProxyHost or service name as alternate names to access nifi web ui
-          mkdir -p /data/config-data/certs/admin
-          cd /data/config-data/certs/admin
-
-          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
-            -c "{{ template "ca.server" . }}" \
-            -t {{ .Values.ca.token }} \
-{{- if .Values.properties.webProxyHost }}
-            --subjectAlternativeNames {{ .Values.properties.webProxyHost }} \
-{{- else }}
-            --subjectAlternativeNames {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
-{{- end }}
-            -p {{ .Values.ca.service.port }} \
-            -D "CN={{ .Values.ca.admin.cn }}, OU=NIFI" \
-            -T PKCS12
-
-          export PASS=$(jq -r .keyStorePassword config.json)
-
-          openssl pkcs12 -in "keystore.pkcs12" -out "key.pem" -nocerts -nodes -password "env:PASS"
-          openssl pkcs12 -in "keystore.pkcs12" -out "crt.pem" -clcerts -nokeys -password "env:PASS"
-          openssl pkcs12 -in "keystore.pkcs12" -out "keystore.jks" -clcerts -nokeys -password "env:PASS"
-        volumeMounts:
-          - name: "config-data"
-            mountPath: /data/config-data
-{{- end }}
 {{- range $key, $value := .Values.initContainers }}
       - name: {{ $key }}
 {{ toYaml $value | indent 8 }}
@@ -173,6 +118,7 @@ spec:
       - name: server
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}        
         command:
         - bash
         - -ce
@@ -186,7 +132,6 @@ spec:
               echo ${1}=${2} >> ${target_file}
             fi
           }
-
           mkdir -p ${NIFI_HOME}/config-data/conf
 {{- if .Values.sts.useHostNetwork }}
           FQDN="0.0.0.0"
@@ -196,11 +141,11 @@ spec:
 
           cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
 
-          if [[ $(grep $(hostname) conf/authorizers.temp) ]]; then
+{{- if .Values.auth.ldap.enabled }}
             cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
-          else
+{{- else }}
             cat "${NIFI_HOME}/conf/authorizers.empty" > "${NIFI_HOME}/conf/authorizers.xml"
-          fi
+{{- end }}
 
           if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
             gzip /opt/nifi/data/flow.xml
@@ -210,19 +155,6 @@ spec:
           prop_replace nifi.cluster.node.address ${FQDN}
           prop_replace nifi.zookeeper.connect.string ${NIFI_ZOOKEEPER_CONNECT_STRING}
           prop_replace nifi.web.http.host ${FQDN}
-{{- if .Values.auth.oidc.enabled }}
-{{- if .Values.properties.clusterSecure }}
-          # Update nifi.properties for security properties
-          prop_replace nifi.web.https.host ${FQDN}
-          prop_replace nifi.security.keystoreType jks
-          prop_replace nifi.security.keystore   ${NIFI_HOME}/config-data/certs/keystore.jks
-          prop_replace nifi.security.keystorePasswd     $(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
-          prop_replace nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
-          prop_replace nifi.security.truststoreType jks
-          prop_replace nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
-          prop_replace nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
-{{- end }}
-{{- end }}
 
 {{- if .Values.properties.webProxyHost }}
           # Update nifi.properties for web ui proxy hostname
@@ -243,7 +175,6 @@ spec:
           function offloadNode() {
               FQDN=$(hostname -f)
               echo "disconnecting node '$FQDN'"
-              {{- if .Values.properties.clusterSecure }}
               baseUrl=https://${FQDN}:{{ .Values.properties.httpsPort }}
 
               keystore=${NIFI_HOME}/config-data/certs/keystore.jks
@@ -253,9 +184,6 @@ spec:
               truststorePasswd=$(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
 
               secureArgs=" --truststore ${truststore} --truststoreType JKS --truststorePasswd ${truststorePasswd} --keystore ${keystore} --keystoreType JKS --keystorePasswd ${keystorePasswd} --proxiedEntity "{{ .Values.auth.admin }}""
-              {{- else }}
-              baseUrl=http://${FQDN}:{{ .Values.properties.httpPort }}
-              {{- end }}
 
               echo baseUrl ${baseUrl}
               echo "gracefully disconnecting node '$FQDN' from cluster"
@@ -266,11 +194,7 @@ spec:
               echo ""
               echo "get a connected node"
               connectedNode=$(jq -r 'first(.cluster.nodes|=sort_by(.address)| .cluster.nodes[] | select(.status=="CONNECTED")) | .address' nodes.json)
-              {{- if .Values.properties.clusterSecure }}
               baseUrl=https://${connectedNode}:{{ .Values.properties.httpsPort }}
-              {{- else }}
-              baseUrl=http://${connectedNode}:{{ .Values.properties.httpPort }}
-              {{- end }}
               echo baseUrl ${baseUrl}
               echo ""
               echo "wait until node has state 'DISCONNECTED'"
@@ -305,10 +229,11 @@ spec:
 
           echo NiFi running with PID ${nifi_pid}.
           wait ${nifi_pid}
-          {{ if .Values.auth.ldap }}
+        {{- if .Values.auth.ldap.enabled }}
           /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local' -C '{{.Values.auth.ldap.admin}}' -o '/opt/nifi/nifi-current/conf/' -P {{.Values.auth.SSL.truststorePasswd}}  -S {{.Values.auth.SSL.keystorePasswd}}  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           exec bin/nifi.sh run
-          {{ end }}
+        {{- end }}
+{{- end }}
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -317,32 +242,34 @@ spec:
           name: metrics
           protocol: TCP                  
 {{- end }}
-{{- if .Values.properties.httpsPort }}
         - containerPort: {{ .Values.properties.httpsPort }}
 {{- if .Values.sts.hostPort }}
           hostPort: {{ .Values.sts.hostPort }}
 {{- end }}
           name: https
           protocol: TCP
-{{- else }}
-        - containerPort: {{ .Values.properties.httpPort }}
-          name: http
-          protocol: TCP
-{{- end }}
         - containerPort: {{ .Values.properties.clusterPort }}
           name: cluster
           protocol: TCP
         env:
         - name: NIFI_ZOOKEEPER_CONNECT_STRING
           value: {{ template "zookeeper.url" . }}
+{{- if not (or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled)) }}
+        - name: SINGLE_USER_CREDENTIALS_USERNAME
+          value: {{ .Values.auth.singleUser.username }}
+        - name: SINGLE_USER_CREDENTIALS_PASSWORD
+          value: {{ .Values.auth.singleUser.password }}
+        - name: NIFI_WEB_HTTPS_HOST
+          value: 0.0.0.0
+{{- end }}
 {{- if .Values.env }}
 {{ toYaml .Values.env | indent 8 }}
 {{- end }}
-{{- if .Values.postStart }}
 {{- if .Values.envFrom }}
         envFrom:
 {{ toYaml .Values.envFrom | indent 8 }}
 {{- end }}
+{{- if .Values.postStart }}
         lifecycle:
           postStart:
             exec:
@@ -353,11 +280,7 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 20
           tcpSocket:
-{{- if .Values.properties.httpsPort }}
             port: {{ .Values.properties.httpsPort }}
-{{- else }}
-            port: {{ .Values.properties.httpPort }}
-{{- end }}
 #           exec:
 #             command:
 #             - bash
@@ -379,33 +302,28 @@ spec:
 #                 jq . $NIFI_BASE_DIR/data/cluster.state
 #                 exit 1
 #               fi
-# {{- end }}
+{{- end }}
         livenessProbe:
           initialDelaySeconds: 90
           periodSeconds: 60
           tcpSocket:
-{{- if .Values.properties.httpsPort }}
             port: {{ .Values.properties.httpsPort }}
-{{- else }}
-            port: {{ .Values.properties.httpPort }}
-{{- end }}
         volumeMounts:
+          - name: "logs"
+            mountPath: /opt/nifi/nifi-current/logs
+{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}
           - name: "data"
             mountPath: /opt/nifi/data
           - name: "auth-conf"
             mountPath: /opt/nifi/nifi-current/auth-conf/
-{{- if .Values.properties.clusterSecure }}
           - name: "config-data"
             mountPath: /opt/nifi/nifi-current/config-data
-{{- end }}
           - name: "flowfile-repository"
             mountPath: /opt/nifi/flowfile_repository
           - name: "content-repository"
             mountPath: /opt/nifi/content_repository
           - name: "provenance-repository"
             mountPath: /opt/nifi/provenance_repository
-          - name: "logs"
-            mountPath: /opt/nifi/nifi-current/logs
           - name: "bootstrap-conf"
             mountPath: /opt/nifi/nifi-current/conf/bootstrap.conf
             subPath: "bootstrap.conf"
@@ -468,6 +386,7 @@ spec:
           {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
+{{- end }}
       - name: app-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
@@ -496,6 +415,7 @@ spec:
         - name: logs
           mountPath: /var/log
       volumes:
+{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}
       - name: "bootstrap-conf"
         configMap:
           name: {{ template "apache-nifi.fullname" . }}-config
@@ -560,6 +480,7 @@ spec:
         configMap:
           name: {{ .name }}
       {{- end }}
+{{- end }}
 {{- if not .Values.persistence.enabled }}
       - name: config-data
         emptyDir: {}
@@ -581,7 +502,17 @@ spec:
 {{- end }}
 {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
-{{- if .Values.properties.clusterSecure }}
+    - metadata:
+        name: logs
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logStorage.size }}
     - metadata:
         name: "config-data"
       spec:
@@ -590,7 +521,6 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.configStorage.size }}
-{{- end }}
     - metadata:
         name: data
       spec:
@@ -635,17 +565,6 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.provenanceRepoStorage.size }}
-    - metadata:
-        name: logs
-      spec:
-        accessModes:
-        {{- range .Values.persistence.accessModes }}
-          - {{ . | quote }}
-        {{- end }}
-        storageClassName: {{ .Values.persistence.storageClass | quote }}
-        resources:
-          requests:
-            storage: {{ .Values.persistence.logStorage.size }}
     - metadata:
         name: auth-conf
       spec:
