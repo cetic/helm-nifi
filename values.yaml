@@ -367,5 +367,6 @@ metrics:
     serviceMonitor:
       # Enable deployment of Prometheus Operator ServiceMonitor resource
       enabled: false
+      # namespace: monitoring
       # Additional labels for the ServiceMonitor
       labels: {}
