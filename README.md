@@ -231,6 +231,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `metrics.prometheus.enabled`            | Enable prometheus to access nifi metrics endpoint                                                                                    | `false`                                                      |
 | `metrics.prometheus.port`              | Port where Nifi server will expose Prometheus metrics                                                                                  | `9092`                                                      |
 | `metrics.prometheus.serviceMonitor.enabled`       | If `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.prometheus.enabled` to be `true`)                       | `false`                                        |
+| `metrics.prometheus.serviceMonitor.namespace`       | In which namespace the ServiceMonitor should be created                       | 
 | `metrics.prometheus.serviceMonitor.labels`       | Additional labels for the ServiceMonitor                       | `nil`                                        |
 
 ## Troubleshooting
