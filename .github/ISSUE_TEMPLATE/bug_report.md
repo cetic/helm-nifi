@@ -17,7 +17,7 @@ Be ready for followup questions, and please respond in a timely manner. If we ca
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**Version of Helm and Kubernetes**:
+**Version of Helm, Kubernetes and the Nifi chart**:
 
 
 **What happened**:
@@ -33,7 +33,7 @@ A clear and concise description of what the bug is.
 
 Here are some information that help troubleshooting:
 
-* if relevant, provide your `values.yaml` (after removing sensitive information)
+* if relevant, provide your `values.yaml` or the changes made to the default one (after removing sensitive information)
 * the output of the folowing commands:
 
 Check if a pod is in error: 
