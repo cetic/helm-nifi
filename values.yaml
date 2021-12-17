@@ -7,8 +7,8 @@ replicaCount: 1
 ##
 image:
   repository: apache/nifi
-  tag: "1.12.1"
-  pullPolicy: IfNotPresent
+  tag: "1.14.0"
+  pullPolicy: "IfNotPresent"
 
   ## Optionally specify an imagePullSecret.
   ## Secret must be manually created in the namespace.
@@ -69,18 +69,16 @@ sts:
 
 properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
+  sensitiveKey: changeMechangeMe # Must to have minimal 12 length key
+  algorithm: NIFI_PBKDF2_AES_GCM_256
   externalSecure: false
-  isNode: true # set to false if ldap is enabled
-  httpPort: 8080 # set to null if ldap is enabled
-  httpsPort: null # set to 9443 if ldap is enabled
-  webProxyHost:
+  isNode: false
+  httpsPort: 8443 
+  webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
-  clusterSecure: false # set to true if ldap is enabled
-  needClientAuth: false
   provenanceStorage: "8 GB"
   siteToSite:
     port: 10000
-  authorizer: managed-authorizer
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
   safetyValve:
     #nifi.variable.registry.properties: "${NIFI_HOME}/example1.properties, ${NIFI_HOME}/example2.properties"
@@ -99,14 +97,20 @@ properties:
 auth:
   admin: CN=admin, OU=NIFI
   SSL:
-    keystorePasswd: env:PASS
-    truststorePasswd: env:PASS
+    keystorePasswd: changeMe
+    truststorePasswd: changeMe
+  
+  # Automaticaly disabled if OIDC or LDAP enabled 
+  singleUser:
+    username: username
+    password: changemechangeme # Must to have at least 12 characters
+
   ldap:
     enabled: false
-    host: ldap://<hostname>:<port>
-    searchBase: CN=Users,DC=example,DC=com
-    admin: cn=admin,dc=example,dc=be
-    pass: password
+    host: #ldap://<hostname>:<port>
+    searchBase: #CN=Users,DC=ldap,DC=example,DC=be
+    admin: #cn=admin,dc=ldap,dc=example,dc=be
+    pass: #ChangeMe
     searchFilter: (objectClass=*)
     userIdentityAttribute: cn
     authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
@@ -115,13 +119,29 @@ auth:
 
   oidc:
     enabled: false
-    discoveryUrl:
-    clientId:
-    clientSecret:
-    claimIdentifyingUser: email
+    discoveryUrl: #http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
+    clientId: #<client_name_in_oidc_provider>
+    clientSecret: #<client_secret_in_oidc_provider>
+    claimIdentifyingUser: preferred_username
     ## Request additional scopes, for example profile
     additionalScopes:
 
+openldap:
+  enabled: false
+  persistence:
+    enabled: true
+  env:
+    LDAP_ORGANISATION: # name of your organization e.g. "Example"
+    LDAP_DOMAIN: # your domain e.g. "ldap.example.be"
+    LDAP_BACKEND: "hdb"
+    LDAP_TLS: "true"
+    LDAP_TLS_ENFORCE: "false"
+    LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
+  adminPassword: #ChengeMe
+  configPassword: #ChangeMe
+  customLdifFiles:
+    1-default-users.ldif: |-
+      # You can find an example ldif file at https://github.com/cetic/fadi/blob/master/examples/basic/example.ldif
 ## Expose the nifi service to be accessed from outside the cluster (LoadBalancer service).
 ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
 ## ref: http://kubernetes.io/docs/user-guide/services/
@@ -136,8 +156,8 @@ headless:
 # ui service
 service:
   type: ClusterIP
-  httpPort: 8080
-  httpsPort: 9443
+  httpsPort: 8443
+  # nodePort: 30236
   annotations: {}
     # loadBalancerIP:
     ## Load Balancer sources
@@ -347,5 +367,6 @@ metrics:
     serviceMonitor:
       # Enable deployment of Prometheus Operator ServiceMonitor resource
       enabled: false
+      # namespace: monitoring
       # Additional labels for the ServiceMonitor
       labels: {}

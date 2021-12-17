@@ -4,6 +4,9 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ template "apache-nifi.fullname" . }}
+{{- with .Values.metrics.prometheus.serviceMonitor.namespace }}
+  namespace: {{ . }}
+{{- end }}
   labels:
     app: {{ include "apache-nifi.name" . | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
