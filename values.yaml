@@ -7,7 +7,7 @@ replicaCount: 1
 ##
 image:
   repository: apache/nifi
-  tag: "1.14.0"
+  tag: "1.15.0"
   pullPolicy: "IfNotPresent"
 
   ## Optionally specify an imagePullSecret.
@@ -74,7 +74,7 @@ properties:
   externalSecure: false
   isNode: false
   httpsPort: 8443 
-  webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
+  webProxyHost: # If Nifi is behind a reverse proxy, set here the address you will enter in your browser
   clusterPort: 6007
   provenanceStorage: "8 GB"
   siteToSite:

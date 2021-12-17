@@ -255,12 +255,14 @@ spec:
         - name: NIFI_ZOOKEEPER_CONNECT_STRING
           value: {{ template "zookeeper.url" . }}
 {{- if not (or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled)) }}
+        - name: NIFI_WEB_PROXY_HOST
+          value: {{ .Values.properties.webProxyHost }}
         - name: SINGLE_USER_CREDENTIALS_USERNAME
           value: {{ .Values.auth.singleUser.username }}
         - name: SINGLE_USER_CREDENTIALS_PASSWORD
           value: {{ .Values.auth.singleUser.password }}
         - name: NIFI_WEB_HTTPS_HOST
-          value: 0.0.0.0
+          value: {{ .Values.properties.webHttpsHost }}
 {{- end }}
 {{- if .Values.env }}
 {{ toYaml .Values.env | indent 8 }}
