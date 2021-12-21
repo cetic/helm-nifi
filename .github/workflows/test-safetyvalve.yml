@@ -1,0 +1,45 @@
+name: Test-SafetyValve
+
+on:
+  push:
+    branches:
+    - patch/properties-no-ldap-oidc
+  pull_request:
+    branches:
+    - patch/properties-no-ldap-oidc
+    
+jobs:
+  test-safetyvalve:
+    name: Test NiFi Helm Chart SafetyValve Properties
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'v1.20.2'
+          #github token: ${{ secrets.GITHUB_TOKEN }}          
+      #- run: minikube addons list
+      #- name: Interact with the cluster
+      #  run: kubectl get nodes
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add dysnix https://dysnix.github.io/charts/
+          helm repo update
+          helm dep up          
+      - name: Install Nifi
+        run: helm install nifi . -f tests/01-safetyValve-values.yaml
+      - name: Check deployment status
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Check safetyValve content is correct
+        run: |
+          NPFP=$(kubectl exec pod/nifi-0 -c server -- ps auxww | \
+            awk 'BEGIN { RS = " " } /^-Dnifi.properties.file.path/ { split($0,a,"=",seps); printf("%s",a[2]) }')
+          kubectl exec pod/nifi-0 -c server -- cat $NPFP
+          kubectl exec pod/nifi-0 -c server -- cat $NPFP | \
+            grep 'nifi.content.claim.max.appendable.size=1 B'
