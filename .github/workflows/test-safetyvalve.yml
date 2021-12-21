@@ -1,0 +1,69 @@
+name: Test-SafetyValve
+
+on:
+  push:
+    branches:
+    - patch/properties-no-ldap-oidc
+  pull_request:
+    branches:
+    - patch/properties-no-ldap-oidc
+    
+jobs:
+  test-safetyvalve:
+    name: Test NiFi Helm Chart SafetyValve Properties
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'v1.20.2'
+          #github token: ${{ secrets.GITHUB_TOKEN }}          
+      #- run: minikube addons list
+      #- name: Interact with the cluster
+      #  run: kubectl get nodes
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add dysnix https://dysnix.github.io/charts/
+          helm repo update
+          helm dep up          
+      - name: Install Nifi
+        run: helm install nifi . -f tests/01-safetyValve-values.yaml
+      - name: Check deployment status
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Wait for NiFi web server to start
+        run: |
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            if kubectl logs pod/nifi-0 -c app-log | grep 'JettyServer NiFi has started'
+            then
+              exit 0
+            fi
+            sleep 30
+          done
+          echo NiFi did not start for 300 seconds!
+          exit 1
+      - name: Check that web application responds with expected content
+        run: |
+          kubectl exec pod/nifi-0 -c server -- curl -sk https://localhost:8443 | \
+            grep 'You may have mistyped'
+      - name: Check that singleUser login works
+        run: |
+          kubectl exec nifi-0 -c server -- curl -d username=username -d password=changemechangeme -sk https://localhost:8443/nifi-api/access/token | \
+            grep -v 'The supplied username and password are not valid.'
+      - name: Check that singleUser incorrect password fails
+        run: |
+          kubectl exec nifi-0 -c server -- curl -d username=username -d password=donotchangeme -sk https://localhost:8443/nifi-api/access/token | \
+            grep 'The supplied username and password are not valid.'
+      - name: Check safetyValve content is correct
+        run: |
+          NPFP=$(kubectl exec pod/nifi-0 -c server -- ps auxww | \
+            awk 'BEGIN { RS = " " } /^-Dnifi.properties.file.path/ { split($0,a,"=",seps); printf("%s",a[2]) }')
+          kubectl exec pod/nifi-0 -c server -- cat $NPFP
+          kubectl exec pod/nifi-0 -c server -- cat $NPFP | \
+            grep 'nifi.content.claim.max.appendable.size=1 B'

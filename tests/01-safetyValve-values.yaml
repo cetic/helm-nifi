@@ -1,0 +1,3 @@
+properties:
+  safetyValve:
+    nifi.content.claim.max.appendable.size: "1 B"

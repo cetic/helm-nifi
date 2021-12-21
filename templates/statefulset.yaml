@@ -118,7 +118,6 @@ spec:
       - name: server
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}        
         command:
         - bash
         - -ce
@@ -142,9 +141,10 @@ spec:
           cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
 
 {{- if .Values.auth.ldap.enabled }}
-            cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
-{{- else }}
-            cat "${NIFI_HOME}/conf/authorizers.empty" > "${NIFI_HOME}/conf/authorizers.xml"
+          cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
+          cat "${NIFI_HOME}/conf/login-identity-providers-ldap.xml" > "${NIFI_HOME}/conf/login-identity-providers.xml"
+{{- else if .Values.auth.singleUser.username }}
+          bin/nifi.sh set-single-user-credentials {{ .Values.auth.singleUser.username }} {{ .Values.auth.singleUser.password }}
 {{- end }}
 
           if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
@@ -168,7 +168,6 @@ spec:
           prop_replace {{ $prop }} "{{ $val }}" nifi.properties
   {{- end }}
 {{- end }}
-
 
           exec bin/nifi.sh run & nifi_pid="$!"
 
@@ -233,7 +232,6 @@ spec:
           /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local' -C '{{.Values.auth.ldap.admin}}' -o '/opt/nifi/nifi-current/conf/' -P {{.Values.auth.SSL.truststorePasswd}}  -S {{.Values.auth.SSL.keystorePasswd}}  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           exec bin/nifi.sh run
         {{- end }}
-{{- end }}
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -255,10 +253,6 @@ spec:
         - name: NIFI_ZOOKEEPER_CONNECT_STRING
           value: {{ template "zookeeper.url" . }}
 {{- if not (or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled)) }}
-        - name: SINGLE_USER_CREDENTIALS_USERNAME
-          value: {{ .Values.auth.singleUser.username }}
-        - name: SINGLE_USER_CREDENTIALS_PASSWORD
-          value: {{ .Values.auth.singleUser.password }}
         - name: NIFI_WEB_HTTPS_HOST
           value: 0.0.0.0
 {{- end }}
@@ -311,7 +305,6 @@ spec:
         volumeMounts:
           - name: "logs"
             mountPath: /opt/nifi/nifi-current/logs
-{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}
           - name: "data"
             mountPath: /opt/nifi/data
           - name: "auth-conf"
@@ -333,15 +326,12 @@ spec:
           - name: "authorizers-temp"
             mountPath: /opt/nifi/nifi-current/conf/authorizers.temp
             subPath: "authorizers.temp"
-          - name: "authorizers-empty"
-            mountPath: /opt/nifi/nifi-current/conf/authorizers.empty
-            subPath: "authorizers.empty"
           - name: "bootstrap-notification-services-xml"
             mountPath: /opt/nifi/nifi-current/conf/bootstrap-notification-services.xml
             subPath: "bootstrap-notification-services.xml"
-          - name: "login-identity-providers-xml"
-            mountPath: /opt/nifi/nifi-current/conf/login-identity-providers.xml
-            subPath: "login-identity-providers.xml"
+          - name: "login-identity-providers-ldap-xml"
+            mountPath: /opt/nifi/nifi-current/conf/login-identity-providers-ldap.xml
+            subPath: "login-identity-providers-ldap.xml"
           - name: "state-management-xml"
             mountPath: /opt/nifi/nifi-current/conf/state-management.xml
             subPath: "state-management.xml"
@@ -386,7 +376,6 @@ spec:
           {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
-{{- end }}
       - name: app-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
@@ -415,7 +404,6 @@ spec:
         - name: logs
           mountPath: /var/log
       volumes:
-{{- if or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled) }}
       - name: "bootstrap-conf"
         configMap:
           name: {{ template "apache-nifi.fullname" . }}-config
@@ -434,24 +422,18 @@ spec:
           items:
             - key: "authorizers.xml"
               path: "authorizers.temp"
-      - name: "authorizers-empty"
-        configMap:
-          name: {{ template "apache-nifi.fullname" . }}-config
-          items:
-            - key: "authorizers-empty.xml"
-              path: "authorizers.empty"
       - name: "bootstrap-notification-services-xml"
         configMap:
           name: {{ template "apache-nifi.fullname" . }}-config
           items:
             - key: "bootstrap-notification-services.xml"
               path: "bootstrap-notification-services.xml"
-      - name: "login-identity-providers-xml"
+      - name: "login-identity-providers-ldap-xml"
         configMap:
           name: {{ template "apache-nifi.fullname" . }}-config
           items:
-            - key: "login-identity-providers.xml"
-              path: "login-identity-providers.xml"
+            - key: "login-identity-providers-ldap.xml"
+              path: "login-identity-providers-ldap.xml"
       - name: "state-management-xml"
         configMap:
           name: {{ template "apache-nifi.fullname" . }}-config
@@ -480,7 +462,6 @@ spec:
         configMap:
           name: {{ .name }}
       {{- end }}
-{{- end }}
 {{- if not .Values.persistence.enabled }}
       - name: config-data
         emptyDir: {}
