@@ -1,8 +1,6 @@
-Cluster endpoint IP address will be available at:
-kubectl get svc {{ .Release.Name }} -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[*].ip}'
+To access the NiFi UI via kubectl port forwarding,
+wait until the cluster is ready and then run:
 
-Cluster endpoint domain name is: {{.Values.properties.webProxyHost}} - please update your DNS or /etc/hosts accordingly! 
+kubectl port-forward -n {{ .Release.Namespace}} svc/{{ .Release.Name }} {{ .Values.service.httpsPort }}:{{ .Values.service.httpsPort }}
 
-Once you are done, your NiFi instance will be available at:
-
-  {{ if .Values.properties.httpsPort }}https{{- else }}http{{ end }}://{{.Values.properties.webProxyHost}}/nifi
+...and point your web browser to https://localhost:{{ .Values.service.httpsPort }}/nifi/
