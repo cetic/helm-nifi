@@ -32,6 +32,18 @@ jobs:
         run: helm install nifi . -f tests/01-safetyValve-values.yaml
       - name: Check deployment status
         run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Wait for NiFi web server to start
+        run: |
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            if kubectl logs pod/nifi-0 -c app-log | grep 'JettyServer NiFi has started'
+            then
+              exit 0
+            fi
+            sleep 30
+          done
+          echo NiFi did not start for 300 seconds!
+          exit 1
       - name: Check safetyValve content is correct
         run: |
           NPFP=$(kubectl exec pod/nifi-0 -c server -- ps auxww | \
