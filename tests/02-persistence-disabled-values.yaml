@@ -1,0 +1,8 @@
+persistence:
+  enabled: false
+
+zookeeper:
+  enabled: false
+
+registry:
+  enabled: false
