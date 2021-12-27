@@ -1,0 +1,140 @@
+name: Test-Persistence
+
+on:
+  push:
+  pull_request:
+    
+jobs:
+  test-persistence:
+    name: Test NiFi Helm Chart Persistence
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'v1.20.2'
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y jq
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add dysnix https://dysnix.github.io/charts/
+          helm repo update
+          helm dep up
+      - name: Install Nifi
+        run: helm install nifi . -f tests/02-persistence-enabled-values.yaml
+      - name: Check deployment status
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Get First .processGroupFlow.uri
+        id: first-pgfuri
+        run: |
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            if NIFI_ACCESS_TOKEN=$(kubectl exec nifi-0 -c server -- curl -d username=username -d password=changemechangeme -sk https://localhost:8443/nifi-api/access/token)
+            then
+              PGFURI=$(kubectl exec nifi-0 -c server -- curl -H "Authorization: Bearer $NIFI_ACCESS_TOKEN" -sk https://localhost:8443/nifi-api/flow/process-groups/root | jq --raw-output .processGroupFlow.uri)
+              echo "::set-output name=PGFURI::$PGFURI"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo NiFi did not provide an access token for 300 seconds!
+          exit 1
+      - name: Delete chart
+        run: |
+          helm delete nifi
+          kubectl wait --for=delete pod/nifi-0 --timeout=120s
+      - name: Install NiFi
+        run: helm install nifi . -f tests/02-persistence-enabled-values.yaml
+      - name: Check deployment status
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Get Second .processGroupFlow.uri
+        id: second-pgfuri
+        run: |
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            if NIFI_ACCESS_TOKEN=$(kubectl exec nifi-0 -c server -- curl -d username=username -d password=changemechangeme -sk https://localhost:8443/nifi-api/access/token)
+            then
+              PGFURI=$(kubectl exec nifi-0 -c server -- curl -H "Authorization: Bearer $NIFI_ACCESS_TOKEN" -sk https://localhost:8443/nifi-api/flow/process-groups/root | jq --raw-output .processGroupFlow.uri)
+              echo "::set-output name=PGFURI::$PGFURI"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo NiFi did not provide an access token for 300 seconds!
+          exit 1
+      - name: Compare 2 x root processGroupFlow .processGroupFlow.uri
+        run: |
+          echo Should be the same if persistence is enabled
+          test ${{ steps.first-pgfuri.outputs.PGFURI }} = ${{ steps.second-pgfuri.outputs.PGFURI }}
+
+  test-non-persistence:
+    name: Test NiFi Helm Chart Non-Persistence
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'v1.20.2'
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y jq
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add dysnix https://dysnix.github.io/charts/
+          helm repo update
+          helm dep up
+      - name: Install Nifi
+        run: helm install nifi . -f tests/02-persistence-disabled-values.yaml
+      - name: Check deployment status
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Get First .processGroupFlow.uri
+        id: first-pgfuri
+        run: |
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            if NIFI_ACCESS_TOKEN=$(kubectl exec nifi-0 -c server -- curl -d username=username -d password=changemechangeme -sk https://localhost:8443/nifi-api/access/token)
+            then
+              PGFURI=$(kubectl exec nifi-0 -c server -- curl -H "Authorization: Bearer $NIFI_ACCESS_TOKEN" -sk https://localhost:8443/nifi-api/flow/process-groups/root | jq --raw-output .processGroupFlow.uri)
+              echo "::set-output name=PGFURI::$PGFURI"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo NiFi did not provide an access token for 300 seconds!
+          exit 1
+      - name: Delete chart
+        run: |
+          helm delete nifi
+          kubectl wait --for=delete pod/nifi-0 --timeout=120s
+      - name: Install NiFi
+        run: helm install nifi . -f tests/02-persistence-disabled-values.yaml
+      - name: Check deployment status
+        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+      - name: Get Second .processGroupFlow.uri
+        id: second-pgfuri
+        run: |
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            if NIFI_ACCESS_TOKEN=$(kubectl exec nifi-0 -c server -- curl -d username=username -d password=changemechangeme -sk https://localhost:8443/nifi-api/access/token)
+            then
+              PGFURI=$(kubectl exec nifi-0 -c server -- curl -H "Authorization: Bearer $NIFI_ACCESS_TOKEN" -sk https://localhost:8443/nifi-api/flow/process-groups/root | jq --raw-output .processGroupFlow.uri)
+              echo "::set-output name=PGFURI::$PGFURI"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo NiFi did not provide an access token for 300 seconds!
+          exit 1
+      - name: Compare 2 x root processGroupFlow .processGroupFlow.uri
+        run: |
+          echo Should not be the same if persistence is not enabled
+          test ${{ steps.first-pgfuri.outputs.PGFURI }} != ${{ steps.second-pgfuri.outputs.PGFURI }}
