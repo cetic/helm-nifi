@@ -2,9 +2,7 @@ name: Test-SafetyValve
 
 on:
   push:
-    branches:
   pull_request:
-    branches:
     
 jobs:
   test-safetyvalve:
