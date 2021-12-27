@@ -3,10 +3,8 @@ name: Test-SafetyValve
 on:
   push:
     branches:
-    - patch/properties-no-ldap-oidc
   pull_request:
     branches:
-    - patch/properties-no-ldap-oidc
     
 jobs:
   test-safetyvalve:
