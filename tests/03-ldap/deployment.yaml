@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openldap
+  labels:
+    app.kubernetes.io/name: openldap
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: openldap
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: openldap
+    spec:
+      containers:
+#        - name: netshoot
+#          image: docker.io/nicolaka/netshoot:latest
+#          imagePullPolicy: "Always"
+#          command: [ 'tail', '-f', '/dev/null' ]
+        - name: openldap
+          image: docker.io/bitnami/openldap:latest
+          imagePullPolicy: "Always"
+          env:
+            - name: LDAP_ADMIN_USERNAME
+              value: "admin"
+            - name: LDAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: adminpassword
+                  name: openldap
+            - name: LDAP_USERS
+              valueFrom:
+                secretKeyRef:
+                  key: users
+                  name: openldap
+            - name: LDAP_PASSWORDS
+              valueFrom:
+                secretKeyRef:
+                  key: passwords
+                  name: openldap
+          ports:
+            - name: tcp-ldap
+              containerPort: 1389

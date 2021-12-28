@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+  labels:
+    app.kubernetes.io/name: openldap
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-ldap
+      port: 389
+      targetPort: tcp-ldap
+  selector:
+    app.kubernetes.io/name: openldap

@@ -169,7 +169,23 @@ spec:
   {{- end }}
 {{- end }}
 
-          exec bin/nifi.sh run & nifi_pid="$!"
+          if [ ! -r "${NIFI_HOME}/conf/nifi-cert.pem" ]
+          then
+            /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone \
+              -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local' \
+              -C '{{.Values.auth.admin}}' \
+              -o "${NIFI_HOME}/conf/" \
+              -P {{.Values.auth.SSL.truststorePasswd}} \
+              -S {{.Values.auth.SSL.keystorePasswd}} \
+              --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
+          fi
+
+          for f in "${NIFI_HOME}/conf/authorizers.xml" "${NIFI_HOME}/conf/login-identity-providers.xml" ${NIFI_HOME}/conf/nifi.properties
+          do
+            echo === $f ===
+            cat $f
+          done
+          echo === end of files ===
 
           function offloadNode() {
               FQDN=$(hostname -f)
@@ -226,12 +242,10 @@ spec:
           trap 'echo Received trapped signal, beginning shutdown...;offloadNode;./bin/nifi.sh stop;deleteNode;exit 0;' TERM HUP INT;
           trap ":" EXIT
 
+          exec bin/nifi.sh run & nifi_pid="$!"
           echo NiFi running with PID ${nifi_pid}.
           wait ${nifi_pid}
-        {{- if .Values.auth.ldap.enabled }}
-          /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local' -C '{{.Values.auth.ldap.admin}}' -o '/opt/nifi/nifi-current/conf/' -P {{.Values.auth.SSL.truststorePasswd}}  -S {{.Values.auth.SSL.keystorePasswd}}  --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
-          exec bin/nifi.sh run
-        {{- end }}
+
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
