@@ -11,7 +11,7 @@ describe('NiFi Login via OIDC', () => {
           ignoreHTTPSErrors: true
         })
         page = await browser.newPage()
-    })
+    }).timeout(30000)
 
     it('NiFi redirects to KeyCloak login page', async () => {
         await Promise.all([
