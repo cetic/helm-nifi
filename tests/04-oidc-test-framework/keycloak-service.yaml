@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-keycloak
+      port: 8080
+      targetPort: tcp-keycloak
+  selector:
+    app.kubernetes.io/name: keycloak

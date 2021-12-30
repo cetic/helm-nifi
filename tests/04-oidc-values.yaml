@@ -1,0 +1,17 @@
+zookeeper:
+  enabled: false
+
+registry:
+  enabled: false
+
+auth:
+  oidc:
+    enabled: true
+    discoveryUrl: http://keycloak.default.svc.cluster.local:8080/auth/realms/nifi/.well-known/openid-configuration
+    clientId: nifi
+    clientSecret: CZhA1IOePlXHz3PWqVwYoVAcYIUHTcDK
+    admin: nifi@example.com
+    claimIdentifyingUser: email
+
+properties:
+  webProxyHost: nifi.default.svc.cluster.local:8443
