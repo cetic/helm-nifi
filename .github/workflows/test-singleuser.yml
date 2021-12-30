@@ -1,12 +1,12 @@
-name: Test-LDAP
+name: Test-SingleUser
 
 on:
   push:
   pull_request:
     
 jobs:
-  test-ldap:
-    name: Test NiFi Helm Chart LDAP
+  test-singleuser:
+    name: Test NiFi Helm Chart Single User
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,7 +30,7 @@ jobs:
           kubectl apply -f tests/03-ldap
           kubectl wait --for=condition=Ready pod --selector=app.kubernetes.io/name=openldap --timeout=5m
       - name: Install Nifi
-        run: helm install nifi . -f tests/03-ldap-values.yaml
+        run: helm install nifi .
       - name: Check deployment status
         run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
       - name: Wait for NiFi web server to start
@@ -45,12 +45,12 @@ jobs:
           done
           echo NiFi did not start for 300 seconds!
           exit 1
-      - name: Check that LDAP login works
+      - name: Check that singleUser login works
         run: |
-          kubectl exec nifi-0 -c server -- curl -d username=user1 -d password=password1 -sk https://localhost:8443/nifi-api/access/token | \
+          kubectl exec nifi-0 -c server -- curl -d username=username -d password=changemechangeme -sk https://localhost:8443/nifi-api/access/token | \
             grep -v 'The supplied username and password are not valid.'
-      - name: Check that LDAP incorrect password fails
+      - name: Check that singleUser incorrect password fails
         run: |
-          kubectl exec nifi-0 -c server -- curl -d username=user1 -d password=password2 -sk https://localhost:8443/nifi-api/access/token | \
+          kubectl exec nifi-0 -c server -- curl -d username=username -d password=donotchangeme -sk https://localhost:8443/nifi-api/access/token | \
             grep 'The supplied username and password are not valid.'
  

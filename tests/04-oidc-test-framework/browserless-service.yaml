@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: browserless
+  labels:
+    app.kubernetes.io/name: browserless
+spec:
+  type: NodePort
+  ports:
+    - name: tcp-browserless
+      port: 3000
+      targetPort: tcp-browserless
+  selector:
+    app.kubernetes.io/name: browserless
