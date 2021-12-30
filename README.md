@@ -139,9 +139,10 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **Oidc authentication**
 | `auth.oidc.enabled`                                                         | Enable User auth via oidc                                                                                          | `false`                         |
 | `auth.oidc.discoveryUrl`                                                    | oidc discover url                                                                                                  | `https://<provider>/.well-known/openid-configuration`      |
-| `auth.oidc.clientId`                                                        | oidc clientId                                                                                                      | `nil`    |
-| `auth.oidc.clientSecret`                                                    | oidc clientSecret                                                                                                  | `nil`                       |
-| `auth.oidc.claimIdentifyingUser`                                            | oidc claimIdentifyingUser                                                                                          | `email`                        |
+| `auth.oidc.clientId`                                                        | oidc clientId                                                                                                      | `nil`                           |
+| `auth.oidc.clientSecret`                                                    | oidc clientSecret                                                                                                  | `nil`                           |
+| `auth.oidc.claimIdentifyingUser`                                            | oidc claimIdentifyingUser                                                                                          | `email`                         |
+| `auth.oidc.admin`                                                           | Default OIDC admin identity                                                                                        | `nifi@example.com`              |
 | **postStart**                                                               |
 | `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
 | **Headless Service**                                                        |

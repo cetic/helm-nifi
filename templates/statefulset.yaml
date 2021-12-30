@@ -143,6 +143,16 @@ spec:
 {{- if .Values.auth.ldap.enabled }}
           cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
           cat "${NIFI_HOME}/conf/login-identity-providers-ldap.xml" > "${NIFI_HOME}/conf/login-identity-providers.xml"
+{{- else if .Values.auth.oidc.enabled }}
+          prop_replace nifi.security.user.login.identity.provider ''
+          prop_replace nifi.security.user.authorizer managed-authorizer
+          prop_replace nifi.security.user.oidc.discovery.url {{ .Values.auth.oidc.discoveryUrl }}
+          prop_replace nifi.security.user.oidc.client.id {{ .Values.auth.oidc.clientId }}
+          prop_replace nifi.security.user.oidc.client.secret {{ .Values.auth.oidc.clientSecret }}
+          prop_replace nifi.security.user.oidc.claim.identifying.user {{ .Values.auth.oidc.claimIdentifyingUser }}
+          xmlstarlet ed --inplace --delete "//authorizers/authorizer[identifier='single-user-authorizer']" "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace --update "//authorizers/userGroupProvider/property[@name='Initial User Identity 1']" -v {{ .Values.auth.oidc.admin }} "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace --update "//authorizers/accessPolicyProvider/property[@name='Initial Admin Identity']" -v {{ .Values.auth.oidc.admin }} "${NIFI_HOME}/conf/authorizers.xml"
 {{- else if .Values.auth.singleUser.username }}
           bin/nifi.sh set-single-user-credentials {{ .Values.auth.singleUser.username }} {{ .Values.auth.singleUser.password }}
 {{- end }}
@@ -163,12 +173,6 @@ spec:
           prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc
 {{- end }}
 
-{{- if .Values.properties.safetyValve }}
-  {{- range $prop, $val := .Values.properties.safetyValve }}
-          prop_replace {{ $prop }} "{{ $val }}" nifi.properties
-  {{- end }}
-{{- end }}
-
           if [ ! -r "${NIFI_HOME}/conf/nifi-cert.pem" ]
           then
             /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone \
@@ -179,6 +183,12 @@ spec:
               -S {{.Values.auth.SSL.keystorePasswd}} \
               --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           fi
+
+{{- if .Values.properties.safetyValve }}
+  {{- range $prop, $val := .Values.properties.safetyValve }}
+          prop_replace {{ $prop }} "{{ $val }}" nifi.properties
+  {{- end }}
+{{- end }}
 
           for f in "${NIFI_HOME}/conf/authorizers.xml" "${NIFI_HOME}/conf/login-identity-providers.xml" ${NIFI_HOME}/conf/nifi.properties
           do

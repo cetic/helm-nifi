@@ -122,7 +122,8 @@ auth:
     discoveryUrl: #http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
     clientId: #<client_name_in_oidc_provider>
     clientSecret: #<client_secret_in_oidc_provider>
-    claimIdentifyingUser: preferred_username
+    claimIdentifyingUser: email
+    admin: nifi@example.com
     ## Request additional scopes, for example profile
     additionalScopes:
 
