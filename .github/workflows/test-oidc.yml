@@ -1,12 +1,12 @@
-name: Test-LDAP
+name: Test-OIDC
 
 on:
   push:
   pull_request:
     
 jobs:
-  test-ldap:
-    name: Test NiFi Helm Chart LDAP
+  test-oidc:
+    name: Test NiFi Helm Chart OIDC
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,12 +25,16 @@ jobs:
           helm repo add dysnix https://dysnix.github.io/charts/
           helm repo update
           helm dep up
-      - name: Install openldap
+      - name: Install test framework components
         run: |
-          kubectl apply -f tests/03-ldap
-          kubectl wait --for=condition=Ready pod --selector=app.kubernetes.io/name=openldap --timeout=5m
+          kubectl apply -f tests/04-oidc-test-framework
+          kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js 
+          kubectl wait --for=condition=Ready pod/browserless-0 --timeout=5m
+          kubectl wait --for=condition=Ready pod/keycloak-0 --timeout=5m
+          kubectl wait --for=condition=Ready pod/socks5-0 --timeout=5m
+          tests/04-oidc-keycloak-setup.bash
       - name: Install Nifi
-        run: helm install nifi . -f tests/03-ldap-values.yaml
+        run: helm install nifi . -f tests/04-oidc-values.yaml
       - name: Check deployment status
         run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
       - name: Wait for NiFi web server to start
@@ -45,12 +49,11 @@ jobs:
           done
           echo NiFi did not start for 300 seconds!
           exit 1
-      - name: Check that LDAP login works
+      - name: Check that OIDC login works
         run: |
-          kubectl exec nifi-0 -c server -- curl -d username=user1 -d password=password1 -sk https://localhost:8443/nifi-api/access/token | \
-            grep -v 'The supplied username and password are not valid.'
-      - name: Check that LDAP incorrect password fails
-        run: |
-          kubectl exec nifi-0 -c server -- curl -d username=user1 -d password=password2 -sk https://localhost:8443/nifi-api/access/token | \
-            grep 'The supplied username and password are not valid.'
- 
+          kubectl apply -f tests/04-oidc-mocha-job.yaml
+          while ! kubectl logs -f job/oidc-mocha
+          do
+            sleep 5
+          done
+          kubectl get job/oidc-mocha -o json | jq -e -r '.status.succeeded == 1'
