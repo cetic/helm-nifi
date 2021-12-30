@@ -16,7 +16,7 @@ spec:
           yarn add puppeteer-core
           yarn add chai
           yarn add mocha
-          node_modules/mocha/bin/mocha /tests/04-oidc-login-test.js
+          node_modules/mocha/bin/mocha /tests/04-oidc-login-test.js --timeout 30000
         volumeMounts:
         - name: tests
           mountPath: /tests
