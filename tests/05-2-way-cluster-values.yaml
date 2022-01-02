@@ -1,0 +1,10 @@
+zookeeper:
+  enabled: true
+
+properties:
+  isNode: true
+
+replicaCount: 2
+
+registry:
+  enabled: false
