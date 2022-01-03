@@ -8,3 +8,6 @@ replicaCount: 2
 
 registry:
   enabled: false
+
+certManager:
+  enabled: true

@@ -18,13 +18,36 @@ spec:
       release: {{ .Release.Name }}
   template:
     metadata:
-{{- if .Values.sts.pod.annotations }}
       annotations:
+{{- if .Values.sts.pod.annotations }}
 {{ toYaml .Values.sts.pod.annotations | indent 8 }}
 {{- else }}
-      annotations:
         security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
 {{- end }}
+{{- if .Values.certManager.enabled }}
+        spoditor.io/mount-volume: |
+          {
+            "volumes": [
+              {
+                "name": "tls-volume",
+                "secret": {
+                  "secretName": "{{ .Release.Name }}"
+                }
+              }
+            ],
+            "containers": [
+              {
+                "name": "server",
+                "volumeMounts": [
+                  {
+                    "name": "tls-volume",
+                    "mountPath": "/opt/nifi/nifi-current/tls-certs"
+                  }
+                ]
+              }
+            ]
+          }
+{{- /* if .Values.certManager.enabled */}}{{ end }}
       labels:
         app: {{ include "apache-nifi.name" . | quote }}
         chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
@@ -102,7 +125,6 @@ spec:
             sleep 2
           done
 {{- end }}
-
 {{- range $key, $value := .Values.initContainers }}
       - name: {{ $key }}
 {{ toYaml $value | indent 8 }}

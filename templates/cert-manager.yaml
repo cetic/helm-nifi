@@ -1,0 +1,44 @@
+---
+{{ if .Values.certManager.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-ca
+  namespace: {{ .Release.Namespace }}
+spec:
+  isCA: true
+  commonName: {{ .Release.Name }}-ca
+  secretName: {{ .Release.Name }}-root-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: {{ .Values.certManager.caIssuer }}
+    kind: {{ .Values.certManager.caIssuerKind }}
+    group: {{ .Values.certManager.caIssuerGroup }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ .Release.Name }}-ca-issuer
+  namespace: {{ .Release.Namespace }}
+spec:
+  ca:
+    secretName: {{ .Release.Name }}-root-secret
+---
+{{ range untilStep 0 (int .Values.replicaCount) 1 }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $.Release.Name }}-{{ . }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  secretName: {{ $.Release.Name }}-{{ . }}
+  dnsNames:
+    - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  issuerRef:
+    name: {{ $.Release.Name }}-ca-issuer
+    kind: Issuer
+---
+{{ end }} # range untilStep 0 (int .Values.replicaCount ) 1 
+{{ end }} # if .Values.certManager.enabled
