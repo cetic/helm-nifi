@@ -24,30 +24,6 @@ spec:
 {{- else }}
         security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
 {{- end }}
-{{- if .Values.certManager.enabled }}
-        spoditor.io/mount-volume: |
-          {
-            "volumes": [
-              {
-                "name": "tls-volume",
-                "secret": {
-                  "secretName": "{{ .Release.Name }}"
-                }
-              }
-            ],
-            "containers": [
-              {
-                "name": "server",
-                "volumeMounts": [
-                  {
-                    "name": "tls-volume",
-                    "mountPath": "/opt/nifi/nifi-current/tls-certs"
-                  }
-                ]
-              }
-            ]
-          }
-{{- /* if .Values.certManager.enabled */}}{{ end }}
       labels:
         app: {{ include "apache-nifi.name" . | quote }}
         chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
@@ -195,6 +171,30 @@ spec:
           prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc
 {{- end }}
 
+{{- if .Values.certManager.enabled }}
+
+          prop_replace nifi.security.keystore "${NIFI_HOME}/tls/keystore.jks"
+          prop_replace nifi.security.keystoreType JKS
+          prop_replace nifi.security.keystorePasswd "{{ .Values.certManager.keystorePasswd }}"
+          prop_replace nifi.security.truststore "${NIFI_HOME}/tls/truststore.jks"
+          prop_replace nifi.security.truststoreType JKS
+          prop_replace nifi.security.truststorePasswd "{{ .Values.certManager.truststorePasswd }}"
+
+          while [ ! -r "${NIFI_HOME}/tls/keystore.jks" ]
+          do
+            echo "${NIFI_HOME}/tls/keystore.jks" is not readable!  Waiting for cert-manager sidecar to populate it.
+            sleep 2
+          done
+
+          while [ ! -r "${NIFI_HOME}/tls/truststore.jks" ]
+          do
+            echo "${NIFI_HOME}/tls/truststore.jks" is not readable!  Waiting for cert-manager sidecar to populate it.
+            sleep 2
+          done
+{{- /* if .Values.certManager.enabled */}}{{ else }}
+
+          cp /opt/nifi/nifi-current/conf/nifi.properties /tmp/nifi.properties
+
           if [ ! -r "${NIFI_HOME}/conf/nifi-cert.pem" ]
           then
             /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone \
@@ -205,6 +205,11 @@ spec:
               -S {{.Values.auth.SSL.keystorePasswd}} \
               --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           fi
+
+          echo TLS-TOOLKIT DIFFS BEGIN
+          diff -c /tmp/nifi.properties /opt/nifi/nifi-current/conf/nifi.properties
+          echo TLS-TOOLKIT DIFFS END
+{{- /* if .Values.certManager.enabled */}}{{ end }}
 
 {{- if .Values.properties.safetyValve }}
   {{- range $prop, $val := .Values.properties.safetyValve }}
@@ -419,6 +424,11 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+{{- if .Values.certManager.enabled }}
+          - name: "tls"
+            mountPath: /opt/nifi/nifi-current/tls
+            readOnly: true
+{{- /* if .Values.certManager.enabled */}}{{ end }}
           {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
@@ -449,6 +459,107 @@ spec:
         volumeMounts:
         - name: logs
           mountPath: /var/log
+{{- if .Values.certManager.enabled }}
+      - name: cert-manager
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command:
+        - bash
+        - -ce
+        - |
+          NODENAME=$(hostname)
+          mkdir -p "${NIFI_HOME}"/tls/cert-manager
+
+          while :
+          do
+            curl --silent --cacert /run/secrets/kubernetes.io/secret-reader-token/ca.crt \
+                 -H "Authorization: Bearer $(cat /run/secrets/kubernetes.io/secret-reader-token/token)" \
+                 https://kubernetes/api/v1/namespaces/$(cat /run/secrets/kubernetes.io/secret-reader-token/namespace)/secrets/$(hostname) | \
+              jq .data > /tmp/secret-data.json
+  
+            jq -r '."tls.crt"' < /tmp/secret-data.json | base64 -d > /tmp/tls.crt
+            jq -r '."tls.key"' < /tmp/secret-data.json | base64 -d > /tmp/tls.key
+  
+            openssl pkcs12 -export -in      "/tmp/tls.crt" \
+                                   -inkey   "/tmp/tls.key" \
+                                   -name    "${NODENAME}" \
+                                   -out     "/tmp/tls.p12" \
+                                   -passout "pass:{{ .Values.certManager.keystorePasswd }}"
+            keytool -importkeystore \
+                    -noprompt \
+                    -destkeystore "${NIFI_HOME}/tls/keystore-new.jks" \
+                    -srckeystore "/tmp/tls.p12" \
+                    -srcstoretype PKCS12 \
+                    -srcstorepass "{{ .Values.certManager.keystorePasswd }}" \
+                    -deststorepass "{{ .Values.certManager.keystorePasswd }}"
+            keytool -list -keystore "${NIFI_HOME}/tls/keystore-new.jks" \
+                          -storepass "{{ .Values.certManager.keystorePasswd }}"
+            mv  "${NIFI_HOME}/tls/keystore-new.jks" "${NIFI_HOME}/tls/keystore.jks"
+  
+            # Note opportunity here to inject additional trusted certs named ca.crt in other
+            # subdirectories of /opt/nifi/nifi-current/tls/, using custom secrets and/or configmaps
+
+            jq -r '."ca.crt"' < /tmp/secret-data.json | base64 -d > "${NIFI_HOME}"/tls/cert-manager/ca.crt
+
+            for ca in "${NIFI_HOME}"/tls/*/ca.crt
+            do
+              ALIAS=$(echo $ca | awk -F "/" '{print $(NF-1) }' -)
+              keytool -import \
+                      -noprompt \
+                      -trustcacerts \
+                      -alias $ALIAS \
+                      -file $ca \
+                      -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
+                      -storepass "{{ .Values.certManager.truststorePasswd }}"
+            done
+            keytool -list -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
+                          -storepass "{{ .Values.certManager.truststorePasswd }}"
+            mv "${NIFI_HOME}/tls/truststore-new.jks" "${NIFI_HOME}/tls/truststore.jks"
+  
+            echo Starting to sleep for {{ .Values.certManager.refreshSeconds }} seconds at $(date)
+            sleep {{ .Values.certManager.refreshSeconds }}
+          done
+        volumeMounts:
+          - name: "tls"
+            mountPath: /opt/nifi/nifi-current/tls
+          - name: secret-reader-token
+            mountPath: /run/secrets/kubernetes.io/secret-reader-token
+          {{- range $secret := .Values.secrets }}
+            {{- if $secret.mountPath }}
+              {{- if $secret.keys }}
+                {{- range $key := $secret.keys }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $secret.name }}
+            mountPath: {{ $secret.mountPath }}/{{ $key }}
+            subPath: {{ $key }}
+            readOnly: true
+                {{- end }}
+              {{- else }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $secret.name }}
+            mountPath: {{ $secret.mountPath }}
+            readOnly: true
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- range $configmap := .Values.configmaps }}
+            {{- if $configmap.mountPath }}
+              {{- if $configmap.keys }}
+                {{- range $key := $configmap.keys }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $configmap.name }}
+            mountPath: {{ $configmap.mountPath }}/{{ $key }}
+            subPath: {{ $key }}
+            readOnly: true
+                {{- end }}
+              {{- else }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $configmap.name }}
+            mountPath: {{ $configmap.mountPath }}
+            readOnly: true
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 10 }}
+          {{/* if .Values.extraVolumeMounts */}}{{ end }}
+{{- /* if .Values.certManager.enabled */}}{{ end }}
       volumes:
       - name: "bootstrap-conf"
         configMap:
@@ -498,6 +609,13 @@ spec:
           items:
             - key: "flow.xml"
               path: "flow.xml"
+{{- if .Values.certManager.enabled }}
+      - name: secret-reader-token
+        secret:
+          secretName: {{ $.Release.Name }}-secret-reader-token
+      - name: tls
+        emptyDir: {}
+{{- /* if .Values.certManager.enabled */}}{{ end }}
       {{- range .Values.secrets }}
       - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
         secret:

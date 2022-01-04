@@ -345,6 +345,11 @@ certManager:
   caIssuerKind: ClusterIssuer
   caIssuerGroup: cert-manager.io
   clusterDomain: cluster.local
+  keystorePasswd: changeme
+  truststorePasswd: changeme
+  additionalDnsNames:
+    - localhost
+  refreshSeconds: 300
 
 # ------------------------------------------------------------------------------
 # Zookeeper:

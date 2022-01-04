@@ -10,8 +10,8 @@ spec:
   commonName: {{ .Release.Name }}-ca
   secretName: {{ .Release.Name }}-root-secret
   privateKey:
-    algorithm: ECDSA
-    size: 256
+    algorithm: RSA
+    size: 2048
   issuerRef:
     name: {{ .Values.certManager.caIssuer }}
     kind: {{ .Values.certManager.caIssuerKind }}
@@ -34,11 +34,103 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   secretName: {{ $.Release.Name }}-{{ . }}
+  usages:
+    - digital signature
+    - content commitment
+    - key encipherment
+    - data encipherment
+    - key agreement
+    - server auth
+    - client auth
   dnsNames:
     - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+    - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc
+    - {{ $.Release.Name }}.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+    - {{ $.Release.Name }}.{{ $.Release.Namespace }}.svc
+{{ toYaml $.Values.certManager.additionalDnsNames | indent 4 }}
   issuerRef:
     name: {{ $.Release.Name }}-ca-issuer
     kind: Issuer
 ---
-{{ end }} # range untilStep 0 (int .Values.replicaCount ) 1 
-{{ end }} # if .Values.certManager.enabled
+{{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $.Release.Name }}-secret-reader
+  namespace: {{ $.Release.Namespace }}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $.Release.Name }}-secret-reader-token
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    kubernetes.io/service-account.name: {{ $.Release.Name }}-secret-reader
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Release.Name }}-secret-reader
+  namespace: {{ $.Release.Namespace }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+{{/* 
+     SECURITY NOTE: This Role can read any secret in the namespace, which 
+                    at first can seem excessive.  However, in mitigation,
+                    this role's secret is only exposed to the cert-manager
+                    sidecar.  That sidecar runs a very simple script that
+                    (1) can be audited quickly for vulnerabilities and
+                    (2) has no attack surface exposure to user input.
+
+    ALTERNATIVES
+    CONSIDERED:     (A) Use https://github.com/spoditor/spoditor to provide
+                        a mutating webhook that would only mount a given
+                        pod's secret in that pod.
+
+                        Downside: Requires installing spoditor with
+                        full cluster-wide privileges.
+
+                    (B) Write a chart-specific mutating webhook to perform
+                        the same action, perhaps running under the
+                        https://olm.operatorframework.io/ to limit the
+                        webhook to the namespace.
+
+                        Downside: Again requires installation of OLM, an
+                        operator with full cluster-wide privileges, plus
+                        writing the mutating webhook and either building
+                        a container to host it or injecting it into
+                        (say) python:latest with a configMap mount, and
+                        then maintaining that webhook code over time.
+
+                    (C) Modify the statefulset definition to have precisely
+                        1 replica, emitting individual pods for each NiFi node
+                        through a large Helm loop.
+
+                        Downside: Ew.
+
+                    (D) Create a separate role for each pod and limit that
+                        role to a single secret, associating the role based
+                        on (say) pod name label.
+
+                        Downside: Not possible.  k8s does not allow label-based
+                        selection of resources in RBAC, c.f.:
+                        https://github.com/kubernetes/kubernetes/issues/44703
+*/}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Release.Name }}-secret-reader
+  namespace: {{ $.Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $.Release.Name }}-secret-reader
+roleRef:
+  kind: Role
+  name: {{ $.Release.Name }}-secret-reader
+  apiGroup: rbac.authorization.k8s.io
+{{/* if .Values.certManager.enabled */}}{{ end }}
