@@ -1,5 +1,13 @@
----
 {{ if .Values.certManager.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selfSigned: {}
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -7,24 +15,27 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   isCA: true
-  commonName: {{ .Release.Name }}-ca
-  secretName: {{ .Release.Name }}-root-secret
+  commonName: {{ $.Release.Name }}-ca.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  subject:
+    organizationalUnits:
+    - NIFI
+  secretName: {{ .Release.Name }}-ca
   privateKey:
     algorithm: RSA
     size: 2048
   issuerRef:
-    name: {{ .Values.certManager.caIssuer }}
-    kind: {{ .Values.certManager.caIssuerKind }}
-    group: {{ .Values.certManager.caIssuerGroup }}
+    name: {{ .Release.Name }}
+    kind: Issuer
+    group: cert-manager.io
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: {{ .Release.Name }}-ca-issuer
+  name: {{ .Release.Name }}-ca
   namespace: {{ .Release.Namespace }}
 spec:
   ca:
-    secretName: {{ .Release.Name }}-root-secret
+    secretName: {{ .Release.Name }}-ca
 ---
 {{ range untilStep 0 (int .Values.replicaCount) 1 }}
 apiVersion: cert-manager.io/v1
@@ -33,6 +44,10 @@ metadata:
   name: {{ $.Release.Name }}-{{ . }}
   namespace: {{ $.Release.Namespace }}
 spec:
+  commonName: {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  subject:
+    organizationalUnits:
+    - NIFI
   secretName: {{ $.Release.Name }}-{{ . }}
   usages:
     - digital signature
@@ -43,13 +58,13 @@ spec:
     - server auth
     - client auth
   dnsNames:
-    - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
-    - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc
-    - {{ $.Release.Name }}.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
-    - {{ $.Release.Name }}.{{ $.Release.Namespace }}.svc
 {{ toYaml $.Values.certManager.additionalDnsNames | indent 4 }}
+    - {{ $.Release.Name }}.{{ $.Release.Namespace }}.svc
+    - {{ $.Release.Name }}.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+    - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc
+    - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
   issuerRef:
-    name: {{ $.Release.Name }}-ca-issuer
+    name: {{ $.Release.Name }}-ca
     kind: Issuer
 ---
 {{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}

@@ -3,6 +3,7 @@ zookeeper:
 
 properties:
   isNode: true
+  webProxyHost: nifi.default.svc.cluster.local:8443
 
 replicaCount: 2
 

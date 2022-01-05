@@ -172,6 +172,21 @@ spec:
 {{- end }}
 
 {{- if .Values.certManager.enabled }}
+          xmlstarlet ed --inplace --delete "authorizers/accessPolicyProvider/property[@name='Node Identity 1']" "${NIFI_HOME}/conf/authorizers.xml"
+{{ range untilStep 0 (int .Values.replicaCount) 1 }}
+          xmlstarlet ed --inplace \
+                        --subnode "authorizers/accessPolicyProvider" --type 'elem' -n 'property' \
+                          --value "OU=NIFI, CN={{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}" \
+                        --insert "authorizers/accessPolicyProvider/property[not(@name)]" --type attr -n name \
+                          --value "Node Identity {{ . }}" \
+                        "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace \
+                        --subnode "authorizers/userGroupProvider" --type 'elem' -n 'property' \
+                          --value "OU=NIFI, CN={{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}" \
+                        --insert "authorizers/userGroupProvider/property[not(@name)]" --type attr -n name \
+                          --value "Initial User Identity {{ . }}" \
+                        "${NIFI_HOME}/conf/authorizers.xml"
+{{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}
 
           prop_replace nifi.security.keystore "${NIFI_HOME}/tls/keystore.jks"
           prop_replace nifi.security.keystoreType JKS
@@ -179,6 +194,11 @@ spec:
           prop_replace nifi.security.truststore "${NIFI_HOME}/tls/truststore.jks"
           prop_replace nifi.security.truststoreType JKS
           prop_replace nifi.security.truststorePasswd "{{ .Values.certManager.truststorePasswd }}"
+
+          prop_replace nifi.cluster.node.address "$(hostname).{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
+
+          prop_replace nifi.web.https.network.interface.default eth0
+          prop_replace nifi.web.https.network.interface.lo0 lo0
 
           while [ ! -r "${NIFI_HOME}/tls/keystore.jks" ]
           do
@@ -193,8 +213,6 @@ spec:
           done
 {{- /* if .Values.certManager.enabled */}}{{ else }}
 
-          cp /opt/nifi/nifi-current/conf/nifi.properties /tmp/nifi.properties
-
           if [ ! -r "${NIFI_HOME}/conf/nifi-cert.pem" ]
           then
             /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone \
@@ -206,9 +224,6 @@ spec:
               --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           fi
 
-          echo TLS-TOOLKIT DIFFS BEGIN
-          diff -c /tmp/nifi.properties /opt/nifi/nifi-current/conf/nifi.properties
-          echo TLS-TOOLKIT DIFFS END
 {{- /* if .Values.certManager.enabled */}}{{ end }}
 
 {{- if .Values.properties.safetyValve }}

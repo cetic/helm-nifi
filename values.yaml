@@ -341,9 +341,6 @@ ca:
 # Note that https://github.com/spoditor/spoditor is required!
 certManager:
   enabled: false
-  caIssuer: selfsigned-issuer
-  caIssuerKind: ClusterIssuer
-  caIssuerGroup: cert-manager.io
   clusterDomain: cluster.local
   keystorePasswd: changeme
   truststorePasswd: changeme
