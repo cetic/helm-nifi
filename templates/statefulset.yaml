@@ -195,10 +195,12 @@ spec:
           prop_replace nifi.security.truststoreType JKS
           prop_replace nifi.security.truststorePasswd "{{ .Values.certManager.truststorePasswd }}"
 
+          prop_replace nifi.web.https.host "$(hostname).{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
           prop_replace nifi.cluster.node.address "$(hostname).{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
-
           prop_replace nifi.web.https.network.interface.default eth0
-          prop_replace nifi.web.https.network.interface.lo0 lo0
+          prop_replace nifi.web.https.network.interface.lo lo
+          prop_replace nifi.web.http.host ""
+          prop_replace nifi.web.http.port ""
 
           while [ ! -r "${NIFI_HOME}/tls/keystore.jks" ]
           do
@@ -574,6 +576,8 @@ spec:
           {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{/* if .Values.extraVolumeMounts */}}{{ end }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
 {{- /* if .Values.certManager.enabled */}}{{ end }}
       volumes:
       - name: "bootstrap-conf"
