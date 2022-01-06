@@ -2,8 +2,10 @@
 
 # Install cmctl per https://cert-manager.io/docs/usage/cmctl/#installation
 
-OS=$(docker run --rm golang:1.16-alpine go env GOOS)
-ARCH=$(docker run --rm golang:1.16-alpine go env GOARCH)
+sudo apt-get install golang-go
+
+OS=$(go env GOOS)
+ARCH=$(go env GOARCH)
 
 /bin/rm -rf /tmp/cmctl-install
 mkdir -p /tmp/cmctl-install
