@@ -1,12 +1,12 @@
-name: Test-SafetyValve
+name: Test-LDAP
 
 on:
   push:
   pull_request:
     
 jobs:
-  test-safetyvalve:
-    name: Test NiFi Helm Chart SafetyValve Properties
+  test-ldap:
+    name: Test NiFi Helm Chart LDAP
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,20 +16,21 @@ jobs:
         with:
           minikube version: 'v1.20.0'
           kubernetes version: 'v1.20.2'
-          #github token: ${{ secrets.GITHUB_TOKEN }}          
-      #- run: minikube addons list
-      #- name: Interact with the cluster
-      #  run: kubectl get nodes
       - name: Checkout code
         uses: actions/checkout@v1
       - name: Install dependencies
         run: |
+          sudo apt-get install -y jq
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add dysnix https://dysnix.github.io/charts/
           helm repo update
-          helm dep up          
+          helm dep up
+      - name: Install openldap
+        run: |
+          kubectl apply -f tests/03-ldap
+          kubectl wait --for=condition=Ready pod --selector=app.kubernetes.io/name=openldap --timeout=5m
       - name: Install Nifi
-        run: helm install nifi . -f tests/01-safetyValve-values.yaml
+        run: helm install nifi . -f tests/03-ldap-values.yaml
       - name: Check deployment status
         run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
       - name: Wait for NiFi web server to start
@@ -44,10 +45,12 @@ jobs:
           done
           echo NiFi did not start for 300 seconds!
           exit 1
-      - name: Check safetyValve content is correct
+      - name: Check that LDAP login works
         run: |
-          NPFP=$(kubectl exec pod/nifi-0 -c server -- ps auxww | \
-            awk 'BEGIN { RS = " " } /^-Dnifi.properties.file.path/ { split($0,a,"=",seps); printf("%s",a[2]) }')
-          kubectl exec pod/nifi-0 -c server -- cat $NPFP
-          kubectl exec pod/nifi-0 -c server -- cat $NPFP | \
-            grep 'nifi.content.claim.max.appendable.size=1 B'
+          kubectl exec nifi-0 -c server -- curl -d username=user1 -d password=password1 -sk https://localhost:8443/nifi-api/access/token | \
+            grep -v 'The supplied username and password are not valid.'
+      - name: Check that LDAP incorrect password fails
+        run: |
+          kubectl exec nifi-0 -c server -- curl -d username=user1 -d password=password2 -sk https://localhost:8443/nifi-api/access/token | \
+            grep 'The supplied username and password are not valid.'
+ 

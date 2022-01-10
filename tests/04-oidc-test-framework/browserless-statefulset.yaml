@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: browserless
+  labels:
+    app.kubernetes.io/name: browserless
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: browserless
+  serviceName: browserless
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: browserless
+    spec:
+      containers:
+        - name: browserless
+          image: browserless/chrome
+          imagePullPolicy: "Always"
+          ports:
+            - name: tcp-browserless
+              containerPort: 3000
+ #       - name: netshoot
+ #         command: [ 'tail', '-f', '/dev/null' ]
+ #         image: docker.io/nicolaka/netshoot:latest
+ #         imagePullPolicy: "Always"
