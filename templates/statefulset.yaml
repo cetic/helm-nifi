@@ -491,7 +491,7 @@ spec:
           do
             curl --cacert /run/secrets/kubernetes.io/secret-reader-token/ca.crt \
                  -H "Authorization: Bearer $(cat /run/secrets/kubernetes.io/secret-reader-token/token)" \
-                 https://kubernetes/api/v1/namespaces/$(cat /run/secrets/kubernetes.io/secret-reader-token/namespace)/secrets/$(hostname) \
+                 https://kubernetes.default.svc/api/v1/namespaces/$(cat /run/secrets/kubernetes.io/secret-reader-token/namespace)/secrets/$(hostname) \
                  --output /tmp/secret.json
                  
             jq .data < /tmp/secret.json > /tmp/secret-data.json
