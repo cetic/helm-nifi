@@ -489,11 +489,12 @@ spec:
 
           while :
           do
-            curl --silent --cacert /run/secrets/kubernetes.io/secret-reader-token/ca.crt \
+            curl --cacert /run/secrets/kubernetes.io/secret-reader-token/ca.crt \
                  -H "Authorization: Bearer $(cat /run/secrets/kubernetes.io/secret-reader-token/token)" \
-                 https://kubernetes/api/v1/namespaces/$(cat /run/secrets/kubernetes.io/secret-reader-token/namespace)/secrets/$(hostname) | \
-              jq .data > /tmp/secret-data.json
-  
+                 https://kubernetes/api/v1/namespaces/$(cat /run/secrets/kubernetes.io/secret-reader-token/namespace)/secrets/$(hostname) \
+                 --output /tmp/secret.json
+                 
+            jq .data < /tmp/secret.json > /tmp/secret-data.json
             jq -r '."tls.crt"' < /tmp/secret-data.json | base64 -d > /tmp/tls.crt
             jq -r '."tls.key"' < /tmp/secret-data.json | base64 -d > /tmp/tls.key
   
