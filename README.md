@@ -234,6 +234,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `certManager.keystorePasswd`                                                | Java Key Store password for NiFi keystore                                                                          | `changeme`                      |
 | `certManager.truststorePasswd`                                              | Java Key Store password for NiFi truststore                                                                        | `changeme`                      |
 | `certManager.additionalDnsNames`                                            | Additional DNS names to incorporate into TLS certificates (e.g. where users point browsers to access the NiFi UI)  | `[ localhost ]`                 |
+| `certManager.caSecrets`                                                     | Names of Kubernetes secrets containing `ca.crt` keys to add to the NiFi truststore                                 | `[ ]`                           |
 | `certManager.refreshSeconds`                                                | How often the sidecar refreshes the NiFi keystore and truststore from the cert-manager Kubernetes secrets          | `300`                           |
 | `certManager.resources`                                                     | Memory and CPU resources for the certificate refresh sidecar                                                       | 100m CPU, 128MiB RAM            |
 | **metrics**                                                                     |

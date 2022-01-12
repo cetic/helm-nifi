@@ -558,6 +558,11 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+          {{ range $secret := .Values.certManager.caSecrets }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $secret }}
+            mountPath: /opt/nifi/nifi-current/tls/{{ $secret }}
+            readOnly: true
+          {{ end }}
           {{- range $configmap := .Values.configmaps }}
             {{- if $configmap.mountPath }}
               {{- if $configmap.keys }}
@@ -635,6 +640,11 @@ spec:
           secretName: {{ $.Release.Name }}-secret-reader-token
       - name: tls
         emptyDir: {}
+      {{- range .Values.certManager.caSecrets }}
+      - name: {{ include "apache-nifi.fullname" $ }}-{{ . }}
+        secret:
+          secretName: {{ . }}
+      {{- end }}
 {{- /* if .Values.certManager.enabled */}}{{ end }}
       {{- range .Values.secrets }}
       - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
