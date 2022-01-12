@@ -202,6 +202,9 @@ spec:
           prop_replace nifi.web.http.host ""
           prop_replace nifi.web.http.port ""
 
+          prop_replace nifi.security.autoreload.enabled true
+          prop_replace nifi.security.autoreload.interval "{{ .Values.certManager.refreshSeconds }} secs"
+
           while [ ! -r "${NIFI_HOME}/tls/keystore.jks" ]
           do
             echo "${NIFI_HOME}/tls/keystore.jks" is not readable!  Waiting for cert-manager sidecar to populate it.
