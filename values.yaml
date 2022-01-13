@@ -68,9 +68,10 @@ sts:
 
 
 properties:
-  # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
-  sensitiveKey: changeMechangeMe # Must to have minimal 12 length key
+  # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#nifi_sensitive_props_key
+  sensitiveKey: changeMechangeMe # Must have at least 12 characters
   algorithm: NIFI_PBKDF2_AES_GCM_256
+  # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
   isNode: false
   httpsPort: 8443 
