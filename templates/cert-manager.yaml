@@ -23,6 +23,7 @@ spec:
   privateKey:
     algorithm: RSA
     size: 2048
+    rotationPolicy: Always
   issuerRef:
     name: {{ .Release.Name }}
     kind: Issuer
@@ -49,6 +50,8 @@ spec:
     organizationalUnits:
     - NIFI
   secretName: {{ $.Release.Name }}-{{ . }}
+  privateKey:
+    rotationPolicy: Always
   usages:
     - digital signature
     - content commitment

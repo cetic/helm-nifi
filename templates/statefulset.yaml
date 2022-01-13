@@ -506,6 +506,7 @@ spec:
                                    -name    "${NODENAME}" \
                                    -out     "/tmp/tls.p12" \
                                    -passout "pass:{{ .Values.certManager.keystorePasswd }}"
+            rm -f "${NIFI_HOME}/tls/keystore-new.jks"
             keytool -importkeystore \
                     -noprompt \
                     -destkeystore "${NIFI_HOME}/tls/keystore-new.jks" \
@@ -521,7 +522,8 @@ spec:
             # subdirectories of /opt/nifi/nifi-current/tls/, using custom secrets and/or configmaps
 
             jq -r '."ca.crt"' < /tmp/secret-data.json | base64 -d > "${NIFI_HOME}"/tls/cert-manager/ca.crt
-
+            
+            rm -f "${NIFI_HOME}/tls/truststore-new.jks"
             for ca in "${NIFI_HOME}"/tls/*/ca.crt
             do
               ALIAS=$(echo $ca | awk -F "/" '{print $(NF-1) }' -)
