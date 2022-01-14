@@ -3,7 +3,7 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ template "apache-nifi.fullname" $ }}
   namespace: {{ .Release.Namespace }}
 spec:
   selfSigned: {}
@@ -11,45 +11,45 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ .Release.Name }}-ca
+  name: {{ template "apache-nifi.fullname" $ }}-ca
   namespace: {{ .Release.Namespace }}
 spec:
   isCA: true
-  commonName: {{ $.Release.Name }}-ca.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  commonName: {{ template "apache-nifi.fullname" $ }}-ca.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
   subject:
     organizationalUnits:
     - NIFI
-  secretName: {{ .Release.Name }}-ca
+  secretName: {{ template "apache-nifi.fullname" $ }}-ca
   privateKey:
     algorithm: RSA
     size: 2048
     rotationPolicy: Always
   issuerRef:
-    name: {{ .Release.Name }}
+    name: {{ template "apache-nifi.fullname" $ }}
     kind: Issuer
     group: cert-manager.io
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: {{ .Release.Name }}-ca
+  name: {{ template "apache-nifi.fullname" $ }}-ca
   namespace: {{ .Release.Namespace }}
 spec:
   ca:
-    secretName: {{ .Release.Name }}-ca
+    secretName: {{ template "apache-nifi.fullname" $ }}-ca
 ---
 {{ range untilStep 0 (int .Values.replicaCount) 1 }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ $.Release.Name }}-{{ . }}
+  name: {{ template "apache-nifi.fullname" $ }}-{{ . }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  commonName: {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  commonName: {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
   subject:
     organizationalUnits:
     - NIFI
-  secretName: {{ $.Release.Name }}-{{ . }}
+  secretName: {{ template "apache-nifi.fullname" $ }}-{{ . }}
   privateKey:
     rotationPolicy: Always
   usages:
@@ -62,35 +62,35 @@ spec:
     - client auth
   dnsNames:
 {{ toYaml $.Values.certManager.additionalDnsNames | indent 4 }}
-    - {{ $.Release.Name }}.{{ $.Release.Namespace }}.svc
-    - {{ $.Release.Name }}.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
-    - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc
-    - {{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+    - {{ template "apache-nifi.fullname" $ }}.{{ $.Release.Namespace }}.svc
+    - {{ template "apache-nifi.fullname" $ }}.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+    - {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc
+    - {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
   issuerRef:
-    name: {{ $.Release.Name }}-ca
+    name: {{ template "apache-nifi.fullname" $ }}-ca
     kind: Issuer
 ---
 {{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ $.Release.Name }}-secret-reader
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
   namespace: {{ $.Release.Namespace }}
 automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ $.Release.Name }}-secret-reader-token
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader-token
   namespace: {{ $.Release.Namespace }}
   annotations:
-    kubernetes.io/service-account.name: {{ $.Release.Name }}-secret-reader
+    kubernetes.io/service-account.name: {{ template "apache-nifi.fullname" $ }}-secret-reader
 type: kubernetes.io/service-account-token
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ $.Release.Name }}-secret-reader
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
   namespace: {{ $.Release.Namespace }}
 rules:
 - apiGroups: [""]
@@ -142,13 +142,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ $.Release.Name }}-secret-reader
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
   namespace: {{ $.Release.Namespace }}
 subjects:
 - kind: ServiceAccount
-  name: {{ $.Release.Name }}-secret-reader
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
 roleRef:
   kind: Role
-  name: {{ $.Release.Name }}-secret-reader
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
   apiGroup: rbac.authorization.k8s.io
 {{/* if .Values.certManager.enabled */}}{{ end }}

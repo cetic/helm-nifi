@@ -168,7 +168,7 @@ spec:
           # Update nifi.properties for web ui proxy hostname
           prop_replace nifi.web.proxy.host {{ .Values.properties.webProxyHost }}
 {{- else }}
-          prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc
+          prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" $ }}.{{ .Release.Namespace }}.svc
 {{- end }}
 
 {{- if .Values.certManager.enabled }}
@@ -176,13 +176,13 @@ spec:
 {{ range untilStep 0 (int .Values.replicaCount) 1 }}
           xmlstarlet ed --inplace \
                         --subnode "authorizers/accessPolicyProvider" --type 'elem' -n 'property' \
-                          --value "OU=NIFI, CN={{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}" \
+                          --value "OU=NIFI, CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}" \
                         --insert "authorizers/accessPolicyProvider/property[not(@name)]" --type attr -n name \
                           --value "Node Identity {{ . }}" \
                         "${NIFI_HOME}/conf/authorizers.xml"
           xmlstarlet ed --inplace \
                         --subnode "authorizers/userGroupProvider" --type 'elem' -n 'property' \
-                          --value "OU=NIFI, CN={{ $.Release.Name }}-{{ . }}.{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}" \
+                          --value "OU=NIFI, CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}" \
                         --insert "authorizers/userGroupProvider/property[not(@name)]" --type attr -n name \
                           --value "Initial User Identity {{ . }}" \
                         "${NIFI_HOME}/conf/authorizers.xml"
@@ -195,8 +195,8 @@ spec:
           prop_replace nifi.security.truststoreType JKS
           prop_replace nifi.security.truststorePasswd "{{ .Values.certManager.truststorePasswd }}"
 
-          prop_replace nifi.web.https.host "$(hostname).{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
-          prop_replace nifi.cluster.node.address "$(hostname).{{ $.Release.Name }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
+          prop_replace nifi.web.https.host "$(hostname).{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
+          prop_replace nifi.cluster.node.address "$(hostname).{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
           prop_replace nifi.web.https.network.interface.default eth0
           prop_replace nifi.web.https.network.interface.lo lo
           prop_replace nifi.web.http.host ""
@@ -642,7 +642,7 @@ spec:
 {{- if .Values.certManager.enabled }}
       - name: secret-reader-token
         secret:
-          secretName: {{ $.Release.Name }}-secret-reader-token
+          secretName: {{ template "apache-nifi.fullname" $ }}-secret-reader-token
       - name: tls
         emptyDir: {}
       {{- range .Values.certManager.caSecrets }}
