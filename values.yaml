@@ -344,6 +344,7 @@ certManager:
   clusterDomain: cluster.local
   keystorePasswd: changeme
   truststorePasswd: changeme
+  replaceDefaultTrustStore: false
   additionalDnsNames:
     - localhost
   refreshSeconds: 300
