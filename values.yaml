@@ -338,7 +338,6 @@ ca:
 # cert-manager support
 # Setting this true will have cert-manager create a private CA for the cluster
 # as well as the certificates for each cluster node.
-# Note that https://github.com/spoditor/spoditor is required!
 certManager:
   enabled: false
   clusterDomain: cluster.local
