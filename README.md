@@ -237,6 +237,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `certManager.caSecrets`                                                     | Names of Kubernetes secrets containing `ca.crt` keys to add to the NiFi truststore                                 | `[ ]`                           |
 | `certManager.refreshSeconds`                                                | How often the sidecar refreshes the NiFi keystore and truststore from the cert-manager Kubernetes secrets          | `300`                           |
 | `certManager.resources`                                                     | Memory and CPU resources for the certificate refresh sidecar                                                       | 100m CPU, 128MiB RAM            |
+| `certManager.replaceDefaultTrustStore                                       | Use the certManager truststore, not the default Java trusted CA collection (for [e.g.] private OIDC provider)      | `false`                         |
 | **metrics**                                                                     |
 | `metrics.prometheus.enabled`            | Enable prometheus to access nifi metrics endpoint                                                                                    | `false`                                                      |
 | `metrics.prometheus.port`              | Port where Nifi server will expose Prometheus metrics                                                                                  | `9092`                                                      |
