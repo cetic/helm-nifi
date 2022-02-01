@@ -243,6 +243,15 @@ spec:
   {{- end }}
 {{- end }}
 
+{{- if .Values.properties.sensitiveKeySetFile }}
+          if [ ! -r {{ .Values.properties.sensitiveKeySetFile | quote }} ]
+          then
+            prop_replace nifi.sensitive.props.key ""
+            bin/nifi.sh set-sensitive-properties-key {{ .Values.properties.sensitiveKey | quote }}
+            touch {{ .Values.properties.sensitiveKeySetFile | quote }}
+          fi
+{{- /* if .Values.properties.sensitiveKeySetFile */}}{{ end }}
+
           for f in "${NIFI_HOME}/conf/authorizers.xml" "${NIFI_HOME}/conf/login-identity-providers.xml" ${NIFI_HOME}/conf/nifi.properties
           do
             echo === $f ===
