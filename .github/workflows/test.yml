@@ -48,6 +48,14 @@ jobs:
           done
           echo NiFi did not start for 300 seconds!
           exit 1
+      - name: Check NiFi registry is started
+        run: |
+          if kubectl logs pod/nifi-registry-0 | grep 'NiFi Registry has started'
+          then
+            exit 0
+          fi
+          echo NiFi registry did not start!
+          exit 1
       - name: Check that web application responds with expected content
         run: |
           kubectl exec pod/nifi-0 -c server -- curl -sk https://localhost:8443 | \
