@@ -603,7 +603,7 @@ spec:
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{/* if .Values.extraVolumeMounts */}}{{ end }}
         resources:
-{{ toYaml .Values.resources | indent 10 }}
+{{ toYaml .Values.certManager.resources | indent 10 }}
 {{- /* if .Values.certManager.enabled */}}{{ end }}
       volumes:
       - name: "bootstrap-conf"
