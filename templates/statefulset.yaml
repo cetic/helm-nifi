@@ -161,9 +161,13 @@ spec:
           bin/nifi.sh set-single-user-credentials {{ .Values.auth.singleUser.username }} {{ .Values.auth.singleUser.password }}
 {{- end }}
 
+{{ if .Values.customFlow }}
+          gzip < {{ .Values.customFlow }} > /opt/nifi/data/flow.xml.gz
+{{ else }}
           if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
             gzip /opt/nifi/data/flow.xml
           fi
+{{ end }}
 
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}

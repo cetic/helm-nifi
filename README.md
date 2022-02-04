@@ -248,6 +248,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `metrics.prometheus.serviceMonitor.enabled`       | If `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.prometheus.enabled` to be `true`)                       | `false`                                        |
 | `metrics.prometheus.serviceMonitor.namespace`       | In which namespace the ServiceMonitor should be created                       | 
 | `metrics.prometheus.serviceMonitor.labels`       | Additional labels for the ServiceMonitor                       | `nil`                                        |
+| **customFlow**                                                              |                                                                                                                    |                                 |
+| `customFlow`                                                                | Use this file (uncompressed XML; possibly from a configmap) as the Flow definition                                 | `nil`                           |
 
 ## Troubleshooting
 
