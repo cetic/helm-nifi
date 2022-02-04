@@ -12,14 +12,34 @@ do
       name: $ns
     ---
 ENDOFYAML
-    helm -n $ns install nifi . \
-      --set zookeeper.enabled=false \
-      --set properties.isNode=false \
-      --set properties.webProxyHost=nifi.$ns.svc.cluster.local:8443 \
-      --set replicaCount=1 \
-      --set registry.enabled=false \
-      --set certManager.enabled=true
+  kubectl -n $ns create --dry-run=client configmap flow-xml --from-file=tests/06-$ns.flow.xml -o yaml | kubectl apply -f -
 done
+
+# Install NiFi expecting secrets:
+
+helm -n alpha install nifi . \
+  --set zookeeper.enabled=false \
+  --set properties.isNode=false \
+  --set properties.webProxyHost=nifi.alpha.svc.cluster.local:8443 \
+  --set replicaCount=1 \
+  --set registry.enabled=false \
+  --set certManager.enabled=true \
+  --set configmaps[0].name=flow-xml \
+  --set configmaps[0].mountPath=/opt/nifi/flow-xml \
+  --set customFlow=/opt/nifi/flow-xml/06-alpha.flow.xml \
+  --set 'certManager.caSecrets[0]=bravo-ca'
+
+helm -n bravo install nifi . \
+  --set zookeeper.enabled=false \
+  --set properties.isNode=false \
+  --set properties.webProxyHost=nifi.bravo.svc.cluster.local:8443 \
+  --set replicaCount=1 \
+  --set registry.enabled=false \
+  --set certManager.enabled=true \
+  --set configmaps[0].name=flow-xml \
+  --set configmaps[0].mountPath=/opt/nifi/flow-xml \
+  --set customFlow=/opt/nifi/flow-xml/06-bravo.flow.xml \
+  --set 'certManager.caSecrets[0]=alpha-ca'
 
 # Copy certificate authorities from one namespace to the other
 
@@ -32,25 +52,3 @@ kubectl -n bravo wait --for=condition=Ready=true certificate/nifi-ca --timeout=6
 kubectl -n bravo get secret nifi-ca -o json | \
   jq 'del(.metadata)|del(.data."tls.crt")|del(.data."tls.key") + { metadata: { name: "bravo-ca" } } + { type: "kubernetes.io/generic" }' | \
   kubectl -n alpha apply -f -
-
-# Update the installations with these new secrets:
-
-helm -n alpha upgrade nifi . \
-  --set zookeeper.enabled=false \
-  --set properties.isNode=false \
-  --set properties.webProxyHost=nifi.alpha.svc.cluster.local:8443 \
-  --set replicaCount=1 \
-  --set registry.enabled=false \
-  --set certManager.enabled=true \
-  --set 'certManager.caSecrets[0]=bravo-ca'
-
-
-helm -n bravo upgrade nifi . \
-  --set zookeeper.enabled=false \
-  --set properties.isNode=false \
-  --set properties.webProxyHost=nifi.bravo.svc.cluster.local:8443 \
-  --set replicaCount=1 \
-  --set registry.enabled=false \
-  --set certManager.enabled=true \
-  --set 'certManager.caSecrets[0]=alpha-ca'
-

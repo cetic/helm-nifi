@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flowController encoding-version="1.4">
+  <maxTimerDrivenThreadCount>10</maxTimerDrivenThreadCount>
+  <maxEventDrivenThreadCount>5</maxEventDrivenThreadCount>
+  <registries/>
+  <parameterContexts/>
+  <rootGroup>
+    <id>85928fc5-336a-4a64-b887-6869cd41eda9</id>
+    <name>ALPHA</name>
+    <position x="0.0" y="0.0"/>
+    <comment/>
+    <flowfileConcurrency>UNBOUNDED</flowfileConcurrency>
+    <flowfileOutboundPolicy>STREAM_WHEN_AVAILABLE</flowfileOutboundPolicy>
+    <defaultFlowFileExpiration>0 sec</defaultFlowFileExpiration>
+    <defaultBackPressureObjectThreshold>10000</defaultBackPressureObjectThreshold>
+    <defaultBackPressureDataSizeThreshold>1 GB</defaultBackPressureDataSizeThreshold>
+    <processor>
+      <id>c1202f8e-017e-1000-a733-50c5cb8784b1</id>
+      <name>GenerateFlowFile</name>
+      <position x="264.0" y="-16.0"/>
+      <styles/>
+      <comment/>
+      <class>org.apache.nifi.processors.standard.GenerateFlowFile</class>
+      <bundle>
+        <group>org.apache.nifi</group>
+        <artifact>nifi-standard-nar</artifact>
+        <version>1.14.0</version>
+      </bundle>
+      <maxConcurrentTasks>1</maxConcurrentTasks>
+      <schedulingPeriod>1 sec</schedulingPeriod>
+      <penalizationPeriod>30 sec</penalizationPeriod>
+      <yieldPeriod>1 sec</yieldPeriod>
+      <bulletinLevel>WARN</bulletinLevel>
+      <lossTolerant>false</lossTolerant>
+      <scheduledState>RUNNING</scheduledState>
+      <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+      <executionNode>ALL</executionNode>
+      <runDurationNanos>0</runDurationNanos>
+      <property>
+        <name>File Size</name>
+        <value>0B</value>
+      </property>
+      <property>
+        <name>Batch Size</name>
+        <value>1</value>
+      </property>
+      <property>
+        <name>Data Format</name>
+        <value>Text</value>
+      </property>
+      <property>
+        <name>Unique FlowFiles</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>generate-ff-custom-text</name>
+      </property>
+      <property>
+        <name>character-set</name>
+        <value>UTF-8</value>
+      </property>
+      <property>
+        <name>mime-type</name>
+      </property>
+    </processor>
+    <remoteProcessGroup>
+      <id>c11f5fe0-017e-1000-2f63-a9a78031e0c0</id>
+      <name>BRAVO</name>
+      <position x="248.0" y="208.0"/>
+      <comment/>
+      <url>https://nifi.bravo.svc.cluster.local:8443/nifi</url>
+      <urls>https://nifi.bravo.svc.cluster.local:8443/nifi</urls>
+      <timeout>30 sec</timeout>
+      <yieldPeriod>10 sec</yieldPeriod>
+      <transmitting>true</transmitting>
+      <transportProtocol>RAW</transportProtocol>
+      <proxyHost/>
+      <proxyUser/>
+      <inputPort>
+        <id>eccfb75d-417c-38d5-be12-cdffc1189223</id>
+        <name>BravoInput</name>
+        <position x="0.0" y="0.0"/>
+        <comments/>
+        <scheduledState>RUNNING</scheduledState>
+        <targetId>c11a3c30-017e-1000-f2f0-17232c042b30</targetId>
+        <maxConcurrentTasks>1</maxConcurrentTasks>
+        <useCompression>false</useCompression>
+      </inputPort>
+    </remoteProcessGroup>
+    <connection>
+      <id>c120776b-017e-1000-6cdc-3639cebe805e</id>
+      <name/>
+      <bendPoints/>
+      <labelIndex>1</labelIndex>
+      <zIndex>0</zIndex>
+      <sourceId>c1202f8e-017e-1000-a733-50c5cb8784b1</sourceId>
+      <sourceGroupId>85928fc5-336a-4a64-b887-6869cd41eda9</sourceGroupId>
+      <sourceType>PROCESSOR</sourceType>
+      <destinationId>eccfb75d-417c-38d5-be12-cdffc1189223</destinationId>
+      <destinationGroupId>c11f5fe0-017e-1000-2f63-a9a78031e0c0</destinationGroupId>
+      <destinationType>REMOTE_INPUT_PORT</destinationType>
+      <relationship>success</relationship>
+      <maxWorkQueueSize>10000</maxWorkQueueSize>
+      <maxWorkQueueDataSize>1 GB</maxWorkQueueDataSize>
+      <flowFileExpiration>0 sec</flowFileExpiration>
+      <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+      <partitioningAttribute/>
+      <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+    </connection>
+  </rootGroup>
+  <controllerServices>
+    <controllerService>
+      <id>c135c2ce-017e-1000-d88a-347b945f505f</id>
+      <name>StandardRestrictedSSLContextService</name>
+      <comment/>
+      <class>org.apache.nifi.ssl.StandardRestrictedSSLContextService</class>
+      <bundle>
+        <group>org.apache.nifi</group>
+        <artifact>nifi-ssl-context-service-nar</artifact>
+        <version>1.14.0</version>
+      </bundle>
+      <enabled>true</enabled>
+      <property>
+        <name>Keystore Filename</name>
+        <value>/opt/nifi/nifi-current/tls/keystore.jks</value>
+      </property>
+      <property>
+        <name>Keystore Password</name>
+        <value>enc{10df1c866feaaa5fc2ed0918dde6710eb521e863e6e3f0ed75717c10dfaa33375f74daef53ae4236}</value>
+      </property>
+      <property>
+        <name>key-password</name>
+      </property>
+      <property>
+        <name>Keystore Type</name>
+        <value>JKS</value>
+      </property>
+      <property>
+        <name>Truststore Filename</name>
+        <value>/opt/nifi/nifi-current/tls/truststore.jks</value>
+      </property>
+      <property>
+        <name>Truststore Password</name>
+        <value>enc{00b997b8ad2a4d299d351dde723d6cae5274414096d3db4ed225a45ed216090a3dfb9de123741a72}</value>
+      </property>
+      <property>
+        <name>Truststore Type</name>
+        <value>JKS</value>
+      </property>
+      <property>
+        <name>SSL Protocol</name>
+        <value>TLS</value>
+      </property>
+    </controllerService>
+  </controllerServices>
+  <reportingTasks>
+    <reportingTask>
+      <id>c131bf78-017e-1000-dbc1-a9b6b34a798b</id>
+      <name>SiteToSiteProvenanceReportingTask</name>
+      <comment/>
+      <class>org.apache.nifi.reporting.SiteToSiteProvenanceReportingTask</class>
+      <bundle>
+        <group>org.apache.nifi</group>
+        <artifact>nifi-site-to-site-reporting-nar</artifact>
+        <version>1.14.0</version>
+      </bundle>
+      <schedulingPeriod>5 sec</schedulingPeriod>
+      <scheduledState>RUNNING</scheduledState>
+      <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+      <property>
+        <name>Destination URL</name>
+        <value>https://nifi.bravo.svc.cluster.local:8443/nifi</value>
+      </property>
+      <property>
+        <name>Input Port Name</name>
+        <value>ProvInput</value>
+      </property>
+      <property>
+        <name>SSL Context Service</name>
+        <value>c135c2ce-017e-1000-d88a-347b945f505f</value>
+      </property>
+      <property>
+        <name>Instance URL</name>
+        <value>http://${hostname(true)}:8080/nifi</value>
+      </property>
+      <property>
+        <name>Compress Events</name>
+        <value>true</value>
+      </property>
+      <property>
+        <name>Communications Timeout</name>
+        <value>30 secs</value>
+      </property>
+      <property>
+        <name>Batch Size</name>
+        <value>1000</value>
+      </property>
+      <property>
+        <name>s2s-transport-protocol</name>
+        <value>RAW</value>
+      </property>
+      <property>
+        <name>s2s-http-proxy-hostname</name>
+      </property>
+      <property>
+        <name>s2s-http-proxy-port</name>
+      </property>
+      <property>
+        <name>s2s-http-proxy-username</name>
+      </property>
+      <property>
+        <name>s2s-http-proxy-password</name>
+      </property>
+      <property>
+        <name>record-writer</name>
+      </property>
+      <property>
+        <name>include-null-values</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>Platform</name>
+        <value>nifi</value>
+      </property>
+      <property>
+        <name>s2s-prov-task-event-filter</name>
+      </property>
+      <property>
+        <name>s2s-prov-task-event-filter-exclude</name>
+      </property>
+      <property>
+        <name>s2s-prov-task-type-filter</name>
+      </property>
+      <property>
+        <name>s2s-prov-task-type-filter-exclude</name>
+      </property>
+      <property>
+        <name>s2s-prov-task-id-filter</name>
+      </property>
+      <property>
+        <name>s2s-prov-task-id-filter-exclude</name>
+      </property>
+      <property>
+        <name>s2s-prov-task-name-filter</name>
+      </property>
+      <property>
+        <name>s2s-prov-task-name-filter-exclude</name>
+      </property>
+      <property>
+        <name>start-position</name>
+        <value>beginning-of-stream</value>
+      </property>
+    </reportingTask>
+  </reportingTasks>
+</flowController>

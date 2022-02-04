@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flowController encoding-version="1.4">
+  <maxTimerDrivenThreadCount>10</maxTimerDrivenThreadCount>
+  <maxEventDrivenThreadCount>5</maxEventDrivenThreadCount>
+  <registries/>
+  <parameterContexts/>
+  <rootGroup>
+    <id>356a3caa-e4c2-492d-9c1d-e040d8a3b5be</id>
+    <name>BRAVO</name>
+    <position x="0.0" y="0.0"/>
+    <comment/>
+    <flowfileConcurrency>UNBOUNDED</flowfileConcurrency>
+    <flowfileOutboundPolicy>STREAM_WHEN_AVAILABLE</flowfileOutboundPolicy>
+    <defaultFlowFileExpiration>0 sec</defaultFlowFileExpiration>
+    <defaultBackPressureObjectThreshold>10000</defaultBackPressureObjectThreshold>
+    <defaultBackPressureDataSizeThreshold>1 GB</defaultBackPressureDataSizeThreshold>
+    <processor>
+      <id>c130053e-017e-1000-e581-48dcfc185038</id>
+      <name>UpdateAttribute</name>
+      <position x="680.0" y="256.0"/>
+      <styles/>
+      <comment/>
+      <class>org.apache.nifi.processors.attributes.UpdateAttribute</class>
+      <bundle>
+        <group>org.apache.nifi</group>
+        <artifact>nifi-update-attribute-nar</artifact>
+        <version>1.15.2</version>
+      </bundle>
+      <maxConcurrentTasks>1</maxConcurrentTasks>
+      <schedulingPeriod>0 sec</schedulingPeriod>
+      <penalizationPeriod>30 sec</penalizationPeriod>
+      <yieldPeriod>1 sec</yieldPeriod>
+      <bulletinLevel>WARN</bulletinLevel>
+      <lossTolerant>false</lossTolerant>
+      <scheduledState>RUNNING</scheduledState>
+      <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+      <executionNode>ALL</executionNode>
+      <runDurationNanos>0</runDurationNanos>
+      <property>
+        <name>Delete Attributes Expression</name>
+      </property>
+      <property>
+        <name>Store State</name>
+        <value>Do not store state</value>
+      </property>
+      <property>
+        <name>Stateful Variables Initial Value</name>
+      </property>
+      <property>
+        <name>canonical-value-lookup-cache-size</name>
+        <value>100</value>
+      </property>
+      <autoTerminatedRelationship>success</autoTerminatedRelationship>
+    </processor>
+    <processor>
+      <id>c11a6e7f-017e-1000-cdd8-2d3e424d7225</id>
+      <name>UpdateAttribute</name>
+      <position x="216.0" y="256.0"/>
+      <styles/>
+      <comment/>
+      <class>org.apache.nifi.processors.attributes.UpdateAttribute</class>
+      <bundle>
+        <group>org.apache.nifi</group>
+        <artifact>nifi-update-attribute-nar</artifact>
+        <version>1.15.2</version>
+      </bundle>
+      <maxConcurrentTasks>1</maxConcurrentTasks>
+      <schedulingPeriod>0 sec</schedulingPeriod>
+      <penalizationPeriod>30 sec</penalizationPeriod>
+      <yieldPeriod>1 sec</yieldPeriod>
+      <bulletinLevel>WARN</bulletinLevel>
+      <lossTolerant>false</lossTolerant>
+      <scheduledState>RUNNING</scheduledState>
+      <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+      <executionNode>ALL</executionNode>
+      <runDurationNanos>0</runDurationNanos>
+      <property>
+        <name>Delete Attributes Expression</name>
+      </property>
+      <property>
+        <name>Store State</name>
+        <value>Do not store state</value>
+      </property>
+      <property>
+        <name>Stateful Variables Initial Value</name>
+      </property>
+      <property>
+        <name>canonical-value-lookup-cache-size</name>
+        <value>100</value>
+      </property>
+      <autoTerminatedRelationship>success</autoTerminatedRelationship>
+    </processor>
+    <inputPort>
+      <id>c12f987d-017e-1000-de92-17bdff9f8b21</id>
+      <name>ProvInput</name>
+      <position x="736.0" y="0.0"/>
+      <comments/>
+      <scheduledState>RUNNING</scheduledState>
+      <maxConcurrentTasks>1</maxConcurrentTasks>
+      <allowRemoteAccess>true</allowRemoteAccess>
+    </inputPort>
+    <inputPort>
+      <id>c11a3c30-017e-1000-f2f0-17232c042b30</id>
+      <name>BravoInput</name>
+      <position x="272.0" y="0.0"/>
+      <comments/>
+      <scheduledState>RUNNING</scheduledState>
+      <maxConcurrentTasks>1</maxConcurrentTasks>
+      <allowRemoteAccess>true</allowRemoteAccess>
+    </inputPort>
+    <connection>
+      <id>c11aa559-017e-1000-c24b-fb6ccb999e60</id>
+      <name/>
+      <bendPoints/>
+      <labelIndex>1</labelIndex>
+      <zIndex>0</zIndex>
+      <sourceId>c11a3c30-017e-1000-f2f0-17232c042b30</sourceId>
+      <sourceGroupId>356a3caa-e4c2-492d-9c1d-e040d8a3b5be</sourceGroupId>
+      <sourceType>INPUT_PORT</sourceType>
+      <destinationId>c11a6e7f-017e-1000-cdd8-2d3e424d7225</destinationId>
+      <destinationGroupId>356a3caa-e4c2-492d-9c1d-e040d8a3b5be</destinationGroupId>
+      <destinationType>PROCESSOR</destinationType>
+      <relationship/>
+      <maxWorkQueueSize>10000</maxWorkQueueSize>
+      <maxWorkQueueDataSize>1 GB</maxWorkQueueDataSize>
+      <flowFileExpiration>0 sec</flowFileExpiration>
+      <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+      <partitioningAttribute/>
+      <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+    </connection>
+    <connection>
+      <id>c13023be-017e-1000-d1fd-b1eaa0ad742d</id>
+      <name/>
+      <bendPoints/>
+      <labelIndex>1</labelIndex>
+      <zIndex>0</zIndex>
+      <sourceId>c12f987d-017e-1000-de92-17bdff9f8b21</sourceId>
+      <sourceGroupId>356a3caa-e4c2-492d-9c1d-e040d8a3b5be</sourceGroupId>
+      <sourceType>INPUT_PORT</sourceType>
+      <destinationId>c130053e-017e-1000-e581-48dcfc185038</destinationId>
+      <destinationGroupId>356a3caa-e4c2-492d-9c1d-e040d8a3b5be</destinationGroupId>
+      <destinationType>PROCESSOR</destinationType>
+      <relationship/>
+      <maxWorkQueueSize>10000</maxWorkQueueSize>
+      <maxWorkQueueDataSize>1 GB</maxWorkQueueDataSize>
+      <flowFileExpiration>0 sec</flowFileExpiration>
+      <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+      <partitioningAttribute/>
+      <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+    </connection>
+  </rootGroup>
+  <controllerServices/>
+  <reportingTasks>
+    <reportingTask>
+      <id>c2b0c85e-017e-1000-0f6d-53ed5df3eb43</id>
+      <name>PrometheusReportingTask</name>
+      <comment/>
+      <class>org.apache.nifi.reporting.prometheus.PrometheusReportingTask</class>
+      <bundle>
+        <group>org.apache.nifi</group>
+        <artifact>nifi-prometheus-nar</artifact>
+        <version>1.15.2</version>
+      </bundle>
+      <schedulingPeriod>5 sec</schedulingPeriod>
+      <scheduledState>RUNNING</scheduledState>
+      <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+      <property>
+        <name>prometheus-reporting-task-metrics-endpoint-port</name>
+        <value>9092</value>
+      </property>
+      <property>
+        <name>prometheus-reporting-task-instance-id</name>
+        <value>${hostname(true)}</value>
+      </property>
+      <property>
+        <name>prometheus-reporting-task-metrics-strategy</name>
+        <value>All Components</value>
+      </property>
+      <property>
+        <name>prometheus-reporting-task-metrics-send-jvm</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>prometheus-reporting-task-ssl-context</name>
+      </property>
+      <property>
+        <name>prometheus-reporting-task-client-auth</name>
+        <value>No Authentication</value>
+      </property>
+    </reportingTask>
+  </reportingTasks>
+</flowController>
