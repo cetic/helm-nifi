@@ -146,7 +146,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `auth.oidc.clientSecret`                                                    | oidc clientSecret                                                                                                  | `nil`                           |
 | `auth.oidc.claimIdentifyingUser`                                            | oidc claimIdentifyingUser                                                                                          | `email`                         |
 | `auth.oidc.admin`                                                           | Default OIDC admin identity                                                                                        | `nifi@example.com`              |
-| Note that OIDC authentication to a multi-NiFi-node cluster requires Ingress sticky sessions | See https://community.cloudera.com/t5/Support-Questions/OIDC-With-Azure-AD/m-p/232324#M194163      | Also https://kubernetes.github.io/ingress-nginx/examples/affinity/cookie/ |
+| Note that OIDC authentication to a multi-NiFi-node cluster requires Ingress sticky sessions | See [background](https://community.cloudera.com/t5/Support-Questions/OIDC-With-Azure-AD/m-p/232324#M194163)      | Also [how](https://kubernetes.github.io/ingress-nginx/examples/affinity/cookie/) |
 | **postStart**                                                               |
 | `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
 | **Headless Service**                                                        |
