@@ -250,7 +250,11 @@ spec:
 {{- if .Values.properties.sensitiveKeySetFile }}
           if [ ! -r {{ .Values.properties.sensitiveKeySetFile | quote }} ]
           then
+{{- if .Values.properties.sensitiveKeyPrior }}
+            prop_replace nifi.sensitive.props.key {{ .Values.properties.sensitiveKeyPrior | quote }}
+{{- /* if .Values.properties.sensitiveKeyPrior */}}{{ else }}
             prop_replace nifi.sensitive.props.key ""
+{{- /* if .Values.properties.sensitiveKeyPrior */}}{{ end }}
             bin/nifi.sh set-sensitive-properties-key {{ .Values.properties.sensitiveKey | quote }}
             touch {{ .Values.properties.sensitiveKeySetFile | quote }}
           fi

@@ -80,6 +80,8 @@ properties:
   # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#updating-the-sensitive-properties-key
   # to simultaneously encrypt it and set nifi.sensitive.props.key.
   # sensitiveKeySetFile: /opt/nifi/data/sensitive-props-key-applied
+  # If sensitiveKey was already set, then pass in sensitiveKeyPrior with the old key.
+  # sensitiveKeyPrior: OldPasswordToChangeFrom
   algorithm: NIFI_PBKDF2_AES_GCM_256
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
