@@ -221,7 +221,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `zookeeper.url`                                                             | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
 | `zookeeper.port`                                                            | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `2181`                          |
 | **registry**                                                                |
-| `registry.enabled`                                                          | If true, deploy Nifi Registry                                                                                          | `true`                          |
+| `registry.enabled`                                                          | If true, deploy Nifi Registry                                                                                          | `false`                          |
 | `registry.url`                                                              | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `nil`                           |
 | `registry.port`                                                             | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `80`                            |
 | **ca**                                                                      |
