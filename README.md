@@ -110,6 +110,9 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
 | `sts.pod.annotations`                                                       | Pod template annotations                                                                                           | `security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000`                          |
 | `sts.hostAliases    `                                                       | Add entries to Pod /etc/hosts                                                                                      | `[]`                            |
+| `sts.startupProbe.enabled`                                                  | enable Startup Probe on Nifi server container                                                                      | `false`                            |
+| `sts.startupProbe.failureThreshold`                                         | sets Startup Probe failureThreshold field value                                                                    | `60`                            |
+| `sts.startupProbe.periodSeconds`                                            | sets Startup Probe periodSeconds field value                                                                       | `10`                            |
 | **secrets**
 | `secrets`                                                                   | Pass any secrets to the nifi pods. The secret can also be mounted to a specific path if required.                  | `nil`                           |
 | **configmaps**
