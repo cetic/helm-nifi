@@ -249,7 +249,19 @@ spec:
               echo "node deleted"
           }
 
-          trap 'echo Received trapped signal, beginning shutdown...;offloadNode;./bin/nifi.sh stop;deleteNode;exit 0;' TERM HUP INT;
+          executeTrap() {
+             echo Received trapped signal, beginning shutdown...;
+{{- if .Values.properties.isNode }}
+             offloadNode;
+{{- end }}
+             ./bin/nifi.sh stop;
+{{- if .Values.properties.isNode }}
+             deleteNode;
+{{- end }}
+             exit 0;
+          }
+
+          trap executeTrap TERM HUP INT;
           trap ":" EXIT
 
           exec bin/nifi.sh run & nifi_pid="$!"
@@ -322,7 +334,7 @@ spec:
 #               fi
 {{- end }}
         livenessProbe:
-          initialDelaySeconds: 90
+          initialDelaySeconds: 600
           periodSeconds: 60
           tcpSocket:
             port: {{ .Values.properties.httpsPort }}
@@ -403,7 +415,10 @@ spec:
       - name: app-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
-        args: [tail, -n+1, -F, /var/log/nifi-app.log]
+        args: 
+           - /bin/sh
+           - -c
+           - trap "exit 0" TERM; tail -n+1 -F /var/log/nifi-app.log & wait $!
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
@@ -412,7 +427,10 @@ spec:
       - name: bootstrap-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
-        args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
+        args:
+           - /bin/sh
+           - -c
+           - trap "exit 0" TERM; tail -n+1 -F /var/log/nifi-bootstrap.log & wait $!
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
@@ -421,7 +439,10 @@ spec:
       - name: user-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
-        args: [tail, -n+1, -F, /var/log/nifi-user.log]
+        args:
+           - /bin/sh
+           - -c
+           - trap "exit 0" TERM; tail -n+1 -F /var/log/nifi-user.log & wait $!
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
