@@ -129,9 +129,11 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.customLibPath`                                                  | Path of the custom libraries folder                                                                                | `nil`                           |
 | `properties.webProxyHost`                               | Proxy to access to Nifi through the cluster ip address    | `Port:30236`
 | **[Authentication](/doc/USERMANAGEMENT.md)**                                                |
-| **Single-user authentication**                                                | Automatically disabled if OIDC or LDAP enabled
+| **Single-user authentication**                                                | Automatically disabled if Client Certificate, OIDC, or LDAP enabled
 | `auth.singleUser.username`                                                                | Single user identity                                                                                             | `username`            |
 | `auth.singleUser.password`                                                         | Single user password                                                                                          | `changemechangeme`                         |
+| **Client Certificate authentication**       |
+| `auth.clientAuth.enabled`       |     Enable User auth via Client Certificates       |     `false`
 | **Ldap authentication**                                                |
 | `auth.admin`                                                                | Default admin identity                                                                                             | ` CN=admin, OU=NIFI`            |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
