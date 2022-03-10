@@ -7,7 +7,7 @@ describe('NiFi Login via OIDC', () => {
 
     before(async () => {
         browser = await puppeteer.connect({
-          browserWSEndpoint: 'ws://browserless.default.svc.cluster.local:3000',
+          browserWSEndpoint: 'ws://'+process.env.K8SNODEIP+':'+process.env.K8SPORT,
           ignoreHTTPSErrors: true
         })
         page = await browser.newPage()
