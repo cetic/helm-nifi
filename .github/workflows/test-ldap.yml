@@ -32,7 +32,9 @@ jobs:
       - name: Install Nifi
         run: helm install nifi . -f tests/03-ldap-values.yaml
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+        run: |
+          kubectl rollout status --timeout=5m --watch statefulset/nifi
+          kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
       - name: Wait for NiFi web server to start
         run: |
           for n in [ 0 1 2 3 4 5 6 7 8 9 ]
