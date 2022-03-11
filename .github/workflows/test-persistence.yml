@@ -28,7 +28,9 @@ jobs:
       - name: Install Nifi
         run: helm install nifi . -f tests/02-persistence-enabled-values.yaml
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+        run: |
+          kubectl rollout status --timeout=5m --watch statefulset/nifi
+          kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
       - name: Get First .processGroupFlow.uri
         id: first-pgfuri
         run: |

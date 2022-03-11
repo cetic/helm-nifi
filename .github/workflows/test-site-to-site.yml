@@ -31,6 +31,8 @@ jobs:
         run: tests/06-site-to-site.bash
       - name: Check deployment status
         run: |
+          kubectl -n alpha rollout status --timeout=5m --watch statefulset/nifi
+          kubectl -n bravo rollout status --timeout=5m --watch statefulset/nifi
           kubectl -n alpha wait --for=condition=Ready pod/nifi-0 --timeout=20m
           kubectl -n bravo wait --for=condition=Ready pod/nifi-0 --timeout=20m
       - name: Wait for BRAVO NiFi web server to start
