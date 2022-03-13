@@ -190,6 +190,7 @@ service:
 ##
 ingress:
   enabled: false
+  # className: nginx
   annotations: {}
   tls: []
   hosts: []
