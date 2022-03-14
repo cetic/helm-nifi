@@ -167,6 +167,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `service.processors.ports`                                                  | Specify "name/port/targetPort/nodePort" for processors  sockets                                                    | `[]`                            |
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
+| `ingress.className`      | Ingress controller Class                                                                                   | `nginx`                                  |
 | `ingress.annotations`                                                       | Ingress annotations                                                                                                | `{}`                            |
 | `ingress.path`                                                              | Path to access frontend (See issue [#22](https://github.com/cetic/helm-nifi/issues/22))                            | `/`                             |
 | `ingress.hosts`                                                             | Ingress hosts                                                                                                      | `[]`                            |
