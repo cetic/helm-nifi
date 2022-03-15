@@ -353,7 +353,7 @@ zookeeper:
 # ------------------------------------------------------------------------------
 registry:
   ## If true, install the Nifi registry
-  enabled: true
+  enabled: false
   url: ""
   port: 80
   ## Add values for the nifi-registry here
