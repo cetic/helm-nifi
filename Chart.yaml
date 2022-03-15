@@ -1,7 +1,11 @@
 ---
 apiVersion: v2
 name: nifi
+<<<<<<< bug/fix_term_sidecars
 version: 1.0.8
+=======
+version: 1.0.6
+>>>>>>> master
 appVersion: 1.14.0
 description: Apache NiFi is a software project from the Apache Software Foundation designed to automate the flow of data between software systems.
 keywords:
@@ -32,7 +36,7 @@ dependencies:
     condition: zookeeper.enabled
   - name: nifi-registry
     alias: registry
-    version: 0.3.5
+    version: 0.3.8
     repository: https://dysnix.github.io/charts/
     condition: registry.enabled
   - name: ca

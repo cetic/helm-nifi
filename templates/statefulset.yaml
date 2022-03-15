@@ -197,18 +197,25 @@ spec:
           done
           echo === end of files ===
 
+          function prop () {
+            target_file=${NIFI_HOME}/conf/nifi.properties
+            egrep "^${1}=" ${target_file} | cut -d'=' -f2
+          }
+
           function offloadNode() {
               FQDN=$(hostname -f)
               echo "disconnecting node '$FQDN'"
               baseUrl=https://${FQDN}:{{ .Values.properties.httpsPort }}
 
-              keystore=${NIFI_HOME}/config-data/certs/keystore.jks
-              keystorePasswd=$(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
-              keyPasswd=$(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
-              truststore=${NIFI_HOME}/config-data/certs/truststore.jks
-              truststorePasswd=$(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
-
-              secureArgs=" --truststore ${truststore} --truststoreType JKS --truststorePasswd ${truststorePasswd} --keystore ${keystore} --keystoreType JKS --keystorePasswd ${keystorePasswd} --proxiedEntity "{{ .Values.auth.admin }}""
+              echo "keystoreType=$(prop nifi.security.keystoreType)" > secure.properties
+              echo "keystore=$(prop nifi.security.keystore)" >> secure.properties
+              echo "keystorePasswd=$(prop nifi.security.keystorePasswd)" >> secure.properties
+              echo "truststoreType=$(prop nifi.security.truststoreType)" >> secure.properties
+              echo "truststore=$(prop nifi.security.truststore)" >> secure.properties
+              echo "truststorePasswd=$(prop nifi.security.truststorePasswd)" >> secure.properties
+              echo "proxiedEntity={{ .Values.auth.admin }}" >> secure.properties
+             
+              secureArgs="-p secure.properties"
 
               echo baseUrl ${baseUrl}
               echo "gracefully disconnecting node '$FQDN' from cluster"
@@ -307,7 +314,9 @@ spec:
 {{- end }}
 {{- if .Values.properties.isNode }}
         readinessProbe:
+{{- if not .Values.sts.startupProbe.enabled  }}
           initialDelaySeconds: 60
+{{- end }}
           periodSeconds: 20
           tcpSocket:
             port: {{ .Values.properties.httpsPort }}
@@ -333,8 +342,17 @@ spec:
 #                 exit 1
 #               fi
 {{- end }}
+{{- if .Values.sts.startupProbe.enabled }}
+        startupProbe:
+          failureThreshold: {{ .Values.sts.startupProbe.failureThreshold }}
+          periodSeconds: {{ .Values.sts.startupProbe.periodSeconds }}
+          tcpSocket:
+            port: {{ .Values.properties.httpsPort }}
+{{- end }}
         livenessProbe:
+{{- if not .Values.sts.startupProbe.enabled }}
           initialDelaySeconds: 90
+{{- end }}
           periodSeconds: 60
           tcpSocket:
             port: {{ .Values.properties.httpsPort }}
