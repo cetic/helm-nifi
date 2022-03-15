@@ -1,7 +1,7 @@
 User Authentication
 =============
 
-This helm chart provides four types of authentication: Single User, Client Certificate, LDAP, and OIDC. These four authtications can be managed essentialy from the `values.yaml` file. 
+This helm chart provides four types of authentication: Single User, Client Certificate, LDAP, and OIDC. These four authentication types can be managed essentialy from the `values.yaml` file. 
 
 
 ## 1. Single User
