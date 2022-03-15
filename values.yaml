@@ -49,6 +49,11 @@ sts:
 #        - example.com
 #        - example
 
+  startupProbe:
+    enabled: false
+    failureThreshold: 60
+    periodSeconds: 10
+
 ## Useful if using any custom secrets
 ## Pass in some secrets to use (if required)
 # secrets:
