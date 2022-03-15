@@ -302,7 +302,9 @@ spec:
 {{- end }}
 {{- if .Values.properties.isNode }}
         readinessProbe:
+{{- if not .Values.sts.startupProbe.enabled  }}
           initialDelaySeconds: 60
+{{- end }}
           periodSeconds: 20
           tcpSocket:
             port: {{ .Values.properties.httpsPort }}
@@ -328,8 +330,17 @@ spec:
 #                 exit 1
 #               fi
 {{- end }}
+{{- if .Values.sts.startupProbe.enabled }}
+        startupProbe:
+          failureThreshold: {{ .Values.sts.startupProbe.failureThreshold }}
+          periodSeconds: {{ .Values.sts.startupProbe.periodSeconds }}
+          tcpSocket:
+            port: {{ .Values.properties.httpsPort }}
+{{- end }}
         livenessProbe:
+{{- if not .Values.sts.startupProbe.enabled }}
           initialDelaySeconds: 90
+{{- end }}
           periodSeconds: 60
           tcpSocket:
             port: {{ .Values.properties.httpsPort }}

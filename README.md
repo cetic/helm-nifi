@@ -110,6 +110,9 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `sts.AntiAffinity`                                                          | Affinity for pod assignment                                                                                        | `soft`                          |
 | `sts.pod.annotations`                                                       | Pod template annotations                                                                                           | `security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000`                          |
 | `sts.hostAliases    `                                                       | Add entries to Pod /etc/hosts                                                                                      | `[]`                            |
+| `sts.startupProbe.enabled`                                                  | enable [Startup Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-startup-probes) on Nifi server container                                                                      | `false`                            |
+| `sts.startupProbe.failureThreshold`                                         | sets Startup Probe failureThreshold field value                                                                    | `60`                            |
+| `sts.startupProbe.periodSeconds`                                            | sets Startup Probe periodSeconds field value                                                                       | `10`                            |
 | **secrets**
 | `secrets`                                                                   | Pass any secrets to the nifi pods. The secret can also be mounted to a specific path if required.                  | `nil`                           |
 | **configmaps**
@@ -218,7 +221,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `zookeeper.url`                                                             | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `nil`                           |
 | `zookeeper.port`                                                            | If the Zookeeper Chart is disabled a URL and port are required to connect                                          | `2181`                          |
 | **registry**                                                                |
-| `registry.enabled`                                                          | If true, deploy Nifi Registry                                                                                          | `true`                          |
+| `registry.enabled`                                                          | If true, deploy [Nifi Registry](https://nifi.apache.org/registry.html)                                                                                          | `false`                          |
 | `registry.url`                                                              | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `nil`                           |
 | `registry.port`                                                             | If the Nifi Registry Chart is disabled a URL and port are required to connect                                          | `80`                            |
 | **ca**                                                                      |

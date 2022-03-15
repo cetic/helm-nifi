@@ -49,6 +49,11 @@ sts:
 #        - example.com
 #        - example
 
+  startupProbe:
+    enabled: false
+    failureThreshold: 60
+    periodSeconds: 10
+
 ## Useful if using any custom secrets
 ## Pass in some secrets to use (if required)
 # secrets:
@@ -353,7 +358,7 @@ zookeeper:
 # ------------------------------------------------------------------------------
 registry:
   ## If true, install the Nifi registry
-  enabled: true
+  enabled: false
   url: ""
   port: 80
   ## Add values for the nifi-registry here
