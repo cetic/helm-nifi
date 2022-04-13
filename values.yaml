@@ -373,6 +373,16 @@ certManager:
     limits:
       cpu: 100m
       memory: 128Mi
+  # cert-manager takes care of rotating the node certificates, so default
+  # their lifetime to 90 days.  But when the CA expires you may need to 
+  # 'helm delete' the cluster, delete all the node certificates and secrets, 
+  # and then 'helm install' the NiFi cluster again.  If a site-to-site trusted
+  # CA or a NiFi Registry CA certificate expires, you'll need to restart all 
+  # pods to pick up the new version of the CA certificate.  So default the CA 
+  # lifetime to 10 years to avoid that happening very often.
+  # c.f. https://github.com/cert-manager/cert-manager/issues/2478#issuecomment-1095545529
+  certDuration: 2160h
+  caDuration: 87660h
 
 # ------------------------------------------------------------------------------
 # Zookeeper:

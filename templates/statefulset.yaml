@@ -217,17 +217,18 @@ spec:
           prop_replace nifi.security.autoreload.enabled true
           prop_replace nifi.security.autoreload.interval "{{ .Values.certManager.refreshSeconds }} secs"
 
+          while [ ! -r "${NIFI_HOME}/tls/truststore.jks" ]
+          do
+            echo "${NIFI_HOME}/tls/truststore.jks" is not readable!  Waiting for cert-manager sidecar to populate it.
+            sleep 2
+          done
+
           while [ ! -r "${NIFI_HOME}/tls/keystore.jks" ]
           do
             echo "${NIFI_HOME}/tls/keystore.jks" is not readable!  Waiting for cert-manager sidecar to populate it.
             sleep 2
           done
 
-          while [ ! -r "${NIFI_HOME}/tls/truststore.jks" ]
-          do
-            echo "${NIFI_HOME}/tls/truststore.jks" is not readable!  Waiting for cert-manager sidecar to populate it.
-            sleep 2
-          done
 {{- /* if .Values.certManager.enabled */}}{{ else }}
 
           if [ ! -r "${NIFI_HOME}/conf/nifi-cert.pem" ]
@@ -556,55 +557,71 @@ spec:
           NODENAME=$(hostname)
           mkdir -p "${NIFI_HOME}"/tls/cert-manager
 
-          while :
-          do
+          # Note opportunity here to inject additional trusted certs named ca.crt in other
+          # subdirectories of /opt/nifi/nifi-current/tls/, using custom secrets and/or configmaps.
+          # If any of those trusted certs expire then you will need to restart the pod to pick
+          # them up, as the truststore is only created at pod startup and Kubernetes won't
+          # update secrets mounted as subPaths anyway.
+          # c.f. https://kubernetes.io/docs/concepts/storage/volumes/#secret
+
+          function pullNodeSecretData() {
+            rm -f /tmp/secret.json /tmp/secret-data.json
             curl --cacert /run/secrets/kubernetes.io/secret-reader-token/ca.crt \
                  -H "Authorization: Bearer $(cat /run/secrets/kubernetes.io/secret-reader-token/token)" \
                  https://kubernetes.default.svc/api/v1/namespaces/$(cat /run/secrets/kubernetes.io/secret-reader-token/namespace)/secrets/$(hostname) \
                  --output /tmp/secret.json
-                 
             jq .data < /tmp/secret.json > /tmp/secret-data.json
+            rm -f /tmp/secret.json
+          }       
+        
+          pullNodeSecretData
+          jq -r '."ca.crt"' < /tmp/secret-data.json | base64 -d > "${NIFI_HOME}"/tls/cert-manager/ca.crt
+          touch /tmp/tls.crt.old
+            
+          rm -f "${NIFI_HOME}/tls/truststore-new.jks"
+          for ca in "${NIFI_HOME}"/tls/*/ca.crt
+          do
+            ALIAS=$(echo $ca | awk -F "/" '{print $(NF-1) }' -)
+            keytool -import \
+                    -noprompt \
+                    -trustcacerts \
+                    -alias $ALIAS \
+                    -file $ca \
+                    -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
+                    -storepass "{{ .Values.certManager.truststorePasswd }}"
+          done
+          keytool -list -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
+                        -storepass "{{ .Values.certManager.truststorePasswd }}"
+          mv "${NIFI_HOME}/tls/truststore-new.jks" "${NIFI_HOME}/tls/truststore.jks"
+
+          while :
+          do
+            pullNodeSecretData
             jq -r '."tls.crt"' < /tmp/secret-data.json | base64 -d > /tmp/tls.crt
             jq -r '."tls.key"' < /tmp/secret-data.json | base64 -d > /tmp/tls.key
-  
-            openssl pkcs12 -export -in      "/tmp/tls.crt" \
-                                   -inkey   "/tmp/tls.key" \
-                                   -name    "${NODENAME}" \
-                                   -out     "/tmp/tls.p12" \
-                                   -passout "pass:{{ .Values.certManager.keystorePasswd }}"
-            rm -f "${NIFI_HOME}/tls/keystore-new.jks"
-            keytool -importkeystore \
-                    -noprompt \
-                    -destkeystore "${NIFI_HOME}/tls/keystore-new.jks" \
-                    -srckeystore "/tmp/tls.p12" \
-                    -srcstoretype PKCS12 \
-                    -srcstorepass "{{ .Values.certManager.keystorePasswd }}" \
-                    -deststorepass "{{ .Values.certManager.keystorePasswd }}"
-            keytool -list -keystore "${NIFI_HOME}/tls/keystore-new.jks" \
-                          -storepass "{{ .Values.certManager.keystorePasswd }}"
-            mv  "${NIFI_HOME}/tls/keystore-new.jks" "${NIFI_HOME}/tls/keystore.jks"
-  
-            # Note opportunity here to inject additional trusted certs named ca.crt in other
-            # subdirectories of /opt/nifi/nifi-current/tls/, using custom secrets and/or configmaps
-
-            jq -r '."ca.crt"' < /tmp/secret-data.json | base64 -d > "${NIFI_HOME}"/tls/cert-manager/ca.crt
-            
-            rm -f "${NIFI_HOME}/tls/truststore-new.jks"
-            for ca in "${NIFI_HOME}"/tls/*/ca.crt
-            do
-              ALIAS=$(echo $ca | awk -F "/" '{print $(NF-1) }' -)
-              keytool -import \
+            if ! diff /tmp/tls.crt.old /tmp/tls.crt > /dev/null
+            then
+              openssl pkcs12 -export -in      "/tmp/tls.crt" \
+                                     -inkey   "/tmp/tls.key" \
+                                     -name    "${NODENAME}" \
+                                     -out     "/tmp/tls.p12" \
+                                     -passout "pass:{{ .Values.certManager.keystorePasswd }}"
+              rm -f "${NIFI_HOME}/tls/keystore-new.jks"
+              keytool -importkeystore \
                       -noprompt \
-                      -trustcacerts \
-                      -alias $ALIAS \
-                      -file $ca \
-                      -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
-                      -storepass "{{ .Values.certManager.truststorePasswd }}"
-            done
-            keytool -list -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
-                          -storepass "{{ .Values.certManager.truststorePasswd }}"
-            mv "${NIFI_HOME}/tls/truststore-new.jks" "${NIFI_HOME}/tls/truststore.jks"
-  
+                      -destkeystore "${NIFI_HOME}/tls/keystore-new.jks" \
+                      -srckeystore "/tmp/tls.p12" \
+                      -srcstoretype PKCS12 \
+                      -srcstorepass "{{ .Values.certManager.keystorePasswd }}" \
+                      -deststorepass "{{ .Values.certManager.keystorePasswd }}"
+              mv  "${NIFI_HOME}/tls/keystore-new.jks" "${NIFI_HOME}/tls/keystore.jks"
+              mv /tmp/tls.crt /tmp/tls.crt.old
+            fi
+
+            ls -l "${NIFI_HOME}/tls/keystore.jks"
+            keytool -list -keystore "${NIFI_HOME}/tls/keystore.jks" \
+                          -storepass "{{ .Values.certManager.keystorePasswd }}"
+
             echo Starting to sleep for {{ .Values.certManager.refreshSeconds }} seconds at $(date)
             sleep {{ .Values.certManager.refreshSeconds }}
           done

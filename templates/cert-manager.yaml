@@ -15,6 +15,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   isCA: true
+  duration: {{ $.Values.certManager.caDuration }}
+  renewBefore: 5m1s
   commonName: {{ template "apache-nifi.fullname" $ }}-ca.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
   subject:
     organizationalUnits:
@@ -45,6 +47,7 @@ metadata:
   name: {{ template "apache-nifi.fullname" $ }}-{{ . }}
   namespace: {{ $.Release.Namespace }}
 spec:
+  duration: {{ $.Values.certManager.certDuration }}
   commonName: {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
   subject:
     organizationalUnits:

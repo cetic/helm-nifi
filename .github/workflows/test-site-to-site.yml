@@ -85,3 +85,32 @@ jobs:
           echo ===BRAVO USER LOGS===
           kubectl -n bravo logs pod/nifi-0 -c user-log
           exit 1
+      - name: Confirm certificate rotation
+        run: |
+          OLDCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
+          echo Certificate "$OLDCERTSTART"
+          cmctl -n alpha renew nifi-0
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do 
+            NEWCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
+            echo Certificate "$NEWCERTSTART"
+            if [ \""$OLDCERTSTART"\" != \""$NEWCERTSTART"\" ]
+            then 
+              exit 0
+            fi
+            sleep 30
+          done
+          echo Certificate did not update for 300 seconds!
+          echo ===ALPHA SERVER LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c server
+          echo ===ALPHA APP LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c app-log
+          echo ===ALPHA USER LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c user-log
+          echo ===BRAVO SERVER LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c server
+          echo ===BRAVO APP LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c app-log
+          echo ===BRAVO USER LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c user-log
+          exit 1

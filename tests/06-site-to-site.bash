@@ -27,6 +27,8 @@ helm -n alpha install nifi . \
   --set configmaps[0].name=flow-xml \
   --set configmaps[0].mountPath=/opt/nifi/flow-xml \
   --set customFlow=/opt/nifi/flow-xml/06-alpha.flow.xml \
+  --set certManager.caDuration=1h \
+  --set certManager.refreshSeconds=30 \
   --set 'certManager.caSecrets[0]=bravo-ca'
 
 helm -n bravo install nifi . \
@@ -39,6 +41,8 @@ helm -n bravo install nifi . \
   --set configmaps[0].name=flow-xml \
   --set configmaps[0].mountPath=/opt/nifi/flow-xml \
   --set customFlow=/opt/nifi/flow-xml/06-bravo.flow.xml \
+  --set certManager.caDuration=1h \
+  --set certManager.refreshSeconds=30 \
   --set 'certManager.caSecrets[0]=alpha-ca'
 
 # Copy certificate authorities from one namespace to the other
@@ -52,3 +56,4 @@ kubectl -n bravo wait --for=condition=Ready=true certificate/nifi-ca --timeout=6
 kubectl -n bravo get secret nifi-ca -o json | \
   jq 'del(.metadata)|del(.data."tls.crt")|del(.data."tls.key") + { metadata: { name: "bravo-ca" } } + { type: "kubernetes.io/generic" }' | \
   kubectl -n alpha apply -f -
+  
