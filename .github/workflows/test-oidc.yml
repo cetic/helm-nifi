@@ -3,7 +3,7 @@ name: OIDC Logins
 on:
   push:
   pull_request:
-    
+
 jobs:
   oidc-insecure:
     name: OIDC (Insecure)
@@ -33,7 +33,7 @@ jobs:
       - name: Install test framework components
         run: |
           kubectl apply -f tests/04-oidc-test-framework
-          kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js 
+          kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js
           kubectl wait --for=condition=Ready pod/browserless-0 --timeout=5m
           kubectl wait --for=condition=Ready pod/keycloak-0 --timeout=5m
           kubectl wait --for=condition=Ready pod/socks5-0 --timeout=5m
@@ -50,7 +50,7 @@ jobs:
           export NIFIURL='https://nifi.default.svc.cluster.local:8443/nifi/'
           cd $HOME
           mkdir -p $HOME/screenshots
-          node_modules/mocha/bin/mocha $GITHUB_WORKSPACE/tests/04-oidc-login-test.js --timeout 30000
+          node_modules/mocha/bin/_mocha $GITHUB_WORKSPACE/tests/04-oidc-login-test.js --timeout 30000
       - name: Archive screenshots
         if: ${{ success() || failure() || cancelled() }}
         uses: actions/upload-artifact@v3
@@ -86,7 +86,7 @@ jobs:
       - name: Install test framework components
         run: |
           kubectl apply -f tests/04-oidc-test-framework
-          kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js 
+          kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js
           kubectl wait --for=condition=Ready pod/browserless-0 --timeout=5m
           kubectl wait --for=condition=Ready pod/keycloak-0 --timeout=5m
           kubectl wait --for=condition=Ready pod/socks5-0 --timeout=5m
@@ -105,7 +105,7 @@ jobs:
           export NIFIURL='https://ingress-nginx-controller.ingress-nginx.svc.cluster.local/nifi/'
           cd $HOME
           mkdir -p $HOME/screenshots
-          node_modules/mocha/bin/mocha $GITHUB_WORKSPACE/tests/07-oidc-cluster-login-test.js --timeout 30000
+          node_modules/mocha/bin/_mocha $GITHUB_WORKSPACE/tests/07-oidc-cluster-login-test.js --timeout 30000
       - name: Archive screenshots
         if: ${{ success() || failure() || cancelled () }}
         uses: actions/upload-artifact@v3
