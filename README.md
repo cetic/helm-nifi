@@ -244,6 +244,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 
 Before [filing a bug report](https://github.com/cetic/helm-nifi/issues/new/choose), you may want to:
 
+* check the [FAQ](/doc/FAQ.md)
 * check that [persistent storage](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) is configured on your cluster
 * keep in mind that a first installation may take a significant amount of time on a home internet connection
 * check if a pod is in error: 
@@ -279,7 +280,7 @@ TLS work/inspiration from https://github.com/sushilkm/nifi-chart.git.
 
 Feel free to contribute by making a [pull request](https://github.com/cetic/helm-nifi/pull/new/master).
 
-Please read the official [Contribution Guide](https://github.com/helm/charts/blob/master/CONTRIBUTING.md) from Helm for more information on how you can contribute to this Chart.
+Please read the official [Helm Contribution Guide](https://github.com/helm/charts/blob/master/CONTRIBUTING.md) from Helm for more information on how you can contribute to this Chart.
 
 ## License
 
