@@ -3,7 +3,7 @@
 {{- $fullName := include "apache-nifi.fullname" . -}}
 {{- $ingressPath := .Values.ingress.path -}}
 {{- $ingressHttpsPort := .Values.service.httpsPort -}}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ template "apache-nifi.fullname" . }}-ingress
