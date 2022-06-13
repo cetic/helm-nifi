@@ -20,7 +20,12 @@ jobs:
         uses: actions/checkout@v1
       - name: Install dependencies
         run: |
-          sudo apt-get install -y jq
+          curl -sL https://deb.nodesource.com/setup_16.x -o nodesource_setup.sh
+          sudo bash nodesource_setup.sh
+          sudo apt-get install -y jq yarn
+          yarn add puppeteer-core --cwd $HOME
+          yarn add chai --cwd $HOME
+          yarn add mocha --cwd $HOME
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add dysnix https://dysnix.github.io/charts/
           helm repo update
@@ -36,7 +41,9 @@ jobs:
       - name: Install Nifi
         run: helm install nifi . -f tests/04-oidc-values.yaml
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+        run: |
+          kubectl rollout status --timeout=5m --watch statefulset/nifi
+          kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
       - name: Wait for NiFi web server to start
         run: |
           for n in [ 0 1 2 3 4 5 6 7 8 9 ]
@@ -51,9 +58,7 @@ jobs:
           exit 1
       - name: Check that OIDC login works
         run: |
-          kubectl apply -f tests/04-oidc-mocha-job.yaml
-          while ! kubectl logs -f job/oidc-mocha
-          do
-            sleep 5
-          done
-          kubectl get job/oidc-mocha -o json | jq -e -r '.status.succeeded == 1'
+          export K8SNODEIP=$(kubectl get node -o json | jq -r '.items[0].status.addresses[0].address')
+          export K8SPORT=$(kubectl get svc browserless -o json | jq -r '.spec.ports[0].nodePort')
+          cd $HOME
+          node_modules/mocha/bin/mocha $GITHUB_WORKSPACE/tests/04-oidc-login-test.js --timeout 30000
