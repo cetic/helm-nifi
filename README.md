@@ -253,10 +253,10 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `metrics.prometheus.enabled`            | Enable prometheus to access nifi metrics endpoint                                                                                    | `false`                                                      |
 | `metrics.prometheus.port`              | Port where Nifi server will expose Prometheus metrics                                                                                  | `9092`                                                      |
 | `metrics.prometheus.serviceMonitor.enabled`       | If `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.prometheus.enabled` to be `true`)                       | `false`                                        |
-| `metrics.prometheus.serviceMonitor.namespace`       | In which namespace the ServiceMonitor should be created                       | 
+| `metrics.prometheus.serviceMonitor.namespace`       | In which namespace the ServiceMonitor should be created                       |
 | `metrics.prometheus.serviceMonitor.labels`       | Additional labels for the ServiceMonitor                       | `nil`                                        |
 | **customFlow**                                                              |                                                                                                                    |                                 |
-| `customFlow`                                                                | Use this file (uncompressed XML; possibly from a configmap) as the Flow definition                                 | `nil`                           |
+| `customFlow`                                                                | Use this file (uncompressed XML; [possibly from a configmap](tests/06-site-to-site.bash)) as the Flow definition   | `nil`                           |
 
 ## Troubleshooting
 
@@ -265,7 +265,7 @@ Before [filing a bug report](https://github.com/cetic/helm-nifi/issues/new/choos
 * check the [FAQ](/doc/FAQ.md)
 * check that [persistent storage](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) is configured on your cluster
 * keep in mind that a first installation may take a significant amount of time on a home internet connection
-* check if a pod is in error: 
+* check if a pod is in error:
 ```bash
 kubectl get pod
 NAME                  READY   STATUS    RESTARTS   AGE
