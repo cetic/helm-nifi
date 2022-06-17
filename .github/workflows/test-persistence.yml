@@ -3,7 +3,7 @@ name: Test-Persistence
 on:
   push:
   pull_request:
-    
+
 jobs:
   test-persistence:
     name: Test NiFi Helm Chart Persistence
@@ -29,8 +29,7 @@ jobs:
         run: helm install nifi . -f tests/02-persistence-enabled-values.yaml
       - name: Check deployment status
         run: |
-          kubectl rollout status --timeout=5m --watch statefulset/nifi
-          kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+          kubectl rollout status --watch statefulset/nifi --timeout=5m
       - name: Get First .processGroupFlow.uri
         id: first-pgfuri
         run: |
@@ -53,7 +52,8 @@ jobs:
       - name: Install NiFi
         run: helm install nifi . -f tests/02-persistence-enabled-values.yaml
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+        run: |
+          kubectl rollout status --watch statefulset/nifi --timeout=5m
       - name: Get Second .processGroupFlow.uri
         id: second-pgfuri
         run: |
@@ -97,7 +97,8 @@ jobs:
       - name: Install Nifi
         run: helm install nifi . -f tests/02-persistence-disabled-values.yaml
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+        run: |
+          kubectl rollout status --watch statefulset/nifi --timeout=5m
       - name: Get First .processGroupFlow.uri
         id: first-pgfuri
         run: |
@@ -120,7 +121,8 @@ jobs:
       - name: Install NiFi
         run: helm install nifi . -f tests/02-persistence-disabled-values.yaml
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+        run: |
+          kubectl rollout status --watch statefulset/nifi --timeout=5m
       - name: Get Second .processGroupFlow.uri
         id: second-pgfuri
         run: |

@@ -34,15 +34,15 @@ jobs:
         run: |
           kubectl apply -f tests/04-oidc-test-framework
           kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js
-          kubectl wait --for=condition=Ready pod/browserless-0 --timeout=5m
-          kubectl wait --for=condition=Ready pod/keycloak-0 --timeout=5m
-          kubectl wait --for=condition=Ready pod/socks5-0 --timeout=5m
+          kubectl rollout status --watch statefulset/browserless --timeout=5m
+          kubectl rollout status --watch statefulset/keycloak --timeout=5m
+          kubectl rollout status --watch statefulset/socks5 --timeout=5m
           tests/04-oidc-keycloak-setup.bash
       - name: Install Nifi
         run: helm install nifi . -f tests/04-oidc-values.yaml
       - name: Check deployment status
         run: |
-          kubectl rollout status --timeout=20m --watch statefulset/nifi
+          kubectl rollout status --watch statefulset/nifi --timeout=20m
       - name: Check that OIDC login works
         run: |
           export K8SNODEIP=$(kubectl get node -o json | jq -r '.items[0].status.addresses[0].address')
@@ -87,9 +87,9 @@ jobs:
         run: |
           kubectl apply -f tests/04-oidc-test-framework
           kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js
-          kubectl wait --for=condition=Ready pod/browserless-0 --timeout=5m
-          kubectl wait --for=condition=Ready pod/keycloak-0 --timeout=5m
-          kubectl wait --for=condition=Ready pod/socks5-0 --timeout=5m
+          kubectl rollout status --watch statefulset/browserless --timeout=5m
+          kubectl rollout status --watch statefulset/keycloak --timeout=5m
+          kubectl rollout status --watch statefulset/socks5 --timeout=5m
           tests/04-oidc-keycloak-setup.bash
           tests/05-install-cert-manager.bash
           minikube addons enable ingress
@@ -97,7 +97,7 @@ jobs:
       - name: Install Nifi and wait for start
         run: |
           helm install nifi . -f tests/07-oidc-cluster-values.yaml
-          kubectl rollout status --timeout=20m --watch statefulset/nifi
+          kubectl rollout status --watch statefulset/nifi --timeout=20m
       - name: Check that OIDC login works
         run: |
           export K8SNODEIP=$(kubectl get node -o json | jq -r '.items[0].status.addresses[0].address')

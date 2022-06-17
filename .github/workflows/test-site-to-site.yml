@@ -3,7 +3,7 @@ name: Test-Site-to-Site
 on:
   push:
   pull_request:
-    
+
 jobs:
   test-oidc:
     name: Test NiFi Helm Chart Secure Site-to-Site
@@ -31,10 +31,8 @@ jobs:
         run: tests/06-site-to-site.bash
       - name: Check deployment status
         run: |
-          kubectl -n alpha rollout status --timeout=5m --watch statefulset/nifi
-          kubectl -n bravo rollout status --timeout=5m --watch statefulset/nifi
-          kubectl -n alpha wait --for=condition=Ready pod/nifi-0 --timeout=20m
-          kubectl -n bravo wait --for=condition=Ready pod/nifi-0 --timeout=20m
+          kubectl -n alpha rollout status --watch statefulset/nifi --timeout=5m
+          kubectl -n bravo rollout status --watch statefulset/nifi --timeout=5m
       - name: Wait for BRAVO NiFi web server to start
         run: |
           for n in [ 0 1 2 3 4 5 6 7 8 9 ]
@@ -62,11 +60,11 @@ jobs:
       - name: Wait for items on BravoInput
         run: |
           for n in [ 0 1 2 3 4 5 6 7 8 9 ]
-          do 
+          do
             ITEMS=$(kubectl -n bravo exec nifi-0 -c server -- curl -s http://localhost:9092/metrics/ | grep 'name="BravoInput"' | grep ^nifi_amount_items_output | cut -f2 -d' ')
             echo Got $ITEMS items so far
             if [ $ITEMS != "0.0" ]
-            then 
+            then
               exit 0
             fi
             sleep 30
@@ -91,11 +89,11 @@ jobs:
           echo Certificate "$OLDCERTSTART"
           cmctl -n alpha renew nifi-0
           for n in [ 0 1 2 3 4 5 6 7 8 9 ]
-          do 
+          do
             NEWCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
             echo Certificate "$NEWCERTSTART"
             if [ \""$OLDCERTSTART"\" != \""$NEWCERTSTART"\" ]
-            then 
+            then
               exit 0
             fi
             sleep 30
