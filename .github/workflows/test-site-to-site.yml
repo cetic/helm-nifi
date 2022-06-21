@@ -1,0 +1,114 @@
+name: Test-Site-to-Site
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-oidc:
+    name: Test NiFi Helm Chart Secure Site-to-Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'v1.20.2'
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y jq
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add dysnix https://dysnix.github.io/charts/
+          helm repo update
+          helm dep up
+      - name: Install cert-manager
+        run: tests/05-install-cert-manager.bash
+      - name: Install ALPHA and BRAVO instances of NiFi
+        run: tests/06-site-to-site.bash
+      - name: Check deployment status
+        run: |
+          kubectl -n alpha rollout status --watch statefulset/nifi --timeout=5m
+          kubectl -n bravo rollout status --watch statefulset/nifi --timeout=5m
+      - name: Wait for BRAVO NiFi web server to start
+        run: |
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            if kubectl -n bravo logs pod/nifi-0 -c app-log | grep 'JettyServer NiFi has started'
+            then
+              exit 0
+            fi
+            sleep 30
+          done
+          echo NiFi did not start for 300 seconds!
+          echo ===ALPHA SERVER LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c server
+          echo ===ALPHA APP LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c app-log
+          echo ===ALPHA USER LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c user-log
+          echo ===BRAVO SERVER LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c server
+          echo ===BRAVO APP LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c app-log
+          echo ===BRAVO USER LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c user-log
+          exit 1
+      - name: Wait for items on BravoInput
+        run: |
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            ITEMS=$(kubectl -n bravo exec nifi-0 -c server -- curl -s http://localhost:9092/metrics/ | grep 'name="BravoInput"' | grep ^nifi_amount_items_output | cut -f2 -d' ')
+            echo Got $ITEMS items so far
+            if [ $ITEMS != "0.0" ]
+            then
+              exit 0
+            fi
+            sleep 30
+          done
+          echo Got no items for 300 seconds!
+          echo ===ALPHA SERVER LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c server
+          echo ===ALPHA APP LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c app-log
+          echo ===ALPHA USER LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c user-log
+          echo ===BRAVO SERVER LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c server
+          echo ===BRAVO APP LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c app-log
+          echo ===BRAVO USER LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c user-log
+          exit 1
+      - name: Confirm certificate rotation
+        run: |
+          OLDCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
+          echo Certificate "$OLDCERTSTART"
+          cmctl -n alpha renew nifi-0
+          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
+          do
+            NEWCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
+            echo Certificate "$NEWCERTSTART"
+            if [ \""$OLDCERTSTART"\" != \""$NEWCERTSTART"\" ]
+            then
+              exit 0
+            fi
+            sleep 30
+          done
+          echo Certificate did not update for 300 seconds!
+          echo ===ALPHA SERVER LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c server
+          echo ===ALPHA APP LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c app-log
+          echo ===ALPHA USER LOGS===
+          kubectl -n alpha logs pod/nifi-0 -c user-log
+          echo ===BRAVO SERVER LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c server
+          echo ===BRAVO APP LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c app-log
+          echo ===BRAVO USER LOGS===
+          kubectl -n bravo logs pod/nifi-0 -c user-log
+          exit 1

@@ -1,12 +1,12 @@
-name: Test-OIDC
+name: OIDC Logins
 
 on:
   push:
   pull_request:
-    
+
 jobs:
-  test-oidc:
-    name: Test NiFi Helm Chart OIDC
+  oidc-insecure:
+    name: OIDC (Insecure)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,7 +20,12 @@ jobs:
         uses: actions/checkout@v1
       - name: Install dependencies
         run: |
-          sudo apt-get install -y jq
+          curl -sL https://deb.nodesource.com/setup_16.x -o nodesource_setup.sh
+          sudo bash nodesource_setup.sh
+          sudo apt-get install -y jq yarn
+          yarn add puppeteer-core --cwd $HOME
+          yarn add chai --cwd $HOME
+          yarn add mocha --cwd $HOME
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add dysnix https://dysnix.github.io/charts/
           helm repo update
@@ -28,32 +33,82 @@ jobs:
       - name: Install test framework components
         run: |
           kubectl apply -f tests/04-oidc-test-framework
-          kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js 
-          kubectl wait --for=condition=Ready pod/browserless-0 --timeout=5m
-          kubectl wait --for=condition=Ready pod/keycloak-0 --timeout=5m
-          kubectl wait --for=condition=Ready pod/socks5-0 --timeout=5m
+          kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js
+          kubectl rollout status --watch statefulset/browserless --timeout=5m
+          kubectl rollout status --watch statefulset/keycloak --timeout=5m
+          kubectl rollout status --watch statefulset/socks5 --timeout=5m
           tests/04-oidc-keycloak-setup.bash
       - name: Install Nifi
         run: helm install nifi . -f tests/04-oidc-values.yaml
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
-      - name: Wait for NiFi web server to start
         run: |
-          for n in [ 0 1 2 3 4 5 6 7 8 9 ]
-          do
-            if kubectl logs pod/nifi-0 -c app-log | grep 'JettyServer NiFi has started'
-            then
-              exit 0
-            fi
-            sleep 30
-          done
-          echo NiFi did not start for 300 seconds!
-          exit 1
+          kubectl rollout status --watch statefulset/nifi --timeout=20m
       - name: Check that OIDC login works
         run: |
-          kubectl apply -f tests/04-oidc-mocha-job.yaml
-          while ! kubectl logs -f job/oidc-mocha
-          do
-            sleep 5
-          done
-          kubectl get job/oidc-mocha -o json | jq -e -r '.status.succeeded == 1'
+          export K8SNODEIP=$(kubectl get node -o json | jq -r '.items[0].status.addresses[0].address')
+          export K8SPORT=$(kubectl get svc browserless -o json | jq -r '.spec.ports[0].nodePort')
+          export NIFIURL='https://nifi.default.svc.cluster.local:8443/nifi/'
+          cd $HOME
+          mkdir -p $HOME/screenshots
+          node_modules/mocha/bin/_mocha $GITHUB_WORKSPACE/tests/04-oidc-login-test.js --timeout 30000
+      - name: Archive screenshots
+        if: ${{ success() || failure() || cancelled() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: screenshots-insecure
+          path: ~/screenshots/
+
+  oidc-cluster-ingress-cert-manager-local-issuer:
+    name: OIDC (cluster, Ingress, cert-manager local issuer)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.20.0'
+          kubernetes version: 'v1.20.2'
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          curl -sL https://deb.nodesource.com/setup_16.x -o nodesource_setup.sh
+          sudo bash nodesource_setup.sh
+          sudo apt-get install -y jq yarn
+          yarn add puppeteer-core --cwd $HOME
+          yarn add chai --cwd $HOME
+          yarn add mocha --cwd $HOME
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add dysnix https://dysnix.github.io/charts/
+          helm repo update
+          helm dep up
+      - name: Install test framework components
+        run: |
+          kubectl apply -f tests/04-oidc-test-framework
+          kubectl create configmap 04-oidc-login-test --from-file=tests/04-oidc-login-test.js
+          kubectl rollout status --watch statefulset/browserless --timeout=5m
+          kubectl rollout status --watch statefulset/keycloak --timeout=5m
+          kubectl rollout status --watch statefulset/socks5 --timeout=5m
+          tests/04-oidc-keycloak-setup.bash
+          tests/05-install-cert-manager.bash
+          minikube addons enable ingress
+          kubectl apply -f tests/07-increase-webhook-timeout.yaml
+      - name: Install Nifi and wait for start
+        run: |
+          helm install nifi . -f tests/07-oidc-cluster-values.yaml
+          kubectl rollout status --watch statefulset/nifi --timeout=20m
+      - name: Check that OIDC login works
+        run: |
+          export K8SNODEIP=$(kubectl get node -o json | jq -r '.items[0].status.addresses[0].address')
+          export K8SPORT=$(kubectl get svc browserless -o json | jq -r '.spec.ports[0].nodePort')
+          export NIFIURL='https://ingress-nginx-controller.ingress-nginx.svc.cluster.local/nifi/'
+          cd $HOME
+          mkdir -p $HOME/screenshots
+          node_modules/mocha/bin/_mocha $GITHUB_WORKSPACE/tests/07-oidc-cluster-login-test.js --timeout 30000
+      - name: Archive screenshots
+        if: ${{ success() || failure() || cancelled () }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: screenshots-certMgr-localIssuer
+          path: ~/screenshots/

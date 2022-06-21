@@ -48,7 +48,9 @@ $CURL \
      --data-raw '{ 
                    "realm":"nifi", 
                    "displayName":"NiFi",
-                   "enabled":"true" 
+                   "enabled":"true",
+                   "ssoSessionIdleTimeout":7200,
+                   "accessTokenLifespan":3600 
                  }'
 
 # Create the NiFi User
@@ -79,7 +81,7 @@ $CURL \
      --data-raw '{ 
                    "clientId":"nifi", 
                    "enabled":"true", 
-                   "redirectUris": [ "https://nifi.default.svc.cluster.local:8443/*" ],
+                   "redirectUris": [ "https://nifi.default.svc.cluster.local:8443/*", "https://ingress-nginx-controller.ingress-nginx.svc.cluster.local:443/*" ],
                    "publicClient": "false",
                    "secret":"CZhA1IOePlXHz3PWqVwYoVAcYIUHTcDK"
                  }'

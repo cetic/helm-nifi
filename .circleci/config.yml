@@ -10,5 +10,5 @@ jobs:
           environment:
             - GITHUB_PAGES_REPO: cetic/helm-charts
             - HELM_CHART: nifi
-            - HELM_VERSION: 3.1.2
+            - HELM_VERSION: 3.9.0
           command: wget -O - https://raw.githubusercontent.com/cetic/helm-chart-publisher/master/publish.sh | sh
