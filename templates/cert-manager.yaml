@@ -1,0 +1,157 @@
+{{ if .Values.certManager.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ template "apache-nifi.fullname" $ }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ template "apache-nifi.fullname" $ }}-ca
+  namespace: {{ .Release.Namespace }}
+spec:
+  isCA: true
+  duration: {{ $.Values.certManager.caDuration }}
+  renewBefore: 5m1s
+  commonName: {{ template "apache-nifi.fullname" $ }}-ca.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  subject:
+    organizationalUnits:
+    - NIFI
+  secretName: {{ template "apache-nifi.fullname" $ }}-ca
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Always
+  issuerRef:
+    name: {{ template "apache-nifi.fullname" $ }}
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ template "apache-nifi.fullname" $ }}-ca
+  namespace: {{ .Release.Namespace }}
+spec:
+  ca:
+    secretName: {{ template "apache-nifi.fullname" $ }}-ca
+---
+{{ range untilStep 0 (int .Values.replicaCount) 1 }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ template "apache-nifi.fullname" $ }}-{{ . }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  duration: {{ $.Values.certManager.certDuration }}
+  commonName: {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  subject:
+    organizationalUnits:
+    - NIFI
+  secretName: {{ template "apache-nifi.fullname" $ }}-{{ . }}
+  privateKey:
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - content commitment
+    - key encipherment
+    - data encipherment
+    - key agreement
+    - server auth
+    - client auth
+  dnsNames:
+{{ toYaml $.Values.certManager.additionalDnsNames | indent 4 }}
+    - {{ template "apache-nifi.fullname" $ }}.{{ $.Release.Namespace }}.svc
+    - {{ template "apache-nifi.fullname" $ }}.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+    - {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc
+    - {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  issuerRef:
+    name: {{ template "apache-nifi.fullname" $ }}-ca
+    kind: Issuer
+---
+{{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
+  namespace: {{ $.Release.Namespace }}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader-token
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    kubernetes.io/service-account.name: {{ template "apache-nifi.fullname" $ }}-secret-reader
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
+  namespace: {{ $.Release.Namespace }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+{{/* 
+     SECURITY NOTE: This Role can read any secret in the namespace, which 
+                    at first can seem excessive.  However, in mitigation,
+                    this role's secret is only exposed to the cert-manager
+                    sidecar.  That sidecar runs a very simple script that
+                    (1) can be audited quickly for vulnerabilities and
+                    (2) has no attack surface exposure to user input.
+
+    ALTERNATIVES
+    CONSIDERED:     (A) Use https://github.com/spoditor/spoditor to provide
+                        a mutating webhook that would only mount a given
+                        pod's secret in that pod.
+
+                        Downside: Requires installing spoditor with
+                        full cluster-wide privileges.
+
+                    (B) Write a chart-specific mutating webhook to perform
+                        the same action, perhaps running under the
+                        https://olm.operatorframework.io/ to limit the
+                        webhook to the namespace.
+
+                        Downside: Again requires installation of OLM, an
+                        operator with full cluster-wide privileges, plus
+                        writing the mutating webhook and either building
+                        a container to host it or injecting it into
+                        (say) python:latest with a configMap mount, and
+                        then maintaining that webhook code over time.
+
+                    (C) Modify the statefulset definition to have precisely
+                        1 replica, emitting individual pods for each NiFi node
+                        through a large Helm loop.
+
+                        Downside: Ew.
+
+                    (D) Create a separate role for each pod and limit that
+                        role to a single secret, associating the role based
+                        on (say) pod name label.
+
+                        Downside: Not possible.  k8s does not allow label-based
+                        selection of resources in RBAC, c.f.:
+                        https://github.com/kubernetes/kubernetes/issues/44703
+*/}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
+  namespace: {{ $.Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
+roleRef:
+  kind: Role
+  name: {{ template "apache-nifi.fullname" $ }}-secret-reader
+  apiGroup: rbac.authorization.k8s.io
+{{/* if .Values.certManager.enabled */}}{{ end }}

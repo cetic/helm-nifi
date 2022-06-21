@@ -15,3 +15,7 @@ auth:
 
 properties:
   webProxyHost: nifi.default.svc.cluster.local:8443
+
+sts:
+  startupProbe:
+    enabled: true

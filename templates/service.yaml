@@ -20,6 +20,8 @@ spec:
     name: https
   - port: {{ .Values.properties.clusterPort }}
     name: cluster
+  - port: {{ .Values.properties.siteToSite.port }}
+    name: site-to-site
   selector:
     app: {{ include "apache-nifi.name" . | quote }}
     release: {{ .Release.Name | quote }}
@@ -62,6 +64,12 @@ spec:
       name: https
       targetPort: {{ .Values.properties.httpsPort }}
       nodePort: {{ .Values.service.nodePort }}
+    - port: {{ .Values.properties.siteToSite.port }}
+      name: site-to-site
+      targetPort: {{ .Values.properties.siteToSite.port }}
+  {{- if .Values.properties.siteToSite.nodePort }}
+      nodePort: {{ .Values.properties.siteToSite.nodePort }}
+  {{- end }}
 {{- if .Values.service.processors.enabled }}
 {{- with .Values.service.processors.ports  }}
 {{- range . }}

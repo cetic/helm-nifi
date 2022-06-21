@@ -22,6 +22,9 @@ spec:
           ports:
             - name: tcp-browserless
               containerPort: 3000
+          env:
+          - name: CONNECTION_TIMEOUT
+            value: "-1"
  #       - name: netshoot
  #         command: [ 'tail', '-f', '/dev/null' ]
  #         image: docker.io/nicolaka/netshoot:latest
