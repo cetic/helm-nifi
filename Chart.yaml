@@ -27,7 +27,7 @@ maintainers:
     url: https://github.com/zakaria2905
 dependencies:
   - name: zookeeper
-    version: 10.0.0
+    version: 9.2.7
     repository: https://charts.bitnami.com/bitnami
     condition: zookeeper.enabled
   - name: nifi-registry
