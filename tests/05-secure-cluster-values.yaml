@@ -1,0 +1,14 @@
+zookeeper:
+  enabled: true
+
+properties:
+  isNode: true
+  webProxyHost: nifi.default.svc.cluster.local:8443
+
+replicaCount: 2
+
+registry:
+  enabled: false
+
+certManager:
+  enabled: true

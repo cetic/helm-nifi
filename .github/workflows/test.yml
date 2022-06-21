@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
     - master
-    
+
 jobs:
   example:
     name: Minikube installation - Basic test
@@ -20,7 +20,7 @@ jobs:
         with:
           minikube version: 'v1.20.0'
           kubernetes version: 'v1.20.2'
-          #github token: ${{ secrets.GITHUB_TOKEN }}          
+          #github token: ${{ secrets.GITHUB_TOKEN }}
       #- run: minikube addons list
       #- name: Interact with the cluster
       #  run: kubectl get nodes
@@ -31,11 +31,12 @@ jobs:
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add dysnix https://dysnix.github.io/charts/
           helm repo update
-          helm dep up          
+          helm dep up
       - name: Install Nifi
         run: helm install nifi .
       - name: Check deployment status
-        run: kubectl wait --for=condition=Ready pod/nifi-0 --timeout=20m
+        run: |
+          kubectl rollout status --watch statefulset/nifi --timeout=5m
       - name: Wait for NiFi web server to start
         run: |
           for n in [ 0 1 2 3 4 5 6 7 8 9 ]

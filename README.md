@@ -120,6 +120,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **nifi properties**                                                         |
 | `properties.algorithm`                                                 | [Encryption method](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#nifi_sensitive_props_key)                                                                                | `NIFI_PBKDF2_AES_GCM_256`                         |
 | `properties.sensitiveKey`                                                 | [Encryption password](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#nifi_sensitive_props_key) (at least 12 characters)                                                                                | `changeMechangeMe`                         |
+| `properties.sensitiveKeySetFile`                                            | [Update Sensitive Properties Key](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#updating-the-sensitive-properties-key) if this file does not exist, and then create it. | `nil`                           |
+| `properties.sensitiveKeyPrior`                                              | Prior `sensitiveKey` when updating via `sensitiveKeySetFile` mechanism                                             | `nil`                           |
 | `properties.externalSecure`                                                 | externalSecure for when inbound SSL                                                                                | `false`                         |
 | `properties.isNode`                                                         | cluster node properties (only configure for cluster nodes)                                                         | `true`                          |
 | `properties.httpPort`                                                       | web properties HTTP port                                                                                           | `8080`                          |
@@ -150,6 +152,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `auth.oidc.clientSecret`                                                    | oidc clientSecret                                                                                                  | `nil`                           |
 | `auth.oidc.claimIdentifyingUser`                                            | oidc claimIdentifyingUser                                                                                          | `email`                         |
 | `auth.oidc.admin`                                                           | Default OIDC admin identity                                                                                        | `nifi@example.com`              |
+| Note that OIDC authentication to a multi-NiFi-node cluster requires Ingress sticky sessions | See [background](https://community.cloudera.com/t5/Support-Questions/OIDC-With-Azure-AD/m-p/232324#M194163)      | Also [how](https://kubernetes.github.io/ingress-nginx/examples/affinity/cookie/) |
 | **postStart**                                                               |
 | `postStart`                                                                 | Include additional libraries in the Nifi containers by using the postStart handler                                 | `nil`                           |
 | **Headless Service**                                                        |
@@ -166,6 +169,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `service.processors.ports`                                                  | Specify "name/port/targetPort/nodePort" for processors  sockets                                                    | `[]`                            |
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
+| `ingress.className`      | Ingress controller Class                                                                                   | `nginx`                                  |
 | `ingress.annotations`                                                       | Ingress annotations                                                                                                | `{}`                            |
 | `ingress.path`                                                              | Path to access frontend (See issue [#22](https://github.com/cetic/helm-nifi/issues/22))                            | `/`                             |
 | `ingress.hosts`                                                             | Ingress hosts                                                                                                      | `[]`                            |
@@ -235,20 +239,35 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `ca.serviceAccount.create`                                                 | If true, a service account will be created and used by the deployment                                         | `false`                            |
 | `ca.serviceAccount.name`                                                 |When set, the set name will be used as the service account name. If a value is not provided a name will be generated based on Chart options | `nil` |
 | `ca.openshift.scc.enabled`                                                     | If true, an openshift security context will be created permitting to run the deployment as AnyUID | `false` |
+| **certManager**                                                             |
+| `certManager.enabled`                                                       | If true, use [cert-manager](https://cert-manager.io/) to create and rotate intra-NiFi-cluster TLS keys (note that cert-manager is a Kubernetes cluster-wide resource, so is not installed automatically by this chart) | `false`                         |
+| `certManager.clusterDomain`                                                 | Kubernetes cluster top level domain, to generate fully qualified domain names for certificate Common Names         | `cluster.local`                 |
+| `certManager.keystorePasswd`                                                | Java Key Store password for NiFi keystore                                                                          | `changeme`                      |
+| `certManager.truststorePasswd`                                              | Java Key Store password for NiFi truststore                                                                        | `changeme`                      |
+| `certManager.additionalDnsNames`                                            | Additional DNS names to incorporate into TLS certificates (e.g. where users point browsers to access the NiFi UI)  | `[ localhost ]`                 |
+| `certManager.caSecrets`                                                     | Names of Kubernetes secrets containing `ca.crt` keys to add to the NiFi truststore                                 | `[ ]`                           |
+| `certManager.refreshSeconds`                                                | How often the sidecar refreshes the NiFi keystore (not truststore) from the cert-manager Kubernetes secrets        | `300`                           |
+| `certManager.resources`                                                     | Memory and CPU resources for the node certificate refresh sidecar                                                  | 100m CPU, 128MiB RAM            |
+| `certManager.replaceDefaultTrustStore`                                      | Use the certManager truststore, not the default Java trusted CA collection (for [e.g.] private OIDC provider)      | `false`                         |
+| `certManager.certDuration`                                                  | NiFi node certificate lifetime (90 days)                                                                           | `2160h`                         |
+| `certManager.caDuration`                                                    | Certificate Authority certificate lifetime (10 years)                                                              | `87660h`                        |
 | **metrics**                                                                     |
 | `metrics.prometheus.enabled`            | Enable prometheus to access nifi metrics endpoint                                                                                    | `false`                                                      |
 | `metrics.prometheus.port`              | Port where Nifi server will expose Prometheus metrics                                                                                  | `9092`                                                      |
 | `metrics.prometheus.serviceMonitor.enabled`       | If `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.prometheus.enabled` to be `true`)                       | `false`                                        |
-| `metrics.prometheus.serviceMonitor.namespace`       | In which namespace the ServiceMonitor should be created                       | 
+| `metrics.prometheus.serviceMonitor.namespace`       | In which namespace the ServiceMonitor should be created                       |
 | `metrics.prometheus.serviceMonitor.labels`       | Additional labels for the ServiceMonitor                       | `nil`                                        |
+| **customFlow**                                                              |                                                                                                                    |                                 |
+| `customFlow`                                                                | Use this file (uncompressed XML; [possibly from a configmap](tests/06-site-to-site.bash)) as the Flow definition   | `nil`                           |
 
 ## Troubleshooting
 
 Before [filing a bug report](https://github.com/cetic/helm-nifi/issues/new/choose), you may want to:
 
+* check the [FAQ](/doc/FAQ.md)
 * check that [persistent storage](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) is configured on your cluster
 * keep in mind that a first installation may take a significant amount of time on a home internet connection
-* check if a pod is in error: 
+* check if a pod is in error:
 ```bash
 kubectl get pod
 NAME                  READY   STATUS    RESTARTS   AGE
@@ -281,7 +300,7 @@ TLS work/inspiration from https://github.com/sushilkm/nifi-chart.git.
 
 Feel free to contribute by making a [pull request](https://github.com/cetic/helm-nifi/pull/new/master).
 
-Please read the official [Contribution Guide](https://github.com/helm/charts/blob/master/CONTRIBUTING.md) from Helm for more information on how you can contribute to this Chart.
+Please read the official [Helm Contribution Guide](https://github.com/helm/charts/blob/master/CONTRIBUTING.md) from Helm for more information on how you can contribute to this Chart.
 
 ## License
 

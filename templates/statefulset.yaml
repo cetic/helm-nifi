@@ -18,11 +18,10 @@ spec:
       release: {{ .Release.Name }}
   template:
     metadata:
-{{- if .Values.sts.pod.annotations }}
       annotations:
+{{- if .Values.sts.pod.annotations }}
 {{ toYaml .Values.sts.pod.annotations | indent 8 }}
 {{- else }}
-      annotations:
         security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
 {{- end }}
       labels:
@@ -102,7 +101,6 @@ spec:
             sleep 2
           done
 {{- end }}
-
 {{- range $key, $value := .Values.initContainers }}
       - name: {{ $key }}
 {{ toYaml $value | indent 8 }}
@@ -151,8 +149,16 @@ spec:
           prop_replace nifi.security.user.oidc.client.secret {{ .Values.auth.oidc.clientSecret }}
           prop_replace nifi.security.user.oidc.claim.identifying.user {{ .Values.auth.oidc.claimIdentifyingUser }}
           xmlstarlet ed --inplace --delete "//authorizers/authorizer[identifier='single-user-authorizer']" "${NIFI_HOME}/conf/authorizers.xml"
-          xmlstarlet ed --inplace --update "//authorizers/userGroupProvider/property[@name='Initial User Identity 1']" -v {{ .Values.auth.oidc.admin }} "${NIFI_HOME}/conf/authorizers.xml"
-          xmlstarlet ed --inplace --update "//authorizers/accessPolicyProvider/property[@name='Initial Admin Identity']" -v {{ .Values.auth.oidc.admin }} "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace --update "//authorizers/userGroupProvider/property[@name='Users File']" -v './auth-conf/users.xml' "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace --delete "//authorizers/userGroupProvider/property[@name='Initial User Identity 1']" "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace \
+                        --subnode "authorizers/userGroupProvider" --type 'elem' -n 'property' \
+                          --value {{ .Values.auth.oidc.admin | quote }} \
+                        --insert "authorizers/userGroupProvider/property[not(@name)]" --type attr -n name \
+                          --value "Initial User Identity {{ .Values.replicaCount }}" \
+                        "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace --update "//authorizers/accessPolicyProvider/property[@name='Initial Admin Identity']" -v {{ .Values.auth.oidc.admin | quote }} "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace --update "//authorizers/accessPolicyProvider/property[@name='Authorizations File']" -v './auth-conf/authorizations.xml' "${NIFI_HOME}/conf/authorizers.xml"
 {{- else if .Values.auth.clientAuth.enabled }}
           cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
           xmlstarlet ed --inplace --delete "//authorizers/authorizer[identifier='single-user-authorizer']" "${NIFI_HOME}/conf/authorizers.xml"
@@ -160,9 +166,13 @@ spec:
           bin/nifi.sh set-single-user-credentials {{ .Values.auth.singleUser.username }} {{ .Values.auth.singleUser.password }}
 {{- end }}
 
+{{ if .Values.customFlow }}
+          gzip < {{ .Values.customFlow }} > /opt/nifi/data/flow.xml.gz
+{{ else }}
           if ! test -f /opt/nifi/data/flow.xml.gz && test -f /opt/nifi/data/flow.xml; then
             gzip /opt/nifi/data/flow.xml
           fi
+{{ end }}
 
           prop_replace nifi.remote.input.host ${FQDN}
           prop_replace nifi.cluster.node.address ${FQDN}
@@ -173,8 +183,56 @@ spec:
           # Update nifi.properties for web ui proxy hostname
           prop_replace nifi.web.proxy.host {{ .Values.properties.webProxyHost }}
 {{- else }}
-          prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" . }}.{{ .Release.Namespace }}.svc
+          prop_replace nifi.web.proxy.host {{ template "apache-nifi.fullname" $ }}.{{ .Release.Namespace }}.svc
 {{- end }}
+
+{{- if .Values.certManager.enabled }}
+          xmlstarlet ed --inplace --delete "authorizers/accessPolicyProvider/property[@name='Node Identity 1']" "${NIFI_HOME}/conf/authorizers.xml"
+{{ range untilStep 0 (int .Values.replicaCount) 1 }}
+          xmlstarlet ed --inplace \
+                        --subnode "authorizers/accessPolicyProvider" --type 'elem' -n 'property' \
+                          --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}, OU=NIFI" \
+                        --insert "authorizers/accessPolicyProvider/property[not(@name)]" --type attr -n name \
+                          --value "Node Identity {{ . }}" \
+                        "${NIFI_HOME}/conf/authorizers.xml"
+          xmlstarlet ed --inplace \
+                        --subnode "authorizers/userGroupProvider" --type 'elem' -n 'property' \
+                          --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}, OU=NIFI" \
+                        --insert "authorizers/userGroupProvider/property[not(@name)]" --type attr -n name \
+                          --value "Initial User Identity {{ . }}" \
+                        "${NIFI_HOME}/conf/authorizers.xml"
+{{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}
+
+          prop_replace nifi.security.keystore "${NIFI_HOME}/tls/keystore.jks"
+          prop_replace nifi.security.keystoreType JKS
+          prop_replace nifi.security.keystorePasswd "{{ .Values.certManager.keystorePasswd }}"
+          prop_replace nifi.security.truststore "${NIFI_HOME}/tls/truststore.jks"
+          prop_replace nifi.security.truststoreType JKS
+          prop_replace nifi.security.truststorePasswd "{{ .Values.certManager.truststorePasswd }}"
+
+          prop_replace nifi.web.https.host "$(hostname).{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
+          prop_replace nifi.cluster.node.address "$(hostname).{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
+          prop_replace nifi.web.https.network.interface.default eth0
+          prop_replace nifi.web.https.network.interface.lo lo
+          prop_replace nifi.web.http.host ""
+          prop_replace nifi.web.http.port ""
+
+          prop_replace nifi.security.autoreload.enabled true
+          prop_replace nifi.security.autoreload.interval "{{ .Values.certManager.refreshSeconds }} secs"
+
+          while [ ! -r "${NIFI_HOME}/tls/truststore.jks" ]
+          do
+            echo "${NIFI_HOME}/tls/truststore.jks" is not readable!  Waiting for cert-manager sidecar to populate it.
+            sleep 2
+          done
+
+          while [ ! -r "${NIFI_HOME}/tls/keystore.jks" ]
+          do
+            echo "${NIFI_HOME}/tls/keystore.jks" is not readable!  Waiting for cert-manager sidecar to populate it.
+            sleep 2
+          done
+
+{{- /* if .Values.certManager.enabled */}}{{ else }}
 
           if [ ! -r "${NIFI_HOME}/conf/nifi-cert.pem" ]
           then
@@ -187,11 +245,26 @@ spec:
               --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
           fi
 
+{{- /* if .Values.certManager.enabled */}}{{ end }}
+
 {{- if .Values.properties.safetyValve }}
   {{- range $prop, $val := .Values.properties.safetyValve }}
           prop_replace {{ $prop }} "{{ $val }}" nifi.properties
   {{- end }}
 {{- end }}
+
+{{- if .Values.properties.sensitiveKeySetFile }}
+          if [ ! -r {{ .Values.properties.sensitiveKeySetFile | quote }} ]
+          then
+{{- if .Values.properties.sensitiveKeyPrior }}
+            prop_replace nifi.sensitive.props.key {{ .Values.properties.sensitiveKeyPrior | quote }}
+{{- /* if .Values.properties.sensitiveKeyPrior */}}{{ else }}
+            prop_replace nifi.sensitive.props.key ""
+{{- /* if .Values.properties.sensitiveKeyPrior */}}{{ end }}
+            bin/nifi.sh set-sensitive-properties-key {{ .Values.properties.sensitiveKey | quote }}
+            touch {{ .Values.properties.sensitiveKeySetFile | quote }}
+          fi
+{{- /* if .Values.properties.sensitiveKeySetFile */}}{{ end }}
 
           for f in "${NIFI_HOME}/conf/authorizers.xml" "${NIFI_HOME}/conf/login-identity-providers.xml" ${NIFI_HOME}/conf/nifi.properties
           do
@@ -259,7 +332,19 @@ spec:
               echo "node deleted"
           }
 
-          trap 'echo Received trapped signal, beginning shutdown...;offloadNode;./bin/nifi.sh stop;deleteNode;exit 0;' TERM HUP INT;
+          executeTrap() {
+             echo Received trapped signal, beginning shutdown...;
+{{- if .Values.properties.isNode }}
+             offloadNode;
+{{- end }}
+             ./bin/nifi.sh stop;
+{{- if .Values.properties.isNode }}
+             deleteNode;
+{{- end }}
+             exit 0;
+          }
+
+          trap executeTrap TERM HUP INT;
           trap ":" EXIT
 
           exec bin/nifi.sh run & nifi_pid="$!"
@@ -418,13 +503,21 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+{{- if .Values.certManager.enabled }}
+          - name: "tls"
+            mountPath: /opt/nifi/nifi-current/tls
+            readOnly: true
+{{- /* if .Values.certManager.enabled */}}{{ end }}
           {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
       - name: app-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
-        args: [tail, -n+1, -F, /var/log/nifi-app.log]
+        args: 
+          - /bin/sh
+          - -c
+          - trap "exit 0" TERM; tail -n+1 -F /var/log/nifi-app.log & wait $!
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
@@ -433,7 +526,10 @@ spec:
       - name: bootstrap-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
-        args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
+        args:
+          - /bin/sh
+          - -c
+          - trap "exit 0" TERM; tail -n+1 -F /var/log/nifi-bootstrap.log & wait $!
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
@@ -442,12 +538,144 @@ spec:
       - name: user-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
-        args: [tail, -n+1, -F, /var/log/nifi-user.log]
+        args:
+          - /bin/sh
+          - -c
+          - trap "exit 0" TERM; tail -n+1 -F /var/log/nifi-user.log & wait $!
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
         - name: logs
           mountPath: /var/log
+{{- if .Values.certManager.enabled }}
+      - name: cert-manager
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command:
+        - bash
+        - -ce
+        - |
+          trap "exit 0" TERM
+          
+          NODENAME=$(hostname)
+          mkdir -p "${NIFI_HOME}"/tls/cert-manager
+
+          # Note opportunity here to inject additional trusted certs named ca.crt in other
+          # subdirectories of /opt/nifi/nifi-current/tls/, using custom secrets and/or configmaps.
+          # If any of those trusted certs expire then you will need to restart the pod to pick
+          # them up, as the truststore is only created at pod startup and Kubernetes won't
+          # update secrets mounted as subPaths anyway.
+          # c.f. https://kubernetes.io/docs/concepts/storage/volumes/#secret
+
+          function pullNodeSecretData() {
+            rm -f /tmp/secret.json /tmp/secret-data.json
+            curl --cacert /run/secrets/kubernetes.io/secret-reader-token/ca.crt \
+                 -H "Authorization: Bearer $(cat /run/secrets/kubernetes.io/secret-reader-token/token)" \
+                 https://kubernetes.default.svc/api/v1/namespaces/$(cat /run/secrets/kubernetes.io/secret-reader-token/namespace)/secrets/$(hostname) \
+                 --output /tmp/secret.json
+            jq .data < /tmp/secret.json > /tmp/secret-data.json
+            rm -f /tmp/secret.json
+          }       
+        
+          pullNodeSecretData
+          jq -r '."ca.crt"' < /tmp/secret-data.json | base64 -d > "${NIFI_HOME}"/tls/cert-manager/ca.crt
+          touch /tmp/tls.crt.old
+            
+          rm -f "${NIFI_HOME}/tls/truststore-new.jks"
+          for ca in "${NIFI_HOME}"/tls/*/ca.crt
+          do
+            ALIAS=$(echo $ca | awk -F "/" '{print $(NF-1) }' -)
+            keytool -import \
+                    -noprompt \
+                    -trustcacerts \
+                    -alias $ALIAS \
+                    -file $ca \
+                    -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
+                    -storepass "{{ .Values.certManager.truststorePasswd }}"
+          done
+          keytool -list -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
+                        -storepass "{{ .Values.certManager.truststorePasswd }}"
+          mv "${NIFI_HOME}/tls/truststore-new.jks" "${NIFI_HOME}/tls/truststore.jks"
+
+          while :
+          do
+            pullNodeSecretData
+            jq -r '."tls.crt"' < /tmp/secret-data.json | base64 -d > /tmp/tls.crt
+            jq -r '."tls.key"' < /tmp/secret-data.json | base64 -d > /tmp/tls.key
+            if ! diff /tmp/tls.crt.old /tmp/tls.crt > /dev/null
+            then
+              openssl pkcs12 -export -in      "/tmp/tls.crt" \
+                                     -inkey   "/tmp/tls.key" \
+                                     -name    "${NODENAME}" \
+                                     -out     "/tmp/tls.p12" \
+                                     -passout "pass:{{ .Values.certManager.keystorePasswd }}"
+              rm -f "${NIFI_HOME}/tls/keystore-new.jks"
+              keytool -importkeystore \
+                      -noprompt \
+                      -destkeystore "${NIFI_HOME}/tls/keystore-new.jks" \
+                      -srckeystore "/tmp/tls.p12" \
+                      -srcstoretype PKCS12 \
+                      -srcstorepass "{{ .Values.certManager.keystorePasswd }}" \
+                      -deststorepass "{{ .Values.certManager.keystorePasswd }}"
+              mv  "${NIFI_HOME}/tls/keystore-new.jks" "${NIFI_HOME}/tls/keystore.jks"
+              mv /tmp/tls.crt /tmp/tls.crt.old
+            fi
+
+            ls -l "${NIFI_HOME}/tls/keystore.jks"
+            keytool -list -keystore "${NIFI_HOME}/tls/keystore.jks" \
+                          -storepass "{{ .Values.certManager.keystorePasswd }}"
+
+            echo Starting to sleep for {{ .Values.certManager.refreshSeconds }} seconds at $(date)
+            sleep {{ .Values.certManager.refreshSeconds }}
+          done
+        volumeMounts:
+          - name: "tls"
+            mountPath: /opt/nifi/nifi-current/tls
+          - name: secret-reader-token
+            mountPath: /run/secrets/kubernetes.io/secret-reader-token
+          {{- range $secret := .Values.secrets }}
+            {{- if $secret.mountPath }}
+              {{- if $secret.keys }}
+                {{- range $key := $secret.keys }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $secret.name }}
+            mountPath: {{ $secret.mountPath }}/{{ $key }}
+            subPath: {{ $key }}
+            readOnly: true
+                {{- end }}
+              {{- else }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $secret.name }}
+            mountPath: {{ $secret.mountPath }}
+            readOnly: true
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{ range $secret := .Values.certManager.caSecrets }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $secret }}
+            mountPath: /opt/nifi/nifi-current/tls/{{ $secret }}
+            readOnly: true
+          {{ end }}
+          {{- range $configmap := .Values.configmaps }}
+            {{- if $configmap.mountPath }}
+              {{- if $configmap.keys }}
+                {{- range $key := $configmap.keys }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $configmap.name }}
+            mountPath: {{ $configmap.mountPath }}/{{ $key }}
+            subPath: {{ $key }}
+            readOnly: true
+                {{- end }}
+              {{- else }}
+          - name: {{ include "apache-nifi.fullname" $ }}-{{ $configmap.name }}
+            mountPath: {{ $configmap.mountPath }}
+            readOnly: true
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 10 }}
+          {{/* if .Values.extraVolumeMounts */}}{{ end }}
+        resources:
+{{ toYaml .Values.certManager.resources | indent 10 }}
+{{- /* if .Values.certManager.enabled */}}{{ end }}
       volumes:
       - name: "bootstrap-conf"
         configMap:
@@ -497,6 +725,18 @@ spec:
           items:
             - key: "flow.xml"
               path: "flow.xml"
+{{- if .Values.certManager.enabled }}
+      - name: secret-reader-token
+        secret:
+          secretName: {{ template "apache-nifi.fullname" $ }}-secret-reader-token
+      - name: tls
+        emptyDir: {}
+      {{- range .Values.certManager.caSecrets }}
+      - name: {{ include "apache-nifi.fullname" $ }}-{{ . }}
+        secret:
+          secretName: {{ . }}
+      {{- end }}
+{{- /* if .Values.certManager.enabled */}}{{ end }}
       {{- range .Values.secrets }}
       - name: {{ include "apache-nifi.fullname" $ }}-{{ .name }}
         secret:

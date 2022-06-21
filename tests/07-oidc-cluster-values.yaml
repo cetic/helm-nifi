@@ -1,0 +1,40 @@
+zookeeper:
+  enabled: true
+
+registry:
+  enabled: false
+
+certManager:
+  enabled: true
+
+persistence:
+  enabled: true
+
+sts:
+  startupProbe:
+    enabled: true
+
+replicaCount: 3
+
+properties:
+  webProxyHost: ingress-nginx-controller.ingress-nginx.svc.cluster.local
+  isNode: true
+
+auth:
+  oidc:
+    enabled: true
+    discoveryUrl: http://keycloak.default.svc.cluster.local:8080/auth/realms/nifi/.well-known/openid-configuration
+    clientId: nifi
+    clientSecret: CZhA1IOePlXHz3PWqVwYoVAcYIUHTcDK
+    admin: nifi@example.com
+    claimIdentifyingUser: email
+
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/affinity-mode: persistent    
+  path: /
+  hosts:
+  - ingress-nginx-controller.ingress-nginx.svc.cluster.local

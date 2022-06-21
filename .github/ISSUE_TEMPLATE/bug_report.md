@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-<!-- Thanks for filing an issue! Before hitting the button, please answer these questions. It's helpful to search the existing GitHub issues first. It's likely that another user has already reported the issue you're facing, or it's a known issue that we're already aware of 
+<!-- Thanks for filing an issue! Before hitting the button, please answer these questions. It's helpful to search the existing GitHub issues and the [FAQ](/doc/FAQ.md) first. It's likely that another user has already reported the issue you're facing, or it's a known issue that we're already aware of 
 
 Fill in as much of the template below as you can.  If you leave out information, we can't help you as well.
 

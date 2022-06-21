@@ -75,6 +75,18 @@ sts:
 properties:
   # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#nifi_sensitive_props_key
   sensitiveKey: changeMechangeMe # Must have at least 12 characters
+  # NiFi assumes conf/nifi.properties is persistent but this helm chart
+  # recreates it every time.  Setting the Sensitive Properties Key
+  # (nifi.sensitive.props.key) is supposed to happen at the same time
+  # /opt/nifi/data/flow.xml.gz sensitive properties are encrypted.  If that
+  # doesn't happen then NiFi won't start because decryption fails.
+  # So if sensitiveKeySetFile is configured but doesn't exist, assume
+  # /opt/nifi/flow.xml.gz hasn't been encrypted and follow the procedure
+  # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#updating-the-sensitive-properties-key
+  # to simultaneously encrypt it and set nifi.sensitive.props.key.
+  # sensitiveKeySetFile: /opt/nifi/data/sensitive-props-key-applied
+  # If sensitiveKey was already set, then pass in sensitiveKeyPrior with the old key.
+  # sensitiveKeyPrior: OldPasswordToChangeFrom
   algorithm: NIFI_PBKDF2_AES_GCM_256
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
@@ -198,6 +210,7 @@ service:
 ##
 ingress:
   enabled: false
+  # className: nginx
   annotations: {}
   tls: []
   hosts: []
@@ -343,6 +356,36 @@ ca:
   openshift:
     scc:
       enabled: false
+
+# cert-manager support
+# Setting this true will have cert-manager create a private CA for the cluster
+# as well as the certificates for each cluster node.
+certManager:
+  enabled: false
+  clusterDomain: cluster.local
+  keystorePasswd: changeme
+  truststorePasswd: changeme
+  replaceDefaultTrustStore: false
+  additionalDnsNames:
+    - localhost
+  refreshSeconds: 300
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  # cert-manager takes care of rotating the node certificates, so default
+  # their lifetime to 90 days.  But when the CA expires you may need to 
+  # 'helm delete' the cluster, delete all the node certificates and secrets, 
+  # and then 'helm install' the NiFi cluster again.  If a site-to-site trusted
+  # CA or a NiFi Registry CA certificate expires, you'll need to restart all 
+  # pods to pick up the new version of the CA certificate.  So default the CA 
+  # lifetime to 10 years to avoid that happening very often.
+  # c.f. https://github.com/cert-manager/cert-manager/issues/2478#issuecomment-1095545529
+  certDuration: 2160h
+  caDuration: 87660h
 
 # ------------------------------------------------------------------------------
 # Zookeeper:

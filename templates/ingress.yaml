@@ -1,12 +1,12 @@
 ---
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "apache-nifi.fullname" . -}}
+{{- $fullName := include "apache-nifi.fullname" $ -}}
 {{- $ingressPath := .Values.ingress.path -}}
 {{- $ingressHttpsPort := .Values.service.httpsPort -}}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ template "apache-nifi.fullname" . }}-ingress
+  name: {{ template "apache-nifi.fullname" $ }}-ingress
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ include "apache-nifi.name" . | quote }}
@@ -18,6 +18,9 @@ metadata:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
+{{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+{{- end }}
 {{- if .Values.ingress.tls }}
   tls:
   {{- range .Values.ingress.tls }}
@@ -34,8 +37,11 @@ spec:
       http:
         paths:
           - path: {{ $ingressPath }}
+            pathType: Prefix
             backend:
-              serviceName: {{ $fullName }}
-              servicePort: {{ $ingressHttpsPort }}
+              service:
+                name: {{ $fullName }}
+                port: 
+                  number: {{ $ingressHttpsPort }}
   {{- end }}
 {{- end }}
