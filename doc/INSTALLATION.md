@@ -16,7 +16,7 @@ helm dep up
 ```
 2. **Set a sensitiveKey**
 
-In 1.14.0 version, Nifi needs a sensitiveKey to encrypt sensitive information. This key can be setted in the `values.yaml` file:
+In 1.16.3 version, Nifi needs a sensitiveKey to encrypt sensitive information. This key can be setted in the `values.yaml` file:
 
 ````
 properties:
@@ -27,7 +27,7 @@ properties:
 
 This helm chart provides three types of authentication: Single User, LDAP and OIDC.
 
-You can find how to configure these authentications on this [page](https://github.com/cetic/helm-nifi/tree/feature/nifi_1.14.0/doc/USERMANAGER.md).
+You can find how to configure these authentications on this [page](https://github.com/cetic/helm-nifi/tree/feature/nifi-1.16.3/doc/USERMANAGER.md).
 
 4. **Install Nifi**
 
