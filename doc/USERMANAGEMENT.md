@@ -30,7 +30,7 @@ oidc:
     admin: nifi@example.com
 ````
 
-There are a lot of ID providers that can be used to perform an OIDC authentication. In our case, we have tested that with Keycloak. You will find an example of Keycloak config on this [page](https://github.com/cetic/helm-nifi/tree/feature/nifi-1.16.3/doc/KEYCLOAK.md).
+There are a lot of ID providers that can be used to perform an OIDC authentication. In our case, we have tested that with Keycloak. You will find an example of Keycloak config on this [page](doc/KEYCLOAK.md).
 
 
 ## 3. LDAP
