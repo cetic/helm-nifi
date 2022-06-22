@@ -27,7 +27,7 @@ properties:
 
 This helm chart provides three types of authentication: Single User, LDAP and OIDC.
 
-You can find how to configure these authentications on this [page](https://github.com/cetic/helm-nifi/tree/feature/nifi-1.16.3/doc/USERMANAGER.md).
+You can find how to configure these authentications on this [page](doc/USERMANAGER.md).
 
 4. **Install Nifi**
 
