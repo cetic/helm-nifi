@@ -24,7 +24,7 @@
       <bundle>
         <group>org.apache.nifi</group>
         <artifact>nifi-standard-nar</artifact>
-        <version>1.14.0</version>
+        <version>1.16.3</version>
       </bundle>
       <maxConcurrentTasks>1</maxConcurrentTasks>
       <schedulingPeriod>1 sec</schedulingPeriod>
@@ -117,7 +117,7 @@
       <bundle>
         <group>org.apache.nifi</group>
         <artifact>nifi-ssl-context-service-nar</artifact>
-        <version>1.14.0</version>
+        <version>1.16.3</version>
       </bundle>
       <enabled>true</enabled>
       <property>
@@ -162,7 +162,7 @@
       <bundle>
         <group>org.apache.nifi</group>
         <artifact>nifi-site-to-site-reporting-nar</artifact>
-        <version>1.14.0</version>
+        <version>1.16.3</version>
       </bundle>
       <schedulingPeriod>5 sec</schedulingPeriod>
       <scheduledState>RUNNING</scheduledState>
