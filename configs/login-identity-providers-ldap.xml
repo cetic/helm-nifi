@@ -65,7 +65,7 @@
     <provider>
         <identifier>ldap-provider</identifier>
         <class>org.apache.nifi.ldap.LdapProvider</class>
-        <property name="Authentication Strategy">SIMPLE</property>
+        <property name="Authentication Strategy">{{.Values.auth.ldap.authStrategy}}</property>
         <property name="Manager DN">{{.Values.auth.ldap.admin}}</property>
         <property name="Manager Password">{{.Values.auth.ldap.pass}}</property>
         <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local/keystore.jks</property>
@@ -83,8 +83,8 @@
         <property name="Read Timeout">10 secs</property>
         <property name="Url">{{.Values.auth.ldap.host}}</property>
         <property name="User Search Base">{{.Values.auth.ldap.searchBase}}</property>
-        <property name="User Search Filter">(cn={0})</property>
+        <property name="User Search Filter">{{.Values.auth.ldap.searchFilter}}</property>
         <property name="Identity Strategy">{{.Values.auth.ldap.IdentityStrategy}}</property>
-        <property name="Authentication Expiration">12 hours</property>
+        <property name="Authentication Expiration">{{.Values.auth.ldap.authExpiration}}</property>
     </provider>
 </loginIdentityProviders>
