@@ -123,6 +123,9 @@ auth:
     username: username
     password: changemechangeme # Must to have at least 12 characters
 
+  clientAuth:
+    enabled: false
+
   ldap:
     enabled: false
     host: #ldap://<hostname>:<port>
