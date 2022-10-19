@@ -159,6 +159,23 @@ spec:
                         "${NIFI_HOME}/conf/authorizers.xml"
           xmlstarlet ed --inplace --update "//authorizers/accessPolicyProvider/property[@name='Initial Admin Identity']" -v {{ .Values.auth.oidc.admin | quote }} "${NIFI_HOME}/conf/authorizers.xml"
           xmlstarlet ed --inplace --update "//authorizers/accessPolicyProvider/property[@name='Authorizations File']" -v './auth-conf/authorizations.xml' "${NIFI_HOME}/conf/authorizers.xml"
+          {{- if .Values.properties.isNode }}
+                      xmlstarlet ed --inplace --delete "authorizers/accessPolicyProvider/property[@name='Node Identity 1']" "${NIFI_HOME}/conf/authorizers.xml"
+            {{ range untilStep 0 (int .Values.replicaCount) 1 }}
+                      xmlstarlet ed --inplace \
+                                    --subnode "authorizers/accessPolicyProvider" --type 'elem' -n 'property' \
+                                    --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}, OU=NIFI" \
+                                    --insert "authorizers/accessPolicyProvider/property[not(@name)]" --type attr -n name \
+                                    --value "Node Identity {{ . }}" \
+                                    "${NIFI_HOME}/conf/authorizers.xml"
+                      xmlstarlet ed --inplace \
+                                    --subnode "authorizers/userGroupProvider" --type 'elem' -n 'property' \
+                                    --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}, OU=NIFI" \
+                                    --insert "authorizers/userGroupProvider/property[not(@name)]" --type attr -n name \
+                                    --value "Initial User Identity {{ . }}" \
+                                    "${NIFI_HOME}/conf/authorizers.xml"
+            {{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}
+          {{- end }}
 {{- else if .Values.auth.clientAuth.enabled }}
           cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
           xmlstarlet ed --inplace --delete "//authorizers/authorizer[identifier='single-user-authorizer']" "${NIFI_HOME}/conf/authorizers.xml"
