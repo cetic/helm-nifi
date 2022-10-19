@@ -145,6 +145,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
 | `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
 | `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
+| `auth.ldap.userSearchScope`                                                 | ldap userSearchScope                                                                                               | `ONE_LEVEL`                     |
+| `auth.ldap.groupSearchScope`                                                | ldap groupSearchScope                                                                                              | `ONE_LEVEL`                     |
 | **Oidc authentication**
 | `auth.oidc.enabled`                                                         | Enable User auth via oidc                                                                                          | `false`                         |
 | `auth.oidc.discoveryUrl`                                                    | oidc discover url                                                                                                  | `https://<provider>/.well-known/openid-configuration`      |
