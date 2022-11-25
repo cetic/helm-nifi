@@ -141,7 +141,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | **Client Certificate authentication**       |
 | `auth.clientAuth.enabled`       |     Enable User auth via Client Certificates       |     `false`
 | **Ldap authentication**                                                |
-| `auth.ldap.admin`                                                           | Default admin identity and LDAP Bind DN                                                                            | ` CN=admin, OU=NIFI`            |
+| `auth.ldap.admin`                                                           | Default admin identity and LDAP Bind DN                                                                            |                                 |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
 | `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
 | `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
