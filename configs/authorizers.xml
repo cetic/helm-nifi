@@ -50,7 +50,7 @@
         {{- range $i := until $replicas }}
         <property name="Initial User Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
         {{- end }}
-        {{- if .Values.auth.ldap.enabled}}
+        {{- if and .Values.auth.ldap.enabled (not .Values.auth.admin) }}
         <property name="Initial User Identity admin">{{.Values.auth.ldap.admin}}</property>
         {{- else }}
         <property name="Initial User Identity admin">{{ .Values.auth.admin }}</property>
@@ -222,7 +222,7 @@
         <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
         <property name="User Group Provider">file-user-group-provider</property>
         <property name="Authorizations File">./auth-conf/authorizations.xml</property>
-        {{- if .Values.auth.ldap.enabled}}
+        {{- if and .Values.auth.ldap.enabled (not .Values.auth.admin) }}
         <property name="Initial Admin Identity">{{.Values.auth.ldap.admin}}</property>
         {{- else }}
         <property name="Initial Admin Identity">{{ .Values.auth.admin }}</property>
