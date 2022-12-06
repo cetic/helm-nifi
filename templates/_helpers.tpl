@@ -63,9 +63,9 @@ else use user-provided name and port
 {{- define "registry.url" }}
 {{- $port := .Values.registry.port | toString }}
 {{- if .Values.registry.enabled -}}
-{{- printf "http://%s-registry:%s" .Release.Name $port }}
+{{- printf "%s://%s-registry:%s" (ternary "https" "http" (or (eq $port "443") (eq $port "18443"))) .Release.Name $port }}
 {{- else -}}
-{{- printf "http://%s:%s" .Values.registry.url $port }}
+{{- printf "%s://%s:%s" (ternary "https" "http" (or (eq $port "443") (eq $port "18443"))) .Values.registry.url $port }}
 {{- end -}}
 {{- end -}}
 
@@ -85,7 +85,7 @@ Set the service account name
 */}}
 {{- define "apache-nifi.serviceAccountName" -}}
 {{- if .Values.sts.serviceAccount.create }}
-{{- default (include "apache-nifi.fullname" .) .Values.sts.serviceAccount.name }}-sa
+{{- default (include "apache-nifi.fullname" .) .Values.sts.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.sts.serviceAccount.name }}
 {{- end }}

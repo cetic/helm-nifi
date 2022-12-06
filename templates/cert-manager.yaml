@@ -17,7 +17,7 @@ spec:
   isCA: true
   duration: {{ $.Values.certManager.caDuration }}
   renewBefore: 5m1s
-  commonName: {{ template "apache-nifi.fullname" $ }}-ca.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  commonName: {{ template "apache-nifi.fullname" $ }}-ca.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
   subject:
     organizationalUnits:
     - NIFI
@@ -48,7 +48,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   duration: {{ $.Values.certManager.certDuration }}
-  commonName: {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+  commonName: {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
   subject:
     organizationalUnits:
     - NIFI
@@ -66,9 +66,9 @@ spec:
   dnsNames:
 {{ toYaml $.Values.certManager.additionalDnsNames | indent 4 }}
     - {{ template "apache-nifi.fullname" $ }}.{{ $.Release.Namespace }}.svc
-    - {{ template "apache-nifi.fullname" $ }}.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+    - {{ template "apache-nifi.fullname" $ }}.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
     - {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc
-    - {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}
+    - {{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
   issuerRef:
     name: {{ template "apache-nifi.fullname" $ }}-ca
     kind: Issuer

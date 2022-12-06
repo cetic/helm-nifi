@@ -13,11 +13,18 @@ service:
   type: ClusterIP
   port: 9090
 
+envFrom: {}
+#  - secretRef:
+#      name: test
+
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
 ##
 persistence:
   enabled: false
+  # when persistence is enabled, define image for busybox
+  initContainer:
+    image: busybox
 
   # When creating persistent storage, the NiFi helm chart can either reference an already-defined
   # storage class by name, such as "standard" or can define a custom storage class by specifying

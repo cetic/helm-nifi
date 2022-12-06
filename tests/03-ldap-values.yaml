@@ -8,7 +8,8 @@ auth:
   ldap:
     enabled: true
     host: ldap://openldap:389
-    searchBase: ou=users,dc=example,dc=org
-    admin: cn=user1,ou=users,dc=example,dc=org
-    pass: password1
+    userSearchBase: ou=users,dc=example,dc=org
+    managerDN: cn=user1,ou=users,dc=example,dc=org
+    initialAdmin: cn=user1,ou=users,dc=example,dc=org
+    managerPassword: password1
     authStrategy: SIMPLE

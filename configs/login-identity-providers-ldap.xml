@@ -21,14 +21,14 @@
 <loginIdentityProviders>
     <!--
         Identity Provider for users logging in with username/password against an LDAP server.
-        
+
         'Authentication Strategy' - How the connection to the LDAP server is authenticated. Possible
             values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
-        
+
         'Manager DN' - The DN of the manager that is used to bind to the LDAP server to search for users.
         'Manager Password' - The password of the manager that is used to bind to the LDAP server to
             search for users.
-            
+
         'TLS - Keystore' - Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
         'TLS - Keystore Password' - Password for the Keystore that is used when connecting to LDAP
             using LDAPS or START_TLS.
@@ -43,13 +43,13 @@
             Possible values are REQUIRED, WANT, NONE.
         'TLS - Protocol' - Protocol to use when connecting to LDAP using LDAPS or START_TLS. (i.e. TLS,
             TLSv1.1, TLSv1.2, etc).
-        'TLS - Shutdown Gracefully' - Specifies whether the TLS should be shut down gracefully 
+        'TLS - Shutdown Gracefully' - Specifies whether the TLS should be shut down gracefully
             before the target context is closed. Defaults to false.
-            
+
         'Referral Strategy' - Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.
         'Connect Timeout' - Duration of connect timeout. (i.e. 10 secs).
         'Read Timeout' - Duration of read timeout. (i.e. 10 secs).
-       
+
         'Url' - Space-separated list of URLs of the LDAP servers (i.e. ldap://<hostname>:<port>).
         'User Search Base' - Base DN for searching for users (i.e. CN=Users,DC=example,DC=com).
         'User Search Filter' - Filter for searching for users against the 'User Search Base'.
@@ -65,26 +65,30 @@
     <provider>
         <identifier>ldap-provider</identifier>
         <class>org.apache.nifi.ldap.LdapProvider</class>
-        <property name="Authentication Strategy">SIMPLE</property>
-        <property name="Manager DN">{{.Values.auth.ldap.admin}}</property>
-        <property name="Manager Password">{{.Values.auth.ldap.pass}}</property>
-        <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local/keystore.jks</property>
+        <property name="Authentication Strategy">{{.Values.auth.ldap.authenticationStrategy}}</property>
+        <property name="Manager DN">{{.Values.auth.ldap.managerDN}}</property>
+        <property name="Manager Password">{{.Values.auth.ldap.managerPassword}}</property>
         <property name="TLS - Keystore Password">{{.Values.auth.keystorePasswd}}</property>
         <property name="TLS - Keystore Type">JKS</property>
-        <property name="TLS - Truststore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local/truststore.jks</property>
+        {{- if .Values.certManager.enabled }}
+        <property name="TLS - Keystore">/opt/nifi/nifi-current/tls/keystore.jks</property>
+        <property name="TLS - Truststore">/opt/nifi/nifi-current/tls/truststore.jks</property>
+        {{- else }}
+        <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.{{.Values.clusterDomain}}/keystore.jks</property>
+        <property name="TLS - Truststore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.{{.Values.clusterDomain}}/truststore.jks</property>
+        {{- end }}
         <property name="TLS - Truststore Password">{{.Values.auth.truststorePasswd}}</property>
         <property name="TLS - Truststore Type">JKS</property>
         <property name="TLS - Client Auth">NONE</property>
         <property name="TLS - Protocol">TLS</property>
         <property name="TLS - Shutdown Gracefully">false</property>
-
-        <property name="Referral Strategy">FOLLOW</property>
+        <property name="Referral Strategy">{{.Values.auth.ldap.referralStrategy}}</property>
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
         <property name="Url">{{.Values.auth.ldap.host}}</property>
-        <property name="User Search Base">{{.Values.auth.ldap.searchBase}}</property>
-        <property name="User Search Filter">(cn={0})</property>
-        <property name="Identity Strategy">{{.Values.auth.ldap.IdentityStrategy}}</property>
+        <property name="User Search Base">{{.Values.auth.ldap.userSearchBase}}</property>
+        <property name="User Search Filter">{{.Values.auth.ldap.providerUserSearchFilter}}</property>
+        <property name="Identity Strategy">{{.Values.auth.ldap.identityStrategy}}</property>
         <property name="Authentication Expiration">12 hours</property>
     </provider>
 </loginIdentityProviders>
