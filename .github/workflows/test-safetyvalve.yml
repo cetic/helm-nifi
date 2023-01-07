@@ -16,12 +16,12 @@ jobs:
         with:
           minikube version: 'v1.28.0'
           kubernetes version: 'v1.25.4'
-          #github token: ${{ secrets.GITHUB_TOKEN }}
+          github token: ${{ secrets.GITHUB_TOKEN }}
       #- run: minikube addons list
       #- name: Interact with the cluster
       #  run: kubectl get nodes
       - name: Checkout code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
       - name: Install dependencies
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
