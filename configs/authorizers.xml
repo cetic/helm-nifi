@@ -48,10 +48,10 @@
         <property name="Users File">./auth-conf/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
         {{- range $i := until $replicas }}
-        <property name="Initial User Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
+        <property name="Initial User Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.{{ $.Values.clusterDomain }}, OU=NIFI</property>
         {{- end }}
         {{- if and .Values.auth.ldap.enabled (not .Values.auth.admin) }}
-        <property name="Initial User Identity admin">{{.Values.auth.ldap.admin}}</property>
+        <property name="Initial User Identity admin">{{.Values.auth.ldap.initialAdmin}}</property>
         {{- else }}
         <property name="Initial User Identity admin">{{ .Values.auth.admin }}</property>
         {{- end}}
@@ -117,44 +117,50 @@
         NOTE: Any identity mapping rules specified in nifi.properties will also be applied to the user identities.
             Group names are not mapped.
     -->
-    {{- if .Values.auth.ldap.enabled}}
+    {{- if .Values.auth.ldap.enabled }}
     <userGroupProvider>
         <identifier>ldap-user-group-provider</identifier>
         <class>org.apache.nifi.ldap.tenants.LdapUserGroupProvider</class>
-        <property name="Authentication Strategy">SIMPLE</property>
-        <property name="Manager DN">{{.Values.auth.ldap.admin}}</property>
-        <property name="Manager Password">{{.Values.auth.ldap.pass}}</property>
-        <property name="TLS - Keystore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Values.properties.namespace}}.svc.cluster.local/keystore.jks</property>
+        <property name="Authentication Strategy">{{.Values.auth.ldap.authenticationStrategy}}</property>
+        <property name="Manager DN">{{.Values.auth.ldap.managerDN}}</property>
+        <property name="Manager Password">{{.Values.auth.ldap.managerPassword}}</property>
         <property name="TLS - Keystore Password">{{.Values.auth.SSL.keystorePasswd}}</property>
-        <property name="TLS - Keystore Type">jks</property>
-        <property name="TLS - Truststore">/opt/nifi/nifi-current/conf/{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Values.properties.namespace}}.svc.cluster.local/truststore.jks</property>
+        <property name="TLS - Keystore Type">JKS</property>
+        {{- if .Values.certManager.enabled }}
+        <property name="TLS - Keystore">/opt/nifi/nifi-current/tls/keystore.jks</property>
+        <property name="TLS - Truststore">/opt/nifi/nifi-current/tls/truststore.jks</property>
+        {{- else }}
+        <property name="TLS - Keystore">/opt/nifi/nifi-current/tls/{{.Release.Name}}-0.{{.Release.Name}}-headless.{{.Release.Namespace}}.svc.{{.Values.clusterDomain}}/keystore.jks</property>
+        <property name="TLS - Truststore">/opt/nifi/nifi-current/tls/{{.Release.Name}}-0.{{.Release.Name}}-headless.{{.Release.Namespace}}.svc.{{.Values.clusterDomain}}/truststore.jks</property>
+        {{- end }}
         <property name="TLS - Truststore Password">{{.Values.auth.SSL.truststorePasswd}}</property>
         <property name="TLS - Truststore Type">JKS</property>
         <property name="TLS - Client Auth">NONE</property>
         <property name="TLS - Protocol">TLS</property>
         <property name="TLS - Shutdown Gracefully">false</property>
-        <property name="Referral Strategy">IGNORE</property>
+        <property name="Referral Strategy">{{.Values.auth.ldap.referralStrategy}}</property>
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
         <property name="Url">{{.Values.auth.ldap.host}}</property>
         <property name="Page Size"></property>
-        <property name="Sync Interval">30 mins</property>
-        <property name="User Search Base">{{.Values.auth.ldap.searchBase}}</property>
+        <property name="Sync Interval">{{.Values.auth.ldap.syncInterval}}</property>
+        <property name="Group Membership - Enforce Case Sensitivity">false</property>
+        <property name="User Search Base">{{.Values.auth.ldap.userSearchBase}}</property>
         <property name="User Object Class">person</property>
         <property name="User Search Scope">{{.Values.auth.ldap.userSearchScope}}</property>
-        <property name="User Search Filter">{{.Values.auth.ldap.searchFilter}}</property>
-        <property name="User Identity Attribute">{{.Values.auth.ldap.UserIdentityAttribute}}</property>
-        <property name="User Group Name Attribute"></property>
+        <property name="User Search Filter">{{.Values.auth.ldap.userSearchFilter}}</property>
+        <property name="User Identity Attribute">{{.Values.auth.ldap.userIdentityAttribute}}</property>
+        <property name="User Group Name Attribute">{{.Values.auth.ldap.userGroupNameAttribute}}</property>
         <property name="User Group Name Attribute - Referenced Group Attribute"></property>
-        <property name="Group Search Base"></property>
-        <property name="Group Object Class">group</property>
+        <property name="Group Search Base">{{.Values.auth.ldap.groupSearchBase}}</property>
+        <property name="Group Object Class">{{.Values.auth.ldap.groupObjectClass}}</property>
         <property name="Group Search Scope">{{.Values.auth.ldap.groupSearchScope}}</property>
         <property name="Group Search Filter"></property>
-        <property name="Group Name Attribute"></property>
-        <property name="Group Member Attribute"></property>
+        <property name="Group Name Attribute">{{.Values.auth.ldap.groupNameAttribute}}</property>
+        <property name="Group Member Attribute">{{.Values.auth.ldap.groupMemberAttribute}}</property>
         <property name="Group Member Attribute - Referenced User Attribute"></property>
     </userGroupProvider>
-    {{- end}}
+    {{- end }}
 
     <!--
         The CompositeUserGroupProvider will provide support for retrieving users and groups from multiple sources.
@@ -164,14 +170,14 @@
             NOTE: Any identity mapping rules specified in nifi.properties are not applied in this implementation. This behavior
             would need to be applied by the base implementation.
     -->
-    {{- if .Values.auth.ldap.enabled}}
+    {{- if .Values.auth.ldap.enabled }}
     <userGroupProvider>
         <identifier>composite-configurable-user-group-provider</identifier>
         <class>org.apache.nifi.authorization.CompositeConfigurableUserGroupProvider</class>
         <property name="Configurable User Group Provider">file-user-group-provider</property>
         <property name="User Group Provider 1">ldap-user-group-provider</property>
     </userGroupProvider>
-    {{- end}}
+    {{- end }}
 
     <!--
         The CompositeConfigurableUserGroupProvider will provide support for retrieving users and groups from multiple sources.
@@ -220,16 +226,16 @@
     <accessPolicyProvider>
         <identifier>file-access-policy-provider</identifier>
         <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
-        <property name="User Group Provider">file-user-group-provider</property>
+        <property name="User Group Provider">composite-configurable-user-group-provider</property>
         <property name="Authorizations File">./auth-conf/authorizations.xml</property>
         {{- if and .Values.auth.ldap.enabled (not .Values.auth.admin) }}
-        <property name="Initial Admin Identity">{{.Values.auth.ldap.admin}}</property>
+        <property name="Initial Admin Identity">{{.Values.auth.ldap.initialAdmin}}</property>
         {{- else }}
         <property name="Initial Admin Identity">{{ .Values.auth.admin }}</property>
         {{- end}}
         <property name="Legacy Authorized Users File"></property>
         {{- range $i := until $replicas }}
-        <property name="Node Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
+        <property name="Node Identity {{ $i }}">CN={{ $fullname }}-{{ $i }}.{{ $fullname }}-headless.{{ $namespace }}.svc.{{ $.Values.clusterDomain }}, OU=NIFI</property>
         {{- end }}
         <property name="Node Identity"></property>
     </accessPolicyProvider>
@@ -245,38 +251,4 @@
         <class>org.apache.nifi.authorization.StandardManagedAuthorizer</class>
         <property name="Access Policy Provider">file-access-policy-provider</property>
     </authorizer>
-    <!--
-        NOTE: This Authorizer has been replaced with the more granular approach configured above with the Standard
-        Managed Authorizer. However, it is still available for backwards compatibility reasons.
-        The FileAuthorizer is NiFi's provided authorizer and has the following properties:
-        - Authorizations File - The file where the FileAuthorizer will store policies.
-        - Users File - The file where the FileAuthorizer will store users and groups.
-        - Initial Admin Identity - The identity of an initial admin user that will be granted access to the UI and
-            given the ability to create additional users, groups, and policies. The value of this property could be
-            a DN when using certificates or LDAP, or a Kerberos principal. This property will only be used when there
-            are no other users, groups, and policies defined. If this property is specified then a Legacy Authorized
-            Users File can not be specified.
-            NOTE: Any identity mapping rules specified in nifi.properties will also be applied to the initial admin identity,
-            so the value should be the unmapped identity.
-        - Legacy Authorized Users File - The full path to an existing authorized-users.xml that will be automatically
-            converted to the new authorizations model. If this property is specified then an Initial Admin Identity can
-            not be specified, and this property will only be used when there are no other users, groups, and policies defined.
-        - Node Identity [unique key] - The identity of a NiFi cluster node. When clustered, a property for each node
-            should be defined, so that every node knows about every other node. If not clustered these properties can be ignored.
-            The name of each property must be unique, for example for a three node cluster:
-            "Node Identity A", "Node Identity B", "Node Identity C" or "Node Identity 1", "Node Identity 2", "Node Identity 3"
-            NOTE: Any identity mapping rules specified in nifi.properties will also be applied to the node identities,
-            so the values should be the unmapped identities (i.e. full DN from a certificate).
-    -->
-    {{- if .Values.auth.ldap.enabled}}
-    <authorizer>
-        <identifier>file-provider</identifier>
-        <class>org.apache.nifi.authorization.FileAuthorizer</class>
-        <property name="Authorizations File">./auth-conf/authorizations.xml</property>
-        <property name="Users File">./auth-conf/users.xml</property>
-        <property name="Initial Admin Identity">{{.Values.auth.ldap.admin}}</property>
-        <property name="Legacy Authorized Users File"></property>
-
-    </authorizer>
-    {{- end}}
 </authorizers>

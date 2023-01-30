@@ -136,11 +136,11 @@ spec:
           FQDN=$(hostname -f)
 {{- end }}
 
-          cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
+          envsubst < "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
 
 {{- if .Values.auth.ldap.enabled }}
-          cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
-          cat "${NIFI_HOME}/conf/login-identity-providers-ldap.xml" > "${NIFI_HOME}/conf/login-identity-providers.xml"
+          envsubst < "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
+          envsubst < "${NIFI_HOME}/conf/login-identity-providers-ldap.xml" > "${NIFI_HOME}/conf/login-identity-providers.xml"
 {{- else if .Values.auth.oidc.enabled }}
           prop_replace nifi.security.user.login.identity.provider ''
           prop_replace nifi.security.user.authorizer managed-authorizer
@@ -164,20 +164,20 @@ spec:
             {{ range untilStep 0 (int .Values.replicaCount) 1 }}
                       xmlstarlet ed --inplace \
                                     --subnode "authorizers/accessPolicyProvider" --type 'elem' -n 'property' \
-                                    --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}, OU=NIFI" \
+                                    --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}, OU=NIFI" \
                                     --insert "authorizers/accessPolicyProvider/property[not(@name)]" --type attr -n name \
                                     --value "Node Identity {{ . }}" \
                                     "${NIFI_HOME}/conf/authorizers.xml"
                       xmlstarlet ed --inplace \
                                     --subnode "authorizers/userGroupProvider" --type 'elem' -n 'property' \
-                                    --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}, OU=NIFI" \
+                                    --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}, OU=NIFI" \
                                     --insert "authorizers/userGroupProvider/property[not(@name)]" --type attr -n name \
                                     --value "Initial User Identity {{ . }}" \
                                     "${NIFI_HOME}/conf/authorizers.xml"
             {{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}
           {{- end }}
 {{- else if .Values.auth.clientAuth.enabled }}
-          cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
+          envsubst < "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
           xmlstarlet ed --inplace --delete "//authorizers/authorizer[identifier='single-user-authorizer']" "${NIFI_HOME}/conf/authorizers.xml"
 {{- else if .Values.auth.singleUser.username }}
           bin/nifi.sh set-single-user-credentials {{ .Values.auth.singleUser.username }} {{ .Values.auth.singleUser.password }}
@@ -208,15 +208,15 @@ spec:
 {{ range untilStep 0 (int .Values.replicaCount) 1 }}
           xmlstarlet ed --inplace \
                         --subnode "authorizers/accessPolicyProvider" --type 'elem' -n 'property' \
-                          --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}, OU=NIFI" \
+                        --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}, OU=NIFI" \
                         --insert "authorizers/accessPolicyProvider/property[not(@name)]" --type attr -n name \
                           --value "Node Identity {{ . }}" \
                         "${NIFI_HOME}/conf/authorizers.xml"
           xmlstarlet ed --inplace \
                         --subnode "authorizers/userGroupProvider" --type 'elem' -n 'property' \
-                          --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}, OU=NIFI" \
+                        --value "CN={{ template "apache-nifi.fullname" $ }}-{{ . }}.{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}, OU=NIFI" \
                         --insert "authorizers/userGroupProvider/property[not(@name)]" --type attr -n name \
-                          --value "Initial User Identity {{ . }}" \
+                        --value "Initial User Identity {{ . }}" \
                         "${NIFI_HOME}/conf/authorizers.xml"
 {{/* range untilStep 0 (int .Values.replicaCount ) 1 */}}{{ end }}
 
@@ -227,8 +227,8 @@ spec:
           prop_replace nifi.security.truststoreType JKS
           prop_replace nifi.security.truststorePasswd "{{ .Values.certManager.truststorePasswd }}"
 
-          prop_replace nifi.web.https.host "$(hostname).{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
-          prop_replace nifi.cluster.node.address "$(hostname).{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.certManager.clusterDomain }}"
+          prop_replace nifi.web.https.host "$(hostname).{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}"
+          prop_replace nifi.cluster.node.address "$(hostname).{{ template "apache-nifi.fullname" $ }}-headless.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}"
           prop_replace nifi.web.https.network.interface.default eth0
           prop_replace nifi.web.https.network.interface.lo lo
           prop_replace nifi.web.http.host ""
@@ -251,12 +251,12 @@ spec:
 
 {{- /* if .Values.certManager.enabled */}}{{ else }}
 
-          if [ ! -r "${NIFI_HOME}/conf/nifi-cert.pem" ]
+          if [ ! -r "${NIFI_HOME}/tls/nifi-cert.pem" ]
           then
             /opt/nifi/nifi-toolkit-current/bin/tls-toolkit.sh standalone \
-              -n '{{.Release.Name}}-nifi-0.{{.Release.Name}}-nifi-headless.{{.Release.Namespace}}.svc.cluster.local' \
+              -n '{{.Release.Name}}-0.{{.Release.Name}}-headless.{{.Release.Namespace}}.svc.{{ $.Values.clusterDomain }}' \
               -C '{{.Values.auth.admin}}' \
-              -o "${NIFI_HOME}/conf/" \
+              -o "${NIFI_HOME}/tls" \
               -P {{.Values.auth.SSL.truststorePasswd}} \
               -S {{.Values.auth.SSL.keystorePasswd}} \
               --nifiPropertiesFile /opt/nifi/nifi-current/conf/nifi.properties
@@ -397,7 +397,7 @@ spec:
 {{- end }}
 {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 8 }}
+          {{- toYaml .Values.envFrom | nindent 10 }}
 {{- end }}
 {{- if .Values.postStart }}
         lifecycle:
@@ -488,6 +488,9 @@ spec:
           - name: "flow-content"
             mountPath: /opt/nifi/data/flow.xml
             subPath: "flow.xml"
+          - name: "logback-xml"
+            mountPath: /opt/nifi/nifi-current/conf/logback.xml
+            subPath: "logback.xml"
           {{- range $secret := .Values.secrets }}
             {{- if $secret.mountPath }}
               {{- if $secret.keys }}
@@ -520,11 +523,8 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
-{{- if .Values.certManager.enabled }}
           - name: "tls"
             mountPath: /opt/nifi/nifi-current/tls
-            readOnly: true
-{{- /* if .Values.certManager.enabled */}}{{ end }}
           {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 10 }}
           {{- end }}
@@ -568,6 +568,10 @@ spec:
       - name: cert-manager
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+{{- if .Values.certManager.envFrom }}
+        envFrom:
+          {{- toYaml .Values.certManager.envFrom | nindent 10 }}
+{{- end }}
         command:
         - bash
         - -ce
@@ -742,12 +746,18 @@ spec:
           items:
             - key: "flow.xml"
               path: "flow.xml"
+      - name: "logback-xml"
+        configMap:
+          name: {{ template "apache-nifi.fullname" . }}-config
+          items:
+            - key: "logback.xml"
+              path: "logback.xml"
+      - name: "tls"
+        emptyDir: {}
 {{- if .Values.certManager.enabled }}
       - name: secret-reader-token
         secret:
           secretName: {{ template "apache-nifi.fullname" $ }}-secret-reader-token
-      - name: tls
-        emptyDir: {}
       {{- range .Values.certManager.caSecrets }}
       - name: {{ include "apache-nifi.fullname" $ }}-{{ . }}
         secret:

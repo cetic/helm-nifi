@@ -1,14 +1,17 @@
 ---
+# Update the value, if you have custom k8 cluster domain name
+clusterDomain: cluster.local
+
 # Number of nifi nodes
 replicaCount: 1
 
 ## Set default image, imageTag, and imagePullPolicy.
-## ref: https://hub.docker.com/r/apache/nifi/
+## ref: https://hub.docker.com/r/dmitriidmnk/nifi
 ##
 image:
-  repository: apache/nifi
-  tag: "1.16.3"
-  pullPolicy: "IfNotPresent"
+  repository: dmitriidmnk/nifi
+  tag: 1.18.0
+  pullPolicy: IfNotPresent
 
   ## Optionally specify an imagePullSecret.
   ## Secret must be manually created in the namespace.
@@ -71,10 +74,12 @@ sts:
 #       - myconf.conf
 #     mountPath: /opt/nifi/custom-config
 
-
 properties:
+  # Must be Integer!
+  # nifi.provenance.repository.debug.frequency
+  provenanceRepositoryDebugFrequency: '1000000'
   # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#nifi_sensitive_props_key
-  sensitiveKey: changeMechangeMe # Must have at least 12 characters
+  sensitiveKey: changeMechangeMe # Must have at least 12 characters. You can set the property aka env var
   # NiFi assumes conf/nifi.properties is persistent but this helm chart
   # recreates it every time.  Setting the Sensitive Properties Key
   # (nifi.sensitive.props.key) is supposed to happen at the same time
@@ -90,9 +95,9 @@ properties:
   algorithm: NIFI_PBKDF2_AES_GCM_256
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
-  isNode: false
+  isNode: false # set to true, if replicaCount more than 1
   httpsPort: 8443
-  webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
+  webProxyHost: # 'nifi.default.svc.cluster.local:8443' uncomment and edit, if replicaCount more than 1
   clusterPort: 6007
   provenanceStorage: "8 GB"
   siteToSite:
@@ -107,6 +112,12 @@ properties:
   ## Include aditional processors
   # customLibPath: "/opt/configuration_resources/custom_lib"
 
+# configure log level
+logbackXml:
+  org.apache.nifi: INFO
+  org.apache.nifi.cluster: INFO
+  app_file: INFO
+
 ## Include additional libraries in the Nifi containers by using the postStart handler
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/
 # postStart: /opt/nifi/psql; wget -P /opt/nifi/psql https://jdbc.postgresql.org/download/postgresql-42.2.6.jar
@@ -114,7 +125,7 @@ properties:
 # Nifi User Authentication
 auth:
   # If set while LDAP is enabled, this value will be used for the initial admin and not the ldap bind dn / admin
-  admin: CN=admin, OU=NIFI
+  admin: CN=admin, OU=NIFI # Initial Admin account username. You can set the property aka env var
   SSL:
     keystorePasswd: changeMe
     truststorePasswd: changeMe
@@ -122,24 +133,33 @@ auth:
   # Automaticaly disabled if OIDC or LDAP enabled
   singleUser:
     username: username
-    password: changemechangeme # Must to have at least 12 characters
+    password: changemechangeme # Must have at least 12 characters
 
   clientAuth:
     enabled: false
 
   ldap:
     enabled: false
-    host: #ldap://<hostname>:<port>
-    searchBase: #CN=Users,DC=ldap,DC=example,DC=be
-    admin: #cn=admin,dc=ldap,dc=example,dc=be
-    pass: #ChangeMe
-    searchFilter: (objectClass=*)
-    userIdentityAttribute: cn
-    authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
-    identityStrategy: USE_DN
+    host: ldap://ldap-server.example.com:389
+    userSearchBase: ou=People,dc=example,dc=com
+    initialAdmin: nifiAdmin # LDAP account for initialize as admin user
+    userSearchFilter: (objectClass=*) # (memberOf=cn=nifi_users,ou=groups,dc=example,dc=com)
+    userIdentityAttribute: # uid
+    authenticationStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
+    identityStrategy: USE_USERNAME # USE_DN or USE_USERNAME
     authExpiration: 12 hours
-    userSearchScope: ONE_LEVEL # Search scope for searching users (ONE_LEVEL, OBJECT, or SUBTREE). Required if searching users.
+    groupSearchBase: # ou=Groups,dc=example,dc=com
+    groupObjectClass: group # groupOfNames
+    referralStrategy: IGNORE # FOLLOW
+    groupNameAttribute: # cn
+    groupMemberAttribute: # member
     groupSearchScope: ONE_LEVEL # Search scope for searching groups (ONE_LEVEL, OBJECT, or SUBTREE). Required if searching groups.
+    userSearchScope: SUBTREE # Search scope for searching users (ONE_LEVEL, OBJECT, or SUBTREE). Required if searching users.
+    userGroupNameAttribute: # memberOf
+    managerDN: uid=nifiAdmin,ou=People,dc=example,dc=com # account DN for connection to LDAP-server. You can set the property aka env var
+    managerPassword: changeMechangeMe # account password for connection to LDAP-server. You can set the property aka env var
+    providerUserSearchFilter: (uid={0})
+    syncInterval: 60 secs # Minimum allowable value is 10 secs
 
   oidc:
     enabled: false
@@ -194,7 +214,7 @@ service:
     # sessionAffinity: ClientIP
     # sessionAffinityConfig:
     #   clientIP:
-  #     timeoutSeconds: 10800
+    #     timeoutSeconds: 10800
 
   # Enables additional port/ports to nifi service for internal processors
   processors:
@@ -215,8 +235,22 @@ ingress:
   enabled: false
   # className: nginx
   annotations: {}
+#    kubernetes.io/ingress.class: 'nginx'
+#    cert-manager.io/cluster-issuer: your-issuer
+#    nginx.ingress.kubernetes.io/affinity: cookie
+#    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+#    nginx.ingress.kubernetes.io/upstream-vhost: "localhost:8443"
+#    nginx.ingress.kubernetes.io/proxy-redirect-from: "https://localhost:8443"
+#    nginx.ingress.kubernetes.io/proxy-redirect-to: "nifi.example.com"
+#    nginx.ingress.kubernetes.io/configuration-snippet: |
+#      proxy_set_header 'X-ProxyScheme' 'https';
+#      proxy_set_header 'X-ProxyPort' '443';
   tls: []
+#    - secretName: nifi-ingress-tls
+#      hosts:
+#        - nifi.example.com
   hosts: []
+#    - nifi.example.com
   path: /
   # If you want to change the default path, see this issue https://github.com/cetic/helm-nifi/issues/22
 
@@ -246,7 +280,7 @@ persistence:
   #
   # The default storage class is used if this variable is not set.
 
-  accessModes:  [ReadWriteOnce]
+  accessModes: [ReadWriteOnce]
   ## Storage Capacities for persistent volumes
   configStorage:
     size: 100Mi
@@ -347,7 +381,14 @@ ca:
   enabled: false
   persistence:
     enabled: true
-  server: ""
+  server: "" # For example "nifi-ca.default.svc.{{ .Values.clusterDomain }}"
+  envFrom: []
+  image:
+    repository: apache/nifi-toolkit
+    accessModes: [ReadWriteOnce]
+    storageClass : ''
+    initContainer:
+      image: busybox:1.32.0
   service:
     port: 9090
   token: sixteenCharacters
@@ -365,10 +406,13 @@ ca:
 # as well as the certificates for each cluster node.
 certManager:
   enabled: false
-  clusterDomain: cluster.local
   keystorePasswd: changeme
   truststorePasswd: changeme
   replaceDefaultTrustStore: false
+  # For security reason, define secret aka source of env variable for keystorePasswd and truststorePasswd
+  envFrom: {}
+  # - secretRef:
+  #     name: test
   additionalDnsNames:
     - localhost
   refreshSeconds: 300
@@ -387,8 +431,8 @@ certManager:
   # pods to pick up the new version of the CA certificate.  So default the CA
   # lifetime to 10 years to avoid that happening very often.
   # c.f. https://github.com/cert-manager/cert-manager/issues/2478#issuecomment-1095545529
-  certDuration: 2160h
-  caDuration: 87660h
+  certDuration: 2160h0m0s # the value must be with hours, minutes and seconds
+  caDuration: 87660h0m0s # the value must be with hours, minutes and seconds
 
 # ------------------------------------------------------------------------------
 # Zookeeper:
