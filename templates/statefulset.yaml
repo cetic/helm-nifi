@@ -385,6 +385,9 @@ spec:
         - containerPort: {{ .Values.properties.clusterPort }}
           name: cluster
           protocol: TCP
+{{- if .Values.containerPorts  }}
+{{ toYaml .Values.containerPorts | indent 8 }}
+{{- end }}
         env:
         - name: NIFI_ZOOKEEPER_CONNECT_STRING
           value: {{ template "zookeeper.url" . }}
