@@ -170,6 +170,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `service.loadBalancerSourceRanges`                                          | Address that are allowed when svc is `LoadBalancer`                                                                | `[]`                            |
 | `service.processors.enabled`                                                | Enables additional port/ports to nifi service for internal processors                                              | `false`                         |
 | `service.processors.ports`                                                  | Specify "name/port/targetPort/nodePort" for processors  sockets                                                    | `[]`                            |
+| **ContainerPorts**       |                                                  |
+| `containerPorts`                                                            | Additional containerPorts for the nifi-container. Example is given in values.yaml  | `[]` 
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
 | `ingress.className`      | Ingress controller Class                                                                                   | `nginx`                                  |
