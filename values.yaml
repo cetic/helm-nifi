@@ -208,6 +208,11 @@ service:
         port: 7002
         targetPort: 7002
         #nodePort: 30702
+## Configure containerPorts section with following attributes: name, containerport and protocol. 
+containerPorts: []
+# - name: example
+#   containerPort: 1111
+#   protocol: TCP 
 
 ## Configure Ingress based on the documentation here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
