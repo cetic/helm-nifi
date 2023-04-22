@@ -38,7 +38,7 @@ sts:
   pod:
     annotations:
       security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
-      #prometheus.io/scrape: "true"      
+      #prometheus.io/scrape: "true"
   serviceAccount:
     create: false
     #name: nifi
@@ -91,7 +91,7 @@ properties:
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
   isNode: false
-  httpsPort: 8443 
+  httpsPort: 8443
   webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
   provenanceStorage: "8 GB"
@@ -113,12 +113,13 @@ properties:
 
 # Nifi User Authentication
 auth:
+  # If set while LDAP is enabled, this value will be used for the initial admin and not the ldap bind dn / admin
   admin: CN=admin, OU=NIFI
   SSL:
     keystorePasswd: changeMe
     truststorePasswd: changeMe
-  
-  # Automaticaly disabled if OIDC or LDAP enabled 
+
+  # Automaticaly disabled if OIDC or LDAP enabled
   singleUser:
     username: username
     password: changemechangeme # Must to have at least 12 characters
@@ -137,6 +138,8 @@ auth:
     authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
     identityStrategy: USE_DN
     authExpiration: 12 hours
+    userSearchScope: ONE_LEVEL # Search scope for searching users (ONE_LEVEL, OBJECT, or SUBTREE). Required if searching users.
+    groupSearchScope: ONE_LEVEL # Search scope for searching groups (ONE_LEVEL, OBJECT, or SUBTREE). Required if searching groups.
 
   oidc:
     enabled: false
@@ -205,6 +208,11 @@ service:
         port: 7002
         targetPort: 7002
         #nodePort: 30702
+## Configure containerPorts section with following attributes: name, containerport and protocol. 
+containerPorts: []
+# - name: example
+#   containerPort: 1111
+#   protocol: TCP 
 
 ## Configure Ingress based on the documentation here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
@@ -377,11 +385,11 @@ certManager:
       cpu: 100m
       memory: 128Mi
   # cert-manager takes care of rotating the node certificates, so default
-  # their lifetime to 90 days.  But when the CA expires you may need to 
-  # 'helm delete' the cluster, delete all the node certificates and secrets, 
+  # their lifetime to 90 days.  But when the CA expires you may need to
+  # 'helm delete' the cluster, delete all the node certificates and secrets,
   # and then 'helm install' the NiFi cluster again.  If a site-to-site trusted
-  # CA or a NiFi Registry CA certificate expires, you'll need to restart all 
-  # pods to pick up the new version of the CA certificate.  So default the CA 
+  # CA or a NiFi Registry CA certificate expires, you'll need to restart all
+  # pods to pick up the new version of the CA certificate.  So default the CA
   # lifetime to 10 years to avoid that happening very often.
   # c.f. https://github.com/cert-manager/cert-manager/issues/2478#issuecomment-1095545529
   certDuration: 2160h
@@ -408,7 +416,7 @@ registry:
   url: ""
   port: 80
   ## Add values for the nifi-registry here
-  ## ref: https://github.com/dysnix/charts/blob/master/nifi-registry/values.yaml
+  ## ref: https://github.com/dysnix/charts/blob/main/dysnix/nifi-registry/values.yaml
 
 # Configure metrics
 metrics:

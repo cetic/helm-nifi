@@ -40,7 +40,7 @@ The following items can be set via `--set` flag during installation or configure
 
 #### Configure authentication
 
-- By default, the authentication is a `Single-User` authentication. You can optionally enable `ldap` or `oidc` to provide an external authentication. See the [configuration section](README.md#configuration) or [doc](doc/) folder for more details. 
+- By default, the authentication is a `Single-User` authentication. You can optionally enable `ldap` or `oidc` to provide an external authentication. See the [configuration section](README.md#configuration) or [doc](doc/) folder for more details.
 
 #### Use custom processors
 
@@ -60,10 +60,10 @@ To add [custom processors](https://cwiki.apache.org/confluence/display/NIFI/Mave
 
 #### Configure prometheus monitoring
 
-- You first need monitoring to be enabled which can be accomplished by enabling the appropriate metrics flag (`metrics.prometheus.enabled` to true). 
+- You first need monitoring to be enabled which can be accomplished by enabling the appropriate metrics flag (`metrics.prometheus.enabled` to true).
 To enable the creation of prometheus metrics within Nifi we need to create a *Reporting Task*. Login to the Nifi UI and go to the Hamburger menu on the top right corner, click *Controller Settings* --> *Reporting Tasks* After that use the + icon to add a task. Click on the *Reporting* in the wordcloud on the left and select *PrometheusReportingTask* --> change *Send JVM metrics* to `true` and click on the play button to enable this task.
 
-If you plan to use Grafana for the visualization of the metrics data [the following dashboard](https://grafana.com/grafana/dashboards/12314) is compatible with the exposed metrics. 
+If you plan to use Grafana for the visualization of the metrics data [the following dashboard](https://grafana.com/grafana/dashboards/12314) is compatible with the exposed metrics.
 
 ### Install the chart
 
@@ -123,7 +123,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.sensitiveKeySetFile`                                            | [Update Sensitive Properties Key](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#updating-the-sensitive-properties-key) if this file does not exist, and then create it. | `nil`                           |
 | `properties.sensitiveKeyPrior`                                              | Prior `sensitiveKey` when updating via `sensitiveKeySetFile` mechanism                                             | `nil`                           |
 | `properties.externalSecure`                                                 | externalSecure for when inbound SSL                                                                                | `false`                         |
-| `properties.isNode`                                                         | cluster node properties (only configure for cluster nodes)                                                         | `true`                          |
+| `properties.isNode`                                                         | cluster node properties (only configure for cluster nodes)                                                         | `false`                          |
 | `properties.httpPort`                                                       | web properties HTTP port                                                                                           | `8080`                          |
 | `properties.httpsPort`                                                      | web properties HTTPS port                                                                                          | `null`                          |
 | `properties.clusterPort`                                                    | cluster node port                                                                                                  | `6007`                          |
@@ -135,16 +135,19 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.webProxyHost`                               | Proxy to access to Nifi through the cluster ip address    | `Port:30236`
 | **[Authentication](/doc/USERMANAGEMENT.md)**                                                |
 | **Single-user authentication**                                                | Automatically disabled if Client Certificate, OIDC, or LDAP enabled
+| `auth.     admin`                                                           | Default admin identity. It will overwrite the LDAP Bind DN for this purpose, when both is filled                   | ` CN=admin, OU=NIFI`            |
 | `auth.singleUser.username`                                                                | Single user identity                                                                                             | `username`            |
 | `auth.singleUser.password`                                                         | Single user password                                                                                          | `changemechangeme`                         |
 | **Client Certificate authentication**       |
 | `auth.clientAuth.enabled`       |     Enable User auth via Client Certificates       |     `false`
 | **Ldap authentication**                                                |
-| `auth.admin`                                                                | Default admin identity                                                                                             | ` CN=admin, OU=NIFI`            |
+| `auth.ldap.admin`                                                           | Default admin identity and LDAP Bind DN                                                                            |                                 |
 | `auth.ldap.enabled`                                                         | Enable User auth via ldap                                                                                          | `false`                         |
 | `auth.ldap.host`                                                            | ldap hostname                                                                                                      | `ldap://<hostname>:<port>`      |
 | `auth.ldap.searchBase`                                                      | ldap searchBase                                                                                                    | `CN=Users,DC=example,DC=com`    |
 | `auth.ldap.searchFilter`                                                    | ldap searchFilter                                                                                                  | `CN=john`                       |
+| `auth.ldap.userSearchScope`                                                 | ldap userSearchScope                                                                                               | `ONE_LEVEL`                     |
+| `auth.ldap.groupSearchScope`                                                | ldap groupSearchScope                                                                                              | `ONE_LEVEL`                     |
 | **Oidc authentication**
 | `auth.oidc.enabled`                                                         | Enable User auth via oidc                                                                                          | `false`                         |
 | `auth.oidc.discoveryUrl`                                                    | oidc discover url                                                                                                  | `https://<provider>/.well-known/openid-configuration`      |
@@ -167,6 +170,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `service.loadBalancerSourceRanges`                                          | Address that are allowed when svc is `LoadBalancer`                                                                | `[]`                            |
 | `service.processors.enabled`                                                | Enables additional port/ports to nifi service for internal processors                                              | `false`                         |
 | `service.processors.ports`                                                  | Specify "name/port/targetPort/nodePort" for processors  sockets                                                    | `[]`                            |
+| **ContainerPorts**       |                                                  |
+| `containerPorts`                                                            | Additional containerPorts for the nifi-container. Example is given in values.yaml  | `[]` 
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
 | `ingress.className`      | Ingress controller Class                                                                                   | `nginx`                                  |
