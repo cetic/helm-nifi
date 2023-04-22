@@ -83,7 +83,7 @@
         <property name="Read Timeout">10 secs</property>
         <property name="Url">{{.Values.auth.ldap.host}}</property>
         <property name="User Search Base">{{.Values.auth.ldap.searchBase}}</property>
-        <property name="User Search Filter">{{.Values.auth.ldap.searchFilter}}</property>
+        <property name="User Search Filter">({{.Values.auth.ldap.userIdentityAttribute}}={0})</property>
         <property name="Identity Strategy">{{.Values.auth.ldap.IdentityStrategy}}</property>
         <property name="Authentication Expiration">{{.Values.auth.ldap.authExpiration}}</property>
     </provider>
