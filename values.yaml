@@ -95,6 +95,7 @@ properties:
   webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
   provenanceStorage: "8 GB"
+  provenanceMaxStorageTime: "10 days"
   siteToSite:
     port: 10000
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
