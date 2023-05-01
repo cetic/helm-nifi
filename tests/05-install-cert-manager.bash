@@ -14,4 +14,5 @@ mkdir -p /tmp/cmctl-install
 curl -fsSL -o /tmp/cmctl-install/cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/latest/download/cmctl-$OS-$ARCH.tar.gz
 (cd /tmp/cmctl-install ; tar xvzf cmctl.tar.gz ; sudo mv cmctl /usr/local/bin)
 
-cmctl experimental install
+kubectl create namespace cert-manager
+cmctl experimental install -n cert-manager
