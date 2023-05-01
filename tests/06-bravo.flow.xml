@@ -24,7 +24,7 @@
       <bundle>
         <group>org.apache.nifi</group>
         <artifact>nifi-update-attribute-nar</artifact>
-        <version>1.15.2</version>
+        <version>1.20.0</version>
       </bundle>
       <maxConcurrentTasks>1</maxConcurrentTasks>
       <schedulingPeriod>0 sec</schedulingPeriod>
@@ -62,7 +62,7 @@
       <bundle>
         <group>org.apache.nifi</group>
         <artifact>nifi-update-attribute-nar</artifact>
-        <version>1.15.2</version>
+        <version>1.20.0</version>
       </bundle>
       <maxConcurrentTasks>1</maxConcurrentTasks>
       <schedulingPeriod>0 sec</schedulingPeriod>
@@ -159,7 +159,7 @@
       <bundle>
         <group>org.apache.nifi</group>
         <artifact>nifi-prometheus-nar</artifact>
-        <version>1.15.2</version>
+        <version>1.20.0</version>
       </bundle>
       <schedulingPeriod>5 sec</schedulingPeriod>
       <scheduledState>RUNNING</scheduledState>
