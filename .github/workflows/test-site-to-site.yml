@@ -14,7 +14,7 @@ jobs:
       - name: Setup Minikube
         uses: manusa/actions-setup-minikube@v2.7.2
         with:
-          minikube version: 'v1.30.1'
+          minikube version: 'v1.28.0'
           kubernetes version: 'v1.25.4'
           github token: ${{ secrets.GITHUB_TOKEN }}          
       - name: Checkout code
@@ -87,12 +87,15 @@ jobs:
       - name: Confirm certificate rotation
         run: |
           OLDCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
-          echo Certificate "$OLDCERTSTART"
+          echo Old Certificate "$OLDCERTSTART"
           cmctl -n alpha renew nifi-0
+          kubectl -n alpha rollout restart statefulset/nifi
+          kubectl -n alpha rollout status --watch statefulset/nifi --timeout=5m
+          sleep 5m
           for n in [ 0 1 2 3 4 5 6 7 8 9 ]
           do
             NEWCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
-            echo Certificate "$NEWCERTSTART"
+            echo New Certificate "$NEWCERTSTART"
             if [ \""$OLDCERTSTART"\" != \""$NEWCERTSTART"\" ]
             then
               exit 0
