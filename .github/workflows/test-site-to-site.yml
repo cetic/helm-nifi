@@ -89,9 +89,12 @@ jobs:
           OLDCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
           echo Old Certificate "$OLDCERTSTART"
           cmctl -n alpha renew nifi-0
+          # Remove below block of code when issue NIFI-11536 is fixed
+          #########################################################################
           kubectl -n alpha rollout restart statefulset/nifi
           kubectl -n alpha rollout status --watch statefulset/nifi --timeout=5m
           sleep 5m
+          #########################################################################
           for n in [ 0 1 2 3 4 5 6 7 8 9 ]
           do
             NEWCERTSTART=$(kubectl -n alpha exec nifi-0 -c server -- curl -kv https://localhost:8443 2>&1 | /bin/grep start)
