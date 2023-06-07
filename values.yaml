@@ -253,7 +253,16 @@ persistence:
   # The default storage class is used if this variable is not set.
 
   accessModes:  [ReadWriteOnce]
-  ## Storage Capacities for persistent volumes
+
+  ## Use subPath and have 1 persistent volume instead of 7 volumes - use when your k8s nodes have limited volume slots, to limit waste of space,
+  ##  or your available volume sizes are quite large
+  #  The one disk will have a directory folder for each volumeMount, but this is hidden. Run 'mount' to view each mount.
+  subPath:
+    enabled: false
+    name: data
+    size: 30Gi
+
+  ## Storage Capacities for persistent volumes (these are ignored if using one volume with subPath)
   configStorage:
     size: 100Mi
   authconfStorage:

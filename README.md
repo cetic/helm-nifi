@@ -35,8 +35,9 @@ The following items can be set via `--set` flag during installation or configure
 
 #### Configure how to persist data
 
-- **Disable**: The data does not survive the termination of a pod.
-- **Persistent Volume Claim(default)**: A default `StorageClass` is needed in the Kubernetes cluster to dynamically provision the volumes. Specify another StorageClass in the `storageClass` or set `existingClaim` if you have already existing persistent volumes to use.
+- **Disable(default)**: The data does not survive the termination of a pod.
+- **Persistent Volume Claim**: Enable persistence so that data survives termination of the pod.  There is the choice of using one large persistent volume (using subPath) or seven separate persistent volumes for config, data, logs, repos, etc.  
+  A default `StorageClass` is needed in the Kubernetes cluster to dynamically provision the volumes. Specify another StorageClass in the `persistence.storageClass` setting.
 
 #### Configure authentication
 
@@ -184,6 +185,9 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `persistence.enabled`                                                       | Use persistent volume to store data                                                                                | `false`                         |
 | `persistence.storageClass`                                                  | Storage class name of PVCs (use the default type if unset)                                                         | `nil`                           |
 | `persistence.accessMode`                                                    | ReadWriteOnce or ReadOnly                                                                                          | `[ReadWriteOnce]`               |
+| `persistence.subPath.enabled`                                               | Use only one persistent volume with subPath instead of seven separate persistent volumes                           | `false`                           |
+| `persistence.subPath.name`                                                  | Name of the one persistent volume claim when using subPath                                                         | `data`                          |
+| `persistence.subPath.size`                                                  | Size of the one persistent volume claim when using subPath                                                         | `36Gi`                          |
 | `persistence.configStorage.size`                                            | Size of persistent volume claim                                                                                    | `100Mi`                         |
 | `persistence.authconfStorage.size`                                          | Size of persistent volume claim                                                                                    | `100Mi`                         |
 | `persistence.dataStorage.size`                                              | Size of persistent volume claim                                                                                    | `1Gi`                           |
@@ -191,7 +195,6 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `persistence.contentRepoStorage.size`                                       | Size of persistent volume claim                                                                                    | `10Gi`                          |
 | `persistence.provenanceRepoStorage.size`                                    | Size of persistent volume claim                                                                                    | `10Gi`                          |
 | `persistence.logStorage.size`                                               | Size of persistent volume claim                                                                                    | `5Gi`                           |
-| `persistence.existingClaim`                                                 | Use an existing PVC to persist data                                                                                | `nil`                           |
 | **jvmMemory**                                                               |
 | `jvmMemory`                                                                 | bootstrap jvm size                                                                                                 | `2g`                            |
 | **SideCar**                                                                 |
