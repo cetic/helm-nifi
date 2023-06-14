@@ -149,7 +149,7 @@ auth:
     clientSecret: #<client_secret_in_oidc_provider>
     claimIdentifyingUser: email
     admin: nifi@example.com
-    preferredJwsalgorithm:
+    preferredJwsAlgorithm: 
     ## Request additional scopes, for example profile
     additionalScopes:
 
