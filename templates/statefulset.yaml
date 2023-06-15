@@ -453,20 +453,55 @@ spec:
           tcpSocket:
             port: {{ .Values.properties.httpsPort }}
         volumeMounts:
-          - name: "logs"
-            mountPath: /opt/nifi/nifi-current/logs
-          - name: "data"
-            mountPath: /opt/nifi/data
-          - name: "auth-conf"
-            mountPath: /opt/nifi/nifi-current/auth-conf/
-          - name: "config-data"
-            mountPath: /opt/nifi/nifi-current/config-data
-          - name: "flowfile-repository"
-            mountPath: /opt/nifi/flowfile_repository
-          - name: "content-repository"
-            mountPath: /opt/nifi/content_repository
-          - name: "provenance-repository"
-            mountPath: /opt/nifi/provenance_repository
+          - mountPath: /opt/nifi/nifi-current/logs
+            {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+            name: {{ .Values.persistence.subPath.name }}
+            subPath: logs
+            {{- else }}
+            name: "logs"
+            {{- end }}
+          - mountPath: /opt/nifi/data
+            {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+            name: {{ .Values.persistence.subPath.name }}
+            subPath: data
+            {{- else }}
+            name: "data"
+            {{- end }}
+          - mountPath: /opt/nifi/nifi-current/auth-conf/
+            {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+            name: {{ .Values.persistence.subPath.name }}
+            subPath: auth-conf
+            {{- else }}
+            name: "auth-conf"
+            {{- end }}
+          - mountPath: /opt/nifi/nifi-current/config-data
+            {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+            name: {{ .Values.persistence.subPath.name }}
+            subPath: config-data
+            {{- else }}
+            name: "config-data"
+            {{- end }}
+          - mountPath: /opt/nifi/flowfile_repository
+            {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+            name: {{ .Values.persistence.subPath.name }}
+            subPath: flowfile-repository
+            {{- else }}
+            name: "flowfile-repository"
+            {{- end }}
+          - mountPath: /opt/nifi/content_repository
+            {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+            name: {{ .Values.persistence.subPath.name }}
+            subPath: content-repository
+            {{- else }}
+            name: "content-repository"
+            {{- end }}
+          - mountPath: /opt/nifi/provenance_repository
+            {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+            name: {{ .Values.persistence.subPath.name }}
+            subPath: provenance-repository
+            {{- else }}
+            name: "provenance-repository"
+            {{- end }}
           - name: "bootstrap-conf"
             mountPath: /opt/nifi/nifi-current/conf/bootstrap.conf
             subPath: "bootstrap.conf"
@@ -541,8 +576,13 @@ spec:
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
-        - name: logs
-          mountPath: /var/log
+        - mountPath: /var/log
+          {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+          name: {{ .Values.persistence.subPath.name }}
+          subPath: logs
+          {{- else }}
+          name: "logs"
+          {{- end }}
       - name: bootstrap-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
@@ -553,8 +593,13 @@ spec:
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
-        - name: logs
-          mountPath: /var/log
+        - mountPath: /var/log
+          {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+          name: {{ .Values.persistence.subPath.name }}
+          subPath: logs
+          {{- else }}
+          name: "logs"
+          {{- end }}
       - name: user-log
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy | default "Always" | quote }}
         image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.tag }}"
@@ -565,8 +610,13 @@ spec:
         resources:
 {{ toYaml .Values.logresources | indent 10 }}
         volumeMounts:
-        - name: logs
-          mountPath: /var/log
+        - mountPath: /var/log
+          {{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+          name: {{ .Values.persistence.subPath.name }}
+          subPath: logs
+          {{- else }}
+          name: "logs"
+          {{- end }}
 {{- if .Values.certManager.enabled }}
       - name: cert-manager
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
@@ -786,7 +836,21 @@ spec:
 {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 6 }}
 {{- end }}
-{{- if .Values.persistence.enabled }}
+{{- if and .Values.persistence.enabled .Values.persistence.subPath.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ .Values.persistence.subPath.name }}
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.subPath.size }}
+{{- end }}
+{{- if and .Values.persistence.enabled (not .Values.persistence.subPath.enabled) }}
   volumeClaimTemplates:
     - metadata:
         name: logs
