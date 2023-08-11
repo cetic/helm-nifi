@@ -339,6 +339,9 @@ env: []
 ## Extra environment variables from secrets and config maps
 envFrom: []
 
+## Extra options to add to the bootstrap.conf file
+extraOptions: []
+
 # envFrom:
 #   - configMapRef:
 #       name: config-name
