@@ -90,6 +90,7 @@ jobs:
           echo Old Certificate "$OLDCERTSTART"
           cmctl -n alpha renew nifi-0
           # Remove below block of code when issue NIFI-11536 is fixed
+          # i.e. in version 1.23 https://issues.apache.org/jira/browse/NIFI-11536
           #########################################################################
           kubectl -n alpha rollout restart statefulset/nifi
           kubectl -n alpha rollout status --watch statefulset/nifi --timeout=5m
