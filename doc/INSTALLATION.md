@@ -16,7 +16,7 @@ helm dep up
 ```
 2. **Set a sensitiveKey**
 
-In 1.16.3 version, Nifi needs a sensitiveKey to encrypt sensitive information. This key can be setted in the `values.yaml` file:
+In 1.23.2 version, Nifi needs a sensitiveKey to encrypt sensitive information. This key can be setted in the `values.yaml` file:
 
 ````
 properties:
