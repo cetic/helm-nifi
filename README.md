@@ -5,7 +5,7 @@
 
 ## Introduction
 
-This [Helm](https://helm.sh/) chart installs [Apache NiFi](https://nifi.apache.org/) 1.16.3 in a [Kubernetes](https://kubernetes.io/) cluster.
+This [Helm](https://helm.sh/) chart installs [Apache NiFi](https://nifi.apache.org/) 1.23.2 in a [Kubernetes](https://kubernetes.io/) cluster.
 
 ## Prerequisites
 
@@ -96,7 +96,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `replicaCount`                                                              | Number of nifi nodes                                                                                               | `1`                             |
 | **Image**                                                                   |
 | `image.repository`                                                          | nifi Image name                                                                                                    | `apache/nifi`                   |
-| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.16.3`                        |
+| `image.tag`                                                                 | nifi Image tag                                                                                                     | `1.23.2`                        |
 | `image.pullPolicy`                                                          | nifi Image pull policy                                                                                             | `IfNotPresent`                  |
 | `image.pullSecret`                                                          | nifi Image pull secret                                                                                             | `nil`                           |
 | **SecurityContext**                                                         |
