@@ -95,6 +95,8 @@ properties:
   webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
   zkClientEnsembleTraker: false # https://issues.apache.org/jira/browse/NIFI-10481
+  archiveMaxRetentionPeriod: "3 days"
+  archiveMaxUsagePercentage: "85%"
   provenanceStorage: "8 GB"
   provenanceMaxStorageTime: "10 days"
   siteToSite:
@@ -150,7 +152,7 @@ auth:
     clientSecret: #<client_secret_in_oidc_provider>
     claimIdentifyingUser: email
     admin: nifi@example.com
-    preferredJwsAlgorithm: 
+    preferredJwsAlgorithm:
     ## Request additional scopes, for example profile
     additionalScopes:
 
@@ -211,11 +213,11 @@ service:
         port: 7002
         targetPort: 7002
         #nodePort: 30702
-## Configure containerPorts section with following attributes: name, containerport and protocol. 
+## Configure containerPorts section with following attributes: name, containerport and protocol.
 containerPorts: []
 # - name: example
 #   containerPort: 1111
-#   protocol: TCP 
+#   protocol: TCP
 
 ## Configure Ingress based on the documentation here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
