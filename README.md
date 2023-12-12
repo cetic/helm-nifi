@@ -36,7 +36,7 @@ The following items can be set via `--set` flag during installation or configure
 #### Configure how to persist data
 
 - **Disable(default)**: The data does not survive the termination of a pod.
-- **Persistent Volume Claim**: Enable persistence so that data survives termination of the pod.  There is the choice of using one large persistent volume (using subPath) or seven separate persistent volumes for config, data, logs, repos, etc.  
+- **Persistent Volume Claim**: Enable persistence so that data survives termination of the pod.  There is the choice of using one large persistent volume (using subPath) or seven separate persistent volumes for config, data, logs, repos, etc.
   A default `StorageClass` is needed in the Kubernetes cluster to dynamically provision the volumes. Specify another StorageClass in the `persistence.storageClass` setting.
 
 #### Configure authentication
@@ -132,6 +132,8 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `properties.clusterNodeReadTimeout`                                         | cluster node read timeout                                                                                          | `5 sec`                         |
 | `properties.zookeeperConnectTimeout`                                        | zookeeper connect timeout                                                                                          | `3 secs`                        |
 | `properties.zookeeperSessionTimeout`                                        | zookeeper session timeout                                                                                          | `3 secs`                        |
+| `properties.archiveMaxRetentionPeriod`                                      | nifi content repository archive max retention period                                                               | `3 days`                           |
+| `properties.archiveMaxUsagePercentage`                                      |  nifi content repository archive max usage                                                                         | `85%`                           |
 | `properties.provenanceStorage`                                              | nifi provenance repository max storage size                                                                        | `8 GB`                          |
 | `properties.provenanceMaxStorageTime`                                       | nifi provenance repository max storage time                                                                        | `10 days`                          |
 | `properties.siteToSite.secure`                                              | Site to Site properties Secure mode                                                                                | `false`                         |
@@ -178,7 +180,7 @@ The following table lists the configurable parameters of the nifi chart and the 
 | `service.processors.enabled`                                                | Enables additional port/ports to nifi service for internal processors                                              | `false`                         |
 | `service.processors.ports`                                                  | Specify "name/port/targetPort/nodePort" for processors  sockets                                                    | `[]`                            |
 | **ContainerPorts**       |                                                  |
-| `containerPorts`                                                            | Additional containerPorts for the nifi-container. Example is given in values.yaml  | `[]` 
+| `containerPorts`                                                            | Additional containerPorts for the nifi-container. Example is given in values.yaml  | `[]`
 | **Ingress**                                                                 |
 | `ingress.enabled`                                                           | Enables Ingress                                                                                                    | `false`                         |
 | `ingress.className`      | Ingress controller Class                                                                                   | `nginx`                                  |
