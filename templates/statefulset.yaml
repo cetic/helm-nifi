@@ -660,6 +660,7 @@ spec:
                     -noprompt \
                     -trustcacerts \
                     -alias $ALIAS \
+                    -storetype JKS \
                     -file $ca \
                     -keystore "${NIFI_HOME}/tls/truststore-new.jks" \
                     -storepass "{{ .Values.certManager.truststorePasswd }}"
@@ -686,6 +687,7 @@ spec:
                       -destkeystore "${NIFI_HOME}/tls/keystore-new.jks" \
                       -srckeystore "/tmp/tls.p12" \
                       -srcstoretype PKCS12 \
+                      -deststoretype JKS \
                       -srcstorepass "{{ .Values.certManager.keystorePasswd }}" \
                       -deststorepass "{{ .Values.certManager.keystorePasswd }}"
               mv  "${NIFI_HOME}/tls/keystore-new.jks" "${NIFI_HOME}/tls/keystore.jks"
