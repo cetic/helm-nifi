@@ -95,6 +95,10 @@ properties:
   webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
   zkClientEnsembleTraker: false # https://issues.apache.org/jira/browse/NIFI-10481
+  clusterNodeConnectionTimeout: '5 sec'
+  clusterNodeReadTimeout: '5 sec'
+  zookeeperConnectTimeout: '3 secs'
+  zookeeperSessionTimeout: '3 secs'
   archiveMaxRetentionPeriod: "3 days"
   archiveMaxUsagePercentage: "85%"
   provenanceStorage: "8 GB"
