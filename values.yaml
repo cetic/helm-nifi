@@ -103,6 +103,8 @@ properties:
   archiveMaxUsagePercentage: "85%"
   provenanceStorage: "8 GB"
   provenanceMaxStorageTime: "10 days"
+  flowArchiveMaxTime: "30 days"
+  flowArchiveMaxStorage: "500 MB"
   siteToSite:
     port: 10000
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
