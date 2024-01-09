@@ -7,7 +7,7 @@ replicaCount: 1
 ##
 image:
   repository: apache/nifi
-  tag: "1.23.2"
+  tag: "2.0.0-M1"
   pullPolicy: "IfNotPresent"
 
   ## Optionally specify an imagePullSecret.
