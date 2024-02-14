@@ -156,6 +156,9 @@ auth:
     discoveryUrl: #http://<oidc_provider_address>:<oidc_provider_port>/auth/realms/<client_realm>/.well-known/openid-configuration
     clientId: #<client_name_in_oidc_provider>
     clientSecret: #<client_secret_in_oidc_provider>
+    # try to use an existing secret that has been sourced from a key vault so the clientSecret isn't stored in plaintext
+    #  if this is set then the clientSecret above is ignored.
+    existingSecret:
     claimIdentifyingUser: email
     admin: nifi@example.com
     preferredJwsAlgorithm:

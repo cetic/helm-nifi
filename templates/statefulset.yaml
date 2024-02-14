@@ -146,7 +146,7 @@ spec:
           prop_replace nifi.security.user.authorizer managed-authorizer
           prop_replace nifi.security.user.oidc.discovery.url {{ .Values.auth.oidc.discoveryUrl }}
           prop_replace nifi.security.user.oidc.client.id {{ .Values.auth.oidc.clientId }}
-          prop_replace nifi.security.user.oidc.client.secret {{ .Values.auth.oidc.clientSecret }}
+          prop_replace nifi.security.user.oidc.client.secret $(cat /mnt/secrets/oidc/clientSecret)
           prop_replace nifi.security.user.oidc.claim.identifying.user {{ .Values.auth.oidc.claimIdentifyingUser }}
           xmlstarlet ed --inplace --delete "//authorizers/authorizer[identifier='single-user-authorizer']" "${NIFI_HOME}/conf/authorizers.xml"
           xmlstarlet ed --inplace --update "//authorizers/userGroupProvider/property[@name='Users File']" -v './auth-conf/users.xml' "${NIFI_HOME}/conf/authorizers.xml"
@@ -559,6 +559,11 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+          {{- if .Values.auth.oidc.enabled }}
+          - name: oidc-secret
+            mountPath: /mnt/secrets/oidc
+            readOnly: true
+          {{- end }}
 {{- if .Values.certManager.enabled }}
           - name: "tls"
             mountPath: /opt/nifi/nifi-current/tls
@@ -835,6 +840,15 @@ spec:
         emptyDir: {}
       - name: logs
         emptyDir: {}
+{{- end }}
+{{- if .Values.auth.oidc.enabled }}
+      - name: oidc-secret
+        secret:
+          {{- if not .Values.auth.oidc.existingSecret }}
+          secretName: {{ template "apache-nifi.fullname" . }}-oidc
+          {{- else }}
+          secretName: {{ .Values.auth.oidc.existingSecret  }}
+          {{- end }}
 {{- end }}
 {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 6 }}
